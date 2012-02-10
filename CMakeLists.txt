@@ -24,7 +24,7 @@ endif(GIT_TAG)
 
 configure_file(
   ${PROJECT_SOURCE_DIR}/cmake/version.h.in
-  ${PROJECT_BINARY_DIR}/cmake/version.h
+  ${PROJECT_BINARY_DIR}/version.h
 )
 
 # === Set cmake 3rd library modules path
