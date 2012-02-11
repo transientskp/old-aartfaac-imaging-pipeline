@@ -80,6 +80,8 @@ void UniboardEmulator::getPacketData(char *&ptr, unsigned long &size)
     {
       qWarning("Corrupt tabledata at index %lld", index);
     }
+
+    qDebug("Dataindex: %lld", index);
   }
 
   _totalPackets++;

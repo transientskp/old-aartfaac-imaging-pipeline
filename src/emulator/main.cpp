@@ -1,4 +1,5 @@
 #include "UniboardEmulator.h"
+#include "../utilities/Logger.h"
 #include "version.h"
 
 #include <pelican/emulator/EmulatorDriver.h>
@@ -8,19 +9,21 @@
 
 int main(int argc, char* argv[])
 {
+  if (argc != 2)
+  {
+    std::cerr << "Usage: aartfaac-emulator <table dir>" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  Logger::setFileName(NAME"-emulator.log");
+  qInstallMsgHandler(Logger::messageHandler);
+
   QCoreApplication app(argc, argv);
 
   app.setApplicationName(HUMAN_NAME);
   app.setApplicationVersion(VERSION);
   app.setOrganizationName("Anton Pannekoek Institute");
   app.setOrganizationDomain("http://www.aartfaac.org");
-
-  if (argc != 2)
-  {
-    qFatal("Usage: %s <table dir>", argv[0]);
-  }
-
-  qDebug("%s", HUMAN_NAME);
 
   pelican::ConfigNode xmlNode(
         "<UniboardEmulator>"

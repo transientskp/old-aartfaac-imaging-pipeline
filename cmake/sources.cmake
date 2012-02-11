@@ -4,6 +4,7 @@
 set(EMULATOR_SOURCES
   src/emulator/main.cpp
   src/emulator/UniboardEmulator.cpp
+  src/utilities/Logger.cpp
 )
 
 # === Server sources
