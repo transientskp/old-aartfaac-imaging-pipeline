@@ -38,6 +38,7 @@ SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
 
 # === Include sources.
 include(cmake/sources.cmake)
+include_directories(${PROJECT_BINARY_DIR})
 
 # === Enable the cmake testing framework.
 enable_testing()
