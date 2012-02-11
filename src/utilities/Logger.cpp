@@ -6,11 +6,21 @@
 #include <QDataStream>
 
 QFile Logger::_sFile;
+QString Logger::_sFileName;
 bool Logger::_sShouldUseColor = shouldUseColor();
+quint8 Logger::_sMaxFiles;
+qint64 Logger::_sMaxFileSize;
+quint8 Logger::_sCurFile;
 
-void Logger::setFileName(const QString &fileName)
+void Logger::setLogFileProperties(const QString &fileName,
+                                  const quint8 maxFiles,
+                                  const qint64 maxFileSize)
 {
-  _sFile.setFileName(fileName);
+  _sMaxFiles = maxFiles;
+  _sMaxFileSize = maxFileSize;
+  _sFileName = fileName;
+  _sCurFile = 0;
+  _sFile.setFileName(QString::number(_sCurFile) + "-" + _sFileName);
   _sFile.open(QIODevice::WriteOnly);
 }
 
@@ -55,6 +65,14 @@ void Logger::messageHandler(QtMsgType type, const char *msg)
   _sFile.write(msg);
   _sFile.write("\n");
   _sFile.flush();
+
+  if (_sFile.size() > _sMaxFileSize)
+  {
+    _sFile.close();
+    _sCurFile = (_sCurFile + 1) % _sMaxFiles;
+    _sFile.setFileName(QString::number(_sCurFile) + "-" + _sFileName);
+    _sFile.open(QIODevice::WriteOnly);
+  }
 }
 
 QString Logger::colorize(const QString &msg, Color color)

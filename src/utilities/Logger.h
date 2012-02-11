@@ -6,7 +6,10 @@
 class Logger {
 public:
 
-  static void setFileName(const QString &fileName);
+  static void setLogFileProperties(const QString &fileName,
+                                   quint8 maxFiles,
+                                   qint64 maxFileSize);
+
   static void messageHandler(QtMsgType type, const char *msg);
   static bool shouldUseColor();
 
@@ -26,6 +29,11 @@ private:
 
   static QFile _sFile;
   static bool _sShouldUseColor;
+
+  static quint8 _sMaxFiles;
+  static quint8 _sCurFile;
+  static qint64 _sMaxFileSize;
+  static QString _sFileName;
 };
 
 #endif // LOGGER_H

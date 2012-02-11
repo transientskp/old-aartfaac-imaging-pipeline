@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
-  Logger::setFileName(NAME"-emulator.log");
+  Logger::setLogFileProperties(NAME"-emulator.log", 10, 1024*1024*10);
   qInstallMsgHandler(Logger::messageHandler);
 
   QCoreApplication app(argc, argv);

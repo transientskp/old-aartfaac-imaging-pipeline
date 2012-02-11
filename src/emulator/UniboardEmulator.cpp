@@ -75,7 +75,6 @@ void UniboardEmulator::getPacketData(char *&ptr, unsigned long &size)
     }
 
     dataIndex++;
-
     Q_ASSERT(dataIndex == i*SAMPLE_SIZE+12);
   }
 
