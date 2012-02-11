@@ -18,7 +18,6 @@ UniboardEmulator::UniboardEmulator(const pelican::ConfigNode &configNode)
 {
   _totalPackets = 0;
   _totalSamples = 0;
-  _totalBytes   = 0;
 
   _samples = configNode.getOption("packet", "samples").toULong();
   _packet.resize(_samples * SAMPLE_SIZE * sizeof(double) + HEADER_SIZE);
@@ -35,13 +34,6 @@ UniboardEmulator::UniboardEmulator(const pelican::ConfigNode &configNode)
   *reinterpret_cast<int*>(ptr + 4) = HEADER_SIZE;
   *reinterpret_cast<int*>(ptr + 8) = _samples;
   *reinterpret_cast<int*>(ptr + 12) = SAMPLE_SIZE * sizeof(double);
-}
-
-UniboardEmulator::~UniboardEmulator()
-{
-  qDebug("Samples sent: %lld", _totalSamples);
-  qDebug("Packets sent: %lld", _totalPackets);
-  qDebug("Bytes   sent: %lld", _totalBytes);
 }
 
 void UniboardEmulator::getPacketData(char *&ptr, unsigned long &size)
@@ -92,5 +84,4 @@ void UniboardEmulator::getPacketData(char *&ptr, unsigned long &size)
 
   _totalPackets++;
   _totalSamples += _samples;
-  _totalBytes += size;
 }

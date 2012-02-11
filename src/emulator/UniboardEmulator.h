@@ -15,16 +15,16 @@ class UniboardEmulator : public pelican::AbstractUdpEmulator
 public:
   UniboardEmulator(const pelican::ConfigNode &configNode);
 
-  ~UniboardEmulator();
+  ~UniboardEmulator() {}
 
   void getPacketData(char*& ptr, unsigned long& size);
 
 private:
   unsigned long long _totalSamples;
   unsigned long long _totalPackets;
-  unsigned long long _totalBytes;
-  unsigned long _samples;
   unsigned long long _tableRows;
+  unsigned long _samples;
+
 
   QByteArray _packet;
 
