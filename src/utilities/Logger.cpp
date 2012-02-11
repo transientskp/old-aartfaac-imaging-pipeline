@@ -16,6 +16,7 @@ void Logger::setFileName(const QString &fileName)
 
 void Logger::messageHandler(QtMsgType type, const char *msg)
 {
+  QDateTime dateTime = QDateTime::currentDateTime();
   QString message(msg);
 
   switch (type)
@@ -37,19 +38,20 @@ void Logger::messageHandler(QtMsgType type, const char *msg)
   case QtCriticalMsg:
     _sFile.write("[CRITICAL] ");
     if (_sShouldUseColor)
-      std::cout << qPrintable(colorize(message, RED)) << std::endl;
+      std::cerr << qPrintable(colorize(message, RED)) << std::endl;
     else
-      std::cout << "[CRITICAL] " << msg << std::endl;
+      std::cerr << "[CRITICAL] " << msg << std::endl;
     break;
   case QtFatalMsg:
     _sFile.write("[FATAL] ");
     if (_sShouldUseColor)
-      std::cout << qPrintable(colorize(message, RED)) << std::endl;
+      std::cerr << qPrintable(colorize(message, RED)) << std::endl;
     else
-      std::cout << "[FATAL] " << msg << std::endl;
+      std::cerr << "[FATAL] " << msg << std::endl;
     break;
   }
 
+  _sFile.write(dateTime.toString("(dd/MM/yy hh:mm) ").toAscii());
   _sFile.write(msg);
   _sFile.write("\n");
   _sFile.flush();

@@ -21,7 +21,8 @@ private:
     CYAN    = 36,
     WHITE   = 37
   };
-  static QString colorize(const QString &msg, Logger::Color color);
+
+  static QString colorize(const QString &msg, Color color);
 
   static QFile _sFile;
   static bool _sShouldUseColor;

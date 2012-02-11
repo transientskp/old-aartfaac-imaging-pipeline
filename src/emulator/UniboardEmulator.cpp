@@ -76,12 +76,7 @@ void UniboardEmulator::getPacketData(char *&ptr, unsigned long &size)
 
     dataIndex++;
 
-    if (dataIndex != i*SAMPLE_SIZE+12)
-    {
-      qWarning("Corrupt tabledata at index %lld", index);
-    }
-
-    qDebug("Dataindex: %lld", index);
+    Q_ASSERT(dataIndex == i*SAMPLE_SIZE+12);
   }
 
   _totalPackets++;
