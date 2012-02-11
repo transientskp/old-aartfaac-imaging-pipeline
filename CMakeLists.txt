@@ -2,6 +2,12 @@
 project(aartfaac CXX C Fortran)
 cmake_minimum_required(VERSION 2.8)
 
+# === Compiler options
+SET(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror")
+SET(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DDEBUG")
+SET(CMAKE_CXX_FLAGS_RELEASE "-O2")
+SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DDEBUG")
+
 # === Project version
 execute_process(
   COMMAND git describe --tags
