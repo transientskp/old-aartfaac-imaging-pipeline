@@ -11,8 +11,7 @@ int main(int argc, char* argv[])
 
   if (argc != 2)
   {
-    qWarning("Usage: aartfaac-emulator <table dir>");
-    return 1;
+    qFatal("Usage: %s <table dir>", argv[0]);
   }
 
   pelican::ConfigNode xmlNode(

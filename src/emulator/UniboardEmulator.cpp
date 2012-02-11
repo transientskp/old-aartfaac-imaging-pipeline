@@ -26,7 +26,7 @@ UniboardEmulator::UniboardEmulator(const pelican::ConfigNode &configNode)
   QString tableName = QCoreApplication::arguments().at(1);
   _table = casa::Table::openTable(tableName.toStdString().c_str());
   _tableRows = _table.nrow();
-  _timeColumn.attach(_table, "TIME");
+  _timeColumn.attach(_table, "TIME_CENTROID");
   _dataColumn.attach(_table, "DATA");
   _posColumn.attach(_table, "UVW");
 
