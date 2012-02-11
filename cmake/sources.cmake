@@ -3,6 +3,7 @@
 # === Emulator sources
 set(EMULATOR_SOURCES
   src/emulator/main.cpp
+  src/emulator/UniboardEmulator.cpp
 )
 
 # === Server sources
