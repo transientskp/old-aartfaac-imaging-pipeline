@@ -39,6 +39,7 @@ enable_testing()
 # === Find Dependencies.
 find_package(Pelican REQUIRED)
 find_package(CppUnit REQUIRED)
+find_package(Casacore REQUIRED)
 
 # === Add directories to the include path (i.e. -I<directory> ...)
 include_directories(${PELICAN_INCLUDES})
@@ -52,6 +53,7 @@ target_link_libraries(${EMULATOR}
   ${QT_QTNETWORK_LIBRARY}
   ${QT_QTXML_LIBRARY}
   ${PELICAN_LIBRARY}
+  ${CASACORE_LIBRARIES}
 )
 
 # === Create the server binary.
