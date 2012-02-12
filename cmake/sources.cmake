@@ -10,9 +10,11 @@ set(EMULATOR_SOURCES
 # === Server sources
 set(SERVER_SOURCES
   src/server/main.cpp
+  src/utilities/Logger.cpp
 )
 
 # === Pipeline sources
 set(PIPELINE_SOURCES
   src/pipeline/main.cpp
+  src/utilities/Logger.cpp
 )
