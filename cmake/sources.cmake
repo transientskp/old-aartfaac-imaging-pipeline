@@ -10,6 +10,7 @@ set(EMULATOR_SOURCES
 # === Server sources
 set(SERVER_SOURCES
   src/server/main.cpp
+  src/server/DataChunker.cpp
   src/utilities/Logger.cpp
 )
 
