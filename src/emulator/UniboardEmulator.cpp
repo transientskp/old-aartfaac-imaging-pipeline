@@ -34,24 +34,22 @@ void UniboardEmulator::getPacketData(char *&outData, unsigned long &outSize)
   outData = mUdpPacket.data();
   outSize = mUdpPacket.size();
 
-  double time;
-  casa::Array<casa::Complex>::iterator xx_polar;
-
   quint32 data_index = 0;
+  casa::Array<casa::Complex> data_array;
+
   for (quint32 i = 0; i < mSamples; i++)
   {
     quint64 row_index = (i + mTotalSamples) % mTotalTableRows;
-    time = mTimeColumn.get(row_index);
-    xx_polar = mDataColumn.get(row_index).begin();
+    double time = mTimeColumn.get(row_index);
+    data_array = mDataColumn.get(row_index);
+    casa::Complex &xx_polar = (*data_array.begin());
 
     // First 8 bytes used for time
-    reinterpret_cast<double*>(outData)[data_index] = time;
+    reinterpret_cast<double*>(outData)[data_index++] = time;
 
     // Next 8 bytes used for first complex number (xx polarization)
-    reinterpret_cast<float*>(outData)[++data_index] = float((*xx_polar).real());
-    reinterpret_cast<float*>(outData)[++data_index] = float((*xx_polar).imag());
-
-    data_index++;
+    reinterpret_cast<float*>(outData)[data_index++] = float(xx_polar.real());
+    reinterpret_cast<float*>(outData)[data_index++] = float(xx_polar.imag());
   }
 
   mTotalPackets++;
