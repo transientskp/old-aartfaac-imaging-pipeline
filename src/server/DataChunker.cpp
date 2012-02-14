@@ -2,9 +2,9 @@
 #include <pelican/utility/Config.h>
 #include <QtNetwork/QUdpSocket>
 
-DataChunker::DataChunker(const pelican::ConfigNode &config)
+DataChunker::DataChunker(const pelican::ConfigNode &inConfig)
 {
-  _chunkSize = config.getOption("data", "chunkSize").toInt();
+  mChunkSize = inConfig.getOption("data", "chunkSize").toInt();
 }
 
 QIODevice* DataChunker::newDevice()
@@ -16,32 +16,32 @@ QIODevice* DataChunker::newDevice()
   return socket;
 }
 
-void DataChunker::next(QIODevice *device)
+void DataChunker::next(QIODevice *inDevice)
 {
-  QUdpSocket *udpSocket = static_cast<QUdpSocket*>(device);
-  _bytesRead = 0;
+  QUdpSocket *udp_socket = static_cast<QUdpSocket*>(inDevice);
+  mBytesRead = 0;
 
-  pelican::WritableData writableData = getDataStorage(_chunkSize);
+  pelican::WritableData writableData = getDataStorage(mChunkSize);
   if (writableData.isValid())
   {
     char *ptr = (char*) writableData.ptr();
 
-    while (isActive() && _bytesRead < _chunkSize)
+    while (isActive() && mBytesRead < mChunkSize)
     {
-      if (!udpSocket->hasPendingDatagrams())
+      if (!udp_socket->hasPendingDatagrams())
       {
-        udpSocket->waitForReadyRead(100);
+        udp_socket->waitForReadyRead(100);
         continue;
       }
 
-      qint64 maxlen = _chunkSize - _bytesRead;
-      qint64 length = udpSocket->readDatagram(ptr + _bytesRead, maxlen);
+      qint64 maxlen = mChunkSize - mBytesRead;
+      qint64 length = udp_socket->readDatagram(ptr + mBytesRead, maxlen);
       if (length > 0)
-        _bytesRead += length;
+        mBytesRead += length;
     }
   }
   else
   {
-    udpSocket->readDatagram(0, 0);
+    udp_socket->readDatagram(0, 0);
   }
 }

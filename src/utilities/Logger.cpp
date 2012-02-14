@@ -5,80 +5,80 @@
 #include <QFile>
 #include <QDataStream>
 
-QFile Logger::_sFile;
-QString Logger::_sFileName;
-bool Logger::_sShouldUseColor = shouldUseColor();
-quint8 Logger::_sMaxFiles;
-qint64 Logger::_sMaxFileSize;
-quint8 Logger::_sCurFile;
+QFile Logger::sFile;
+QString Logger::sFileName;
+bool Logger::sShouldUseColor = shouldUseColor();
+quint8 Logger::sMaxFiles;
+qint64 Logger::sMaxFileSize;
+quint8 Logger::sCurrentFile;
 
-void Logger::setLogFileProperties(const QString &fileName,
-                                  const quint8 maxFiles,
-                                  const qint64 maxFileSize)
+void Logger::setLogFileProperties(const QString &inFileName,
+                                  const quint8 inMaxFiles,
+                                  const qint64 inMaxFileSize)
 {
-  _sMaxFiles = maxFiles;
-  _sMaxFileSize = maxFileSize;
-  _sFileName = fileName;
-  _sCurFile = 0;
-  _sFile.setFileName(QString::number(_sCurFile) + "-" + _sFileName);
-  _sFile.open(QIODevice::WriteOnly);
+  sMaxFiles = inMaxFiles;
+  sMaxFileSize = inMaxFileSize;
+  sFileName = inFileName;
+  sCurrentFile = 0;
+  sFile.setFileName(QString::number(sCurrentFile) + "-" + sFileName);
+  sFile.open(QIODevice::WriteOnly);
 }
 
-void Logger::messageHandler(QtMsgType type, const char *msg)
+void Logger::messageHandler(QtMsgType inType, const char *inMsg)
 {
-  QDateTime dateTime = QDateTime::currentDateTime();
-  QString message(msg);
+  QDateTime date_time = QDateTime::currentDateTime();
+  QString msg(inMsg);
 
-  switch (type)
+  switch (inType)
   {
   case QtDebugMsg:
-    _sFile.write("[DEBUG] ");
-    if (_sShouldUseColor)
-      std::cout << qPrintable(colorize(message, GREEN)) << std::endl;
+    sFile.write("[DEBUG] ");
+    if (sShouldUseColor)
+      std::cout << qPrintable(colorize(msg, GREEN)) << std::endl;
     else
-      std::cout << "[DEBUG] " << msg << std::endl;
+      std::cout << "[DEBUG] " << inMsg << std::endl;
     break;
   case QtWarningMsg:
-    _sFile.write("[WARNING] ");
-    if (_sShouldUseColor)
-      std::cout << qPrintable(colorize(message, YELLOW)) << std::endl;
+    sFile.write("[WARNING] ");
+    if (sShouldUseColor)
+      std::cout << qPrintable(colorize(msg, YELLOW)) << std::endl;
     else
-      std::cout << "[WARNING] " << msg << std::endl;
+      std::cout << "[WARNING] " << inMsg << std::endl;
     break;
   case QtCriticalMsg:
-    _sFile.write("[CRITICAL] ");
-    if (_sShouldUseColor)
-      std::cerr << qPrintable(colorize(message, RED)) << std::endl;
+    sFile.write("[CRITICAL] ");
+    if (sShouldUseColor)
+      std::cerr << qPrintable(colorize(msg, RED)) << std::endl;
     else
-      std::cerr << "[CRITICAL] " << msg << std::endl;
+      std::cerr << "[CRITICAL] " << inMsg << std::endl;
     break;
   case QtFatalMsg:
-    _sFile.write("[FATAL] ");
-    if (_sShouldUseColor)
-      std::cerr << qPrintable(colorize(message, RED)) << std::endl;
+    sFile.write("[FATAL] ");
+    if (sShouldUseColor)
+      std::cerr << qPrintable(colorize(msg, RED)) << std::endl;
     else
-      std::cerr << "[FATAL] " << msg << std::endl;
+      std::cerr << "[FATAL] " << inMsg << std::endl;
     break;
   }
 
-  _sFile.write(dateTime.toString("(dd/MM/yy hh:mm) ").toAscii());
-  _sFile.write(msg);
-  _sFile.write("\n");
-  _sFile.flush();
+  sFile.write(date_time.toString("(dd/MM/yy hh:mm) ").toAscii());
+  sFile.write(inMsg);
+  sFile.write("\n");
+  sFile.flush();
 
-  if (_sFile.size() > _sMaxFileSize)
+  if (sFile.size() > sMaxFileSize)
   {
-    _sFile.close();
-    _sCurFile = (_sCurFile + 1) % _sMaxFiles;
-    _sFile.setFileName(QString::number(_sCurFile) + "-" + _sFileName);
-    _sFile.open(QIODevice::WriteOnly);
+    sFile.close();
+    sCurrentFile = (sCurrentFile + 1) % sMaxFiles;
+    sFile.setFileName(QString::number(sCurrentFile) + "-" + sFileName);
+    sFile.open(QIODevice::WriteOnly);
   }
 }
 
-QString Logger::colorize(const QString &msg, Color color)
+QString Logger::colorize(const QString &inMsg, Color inColor)
 {
   QString output("\033[0;");
-  return output + QString::number(color) + "m" + msg + "\033[0m";
+  return output + QString::number(inColor) + "m" + inMsg + "\033[0m";
 }
 
 bool Logger::shouldUseColor()

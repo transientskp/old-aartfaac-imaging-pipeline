@@ -25,8 +25,8 @@ int main(int argc, char* argv[])
   app.setOrganizationName("Anton Pannekoek Institute");
   app.setOrganizationDomain("http://www.aartfaac.org");
 
-  QString configFile(argv[1]);
-  pelican::Config config(configFile);
+  QString config_file(argv[1]);
+  pelican::Config config(config_file);
 
   try
   {

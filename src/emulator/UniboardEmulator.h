@@ -13,25 +13,23 @@
 class UniboardEmulator : public pelican::AbstractUdpEmulator
 {
 public:
-  UniboardEmulator(const pelican::ConfigNode &configNode);
+  UniboardEmulator(const pelican::ConfigNode &inConfigNode);
 
   ~UniboardEmulator() {}
 
-  void getPacketData(char*& ptr, unsigned long& size);
+  void getPacketData(char *&outData, unsigned long &outSize);
 
 private:
-  unsigned long long _totalSamples;
-  unsigned long long _totalPackets;
-  unsigned long long _tableRows;
-  unsigned long _samples;
+  quint64 mTotalSamples;
+  quint64 mTotalPackets;
+  quint64 mTotalTableRows;
+  quint64 mSamples;
 
+  QByteArray mUdpPacket;
 
-  QByteArray _packet;
-
-  casa::Table _table;
-  casa::ROScalarColumn<casa::Double> _timeColumn;
-  casa::ROArrayColumn<casa::Complex> _dataColumn;
-  casa::ROArrayColumn<casa::Double> _posColumn;
+  casa::Table mTable;
+  casa::ROScalarColumn<casa::Double> mTimeColumn;
+  casa::ROArrayColumn<casa::Complex> mDataColumn;
 };
 
 #endif // UNIBOARD_EMULATOR_H

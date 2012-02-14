@@ -25,13 +25,13 @@ int main(int argc, char* argv[])
   app.setOrganizationName("Anton Pannekoek Institute");
   app.setOrganizationDomain("http://www.aartfaac.org");
 
-  pelican::ConfigNode xmlNode(
+  pelican::ConfigNode xml_node(
         "<UniboardEmulator>"
         "  <packet samples=\"12\" />"
         "  <connection host=\"127.0.0.1\" port=\"2001\" />"
         "</UniboardEmulator>"
   );
 
-  pelican::EmulatorDriver driver(new UniboardEmulator(xmlNode));
+  pelican::EmulatorDriver driver(new UniboardEmulator(xml_node));
   return app.exec();
 }
