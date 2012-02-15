@@ -15,8 +15,6 @@ class UniboardEmulator : public pelican::AbstractUdpEmulator
 public:
   UniboardEmulator(const pelican::ConfigNode &inConfigNode);
 
-  ~UniboardEmulator() {}
-
   void getPacketData(char *&outData, unsigned long &outSize);
 
 private:
@@ -24,6 +22,7 @@ private:
   quint64 mTotalPackets;
   quint64 mTotalTableRows;
   quint64 mSamples;
+  quint64 mRowIndex;
 
   QByteArray mUdpPacket;
 

@@ -18,12 +18,13 @@ UniboardEmulator::UniboardEmulator(const pelican::ConfigNode &inConfigNode)
 {
   mTotalPackets = 0;
   mTotalSamples = 0;
+  mRowIndex     = 0;
 
   mSamples = inConfigNode.getOption("packet", "samples").toULong();
   mUdpPacket.resize(mSamples * SAMPLE_SIZE);
 
   QString table_name = QCoreApplication::arguments().at(1);
-  mTable = casa::Table::openTable(table_name.toStdString().c_str());
+  mTable = casa::Table::openTable(qPrintable(table_name));
   mTotalTableRows = mTable.nrow();
   mTimeColumn.attach(mTable, "TIME");
   mDataColumn.attach(mTable, "DATA");
@@ -39,9 +40,9 @@ void UniboardEmulator::getPacketData(char *&outData, unsigned long &outSize)
 
   for (quint32 i = 0; i < mSamples; i++)
   {
-    quint64 row_index = (i + mTotalSamples) % mTotalTableRows;
-    double time = mTimeColumn.get(row_index);
-    data_array = mDataColumn.get(row_index);
+    mRowIndex = (i + mTotalSamples) % mTotalTableRows;
+    double time = mTimeColumn.get(mRowIndex);
+    data_array = mDataColumn.get(mRowIndex);
     casa::Complex &xx_polar = (*data_array.begin());
 
     // First 8 bytes used for time
