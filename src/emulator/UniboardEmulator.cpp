@@ -54,6 +54,8 @@ UniboardEmulator::UniboardEmulator(const pelican::ConfigNode &inConfigNode)
 
 UniboardEmulator::~UniboardEmulator()
 {
+  delete mMeasurementSet;
+  delete mMSColumns;
   qDebug("Packets sent: %lld", mTotalPackets);
   qDebug("Samples sent: %lld", mTotalSamples);
   qDebug("Bytes sent  : %lld", mUdpPacket.size() * mTotalPackets);
