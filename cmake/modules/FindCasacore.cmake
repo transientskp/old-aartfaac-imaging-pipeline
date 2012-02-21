@@ -61,6 +61,17 @@ find_library(CASACORE_LIBRARY casacore
 )
 set(CASACORE_LIBRARIES ${CASACORE_LIBRARY})
 
+# Find the Casacore library.
+find_library(CASACORE_MS_LIBRARY casams
+    NAMES casa_ms
+    PATHS
+    ${CASACORE_INSTALL_DIR}/lib
+    $ENV{CASACORE_INSTALL_DIR}/lib
+    /usr/lib
+    /usr/local/lib
+)
+list(APPEND CASACORE_LIBRARIES ${CASACORE_MS_LIBRARY})
+
 # Find the Casacore tables library
 find_library(CASACORE_TABLES_LIBRARY casacore
     NAMES casa_tables
@@ -85,7 +96,10 @@ FIND_PACKAGE_HANDLE_STANDARD_ARGS(Casatables
     "ERROR: Could not find Casatables library."
     CASACORE_TABLES_LIBRARY
 )
-
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(Casams
+    "ERROR: Could not find Casatables library."
+    CASACORE_MS_LIBRARY
+)
 
 # Find dependencies.
 #find_package(ccfits)
