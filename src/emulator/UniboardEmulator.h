@@ -16,6 +16,8 @@ public:
   int nPackets();
 
 private:
+  void emulationFinished();
+
   quint64 mTotalSamples;
   quint64 mTotalPackets;
   quint64 mTotalTableRows;

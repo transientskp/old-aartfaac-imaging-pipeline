@@ -78,7 +78,7 @@ void UniboardEmulator::getPacketData(char *&outData, unsigned long &outSize)
   *reinterpret_cast<quint64*>(outData + 20) = mTotalPackets;
   *reinterpret_cast<quint32*>(outData + 28) = 0;
 
-  char *data = outData + HEADER_SIZE;
+  char *data = mUdpPacket.data() + HEADER_SIZE;
 
   // Set the packet data
   casa::Array<casa::Complex> data_array;
@@ -111,12 +111,11 @@ void UniboardEmulator::getPacketData(char *&outData, unsigned long &outSize)
       data += sizeof(float);
     }
   }
-  Q_ASSERT(data == mUdpPacket.end());
 
   /*
   qDebug("--------Packet(%lld)--------", mTotalPackets);
   data = outData + HEADER_SIZE;
-  for (quint64 i = 0; i < mSamples; i++)
+  for (quint64 i = 0; i < max_rows-mRowIndex+mSamples; i++)
   {
     double time = *reinterpret_cast<double*>(data);       data += sizeof(double);
     quint16 antenna1 = *reinterpret_cast<quint16*>(data); data += sizeof(quint16);
@@ -142,5 +141,10 @@ unsigned long UniboardEmulator::interval()
 
 int UniboardEmulator::nPackets()
 {
-  return 100;//mTotalTableRows / mSamples + mTotalTableRows % mSamples;
+  return (mTotalTableRows / mSamples) + (mTotalTableRows % mSamples);
+}
+
+void UniboardEmulator::emulationFinished()
+{
+  QCoreApplication::exit(0);
 }
