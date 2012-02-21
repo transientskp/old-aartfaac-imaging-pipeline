@@ -47,18 +47,16 @@ UniboardEmulator::UniboardEmulator(const pelican::ConfigNode &inConfigNode)
   mMeasurementSet = new casa::MeasurementSet(qPrintable(table_name));
   mMSColumns = new casa::ROMSColumns(*mMeasurementSet);
   mTotalTableRows = mMSColumns->data().nrow();
-  qDebug("Header size : %ld bytes", HEADER_SIZE);
-  qDebug("Sample size : %ld bytes", SAMPLE_SIZE);
-  qDebug("Packet size : %d bytes", mUdpPacket.size());
+  qDebug("Header: %ld bytes", HEADER_SIZE);
+  qDebug("Sample: %ld bytes", SAMPLE_SIZE);
+  qDebug("Packet: %d bytes", mUdpPacket.size());
 }
 
 UniboardEmulator::~UniboardEmulator()
 {
   delete mMeasurementSet;
   delete mMSColumns;
-  qDebug("Packets sent: %lld", mTotalPackets);
-  qDebug("Samples sent: %lld", mTotalSamples);
-  qDebug("Bytes sent  : %lld", mUdpPacket.size() * mTotalPackets);
+  qDebug("MBytes: %0.2f sent", (mUdpPacket.size() * mTotalPackets)/(1024*1024.0));
 }
 
 void UniboardEmulator::getPacketData(char *&outData, unsigned long &outSize)
