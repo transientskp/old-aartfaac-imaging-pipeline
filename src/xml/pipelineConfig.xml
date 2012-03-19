@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pelican>
+
+<configuration version="1.0">
+  <pipeline>
+
+    <buffers>
+      <UniboardDataBlob>
+        <buffer maxSize="50000000000" maxChunkSize="1000000000"/>
+      </UniboardDataBlob>
+    </buffers>
+
+    <chunkers>
+      <UniboardChunker>
+        <chunk timeout="1000"/>
+        <data type="UniboardDataBlob" chunkSize="842248"/>
+        <connection host="127.0.0.1" port="2001"/>
+      </UniboardChunker>
+    </chunkers>
+
+    <clients>
+      <UniboardClient>
+        <data type="UniboardDataBlob" adapter="UniboardAdapter"/>
+      </UniboardClient>
+    </clients>
+
+    <adapters>
+      <UniboardAdapter>
+        <packet maxSamples="74"/>
+        <antennae amount="288"/>
+      </UniboardAdapter>
+    </adapters>
+
+    <modules>
+      <Imager>
+        <uloc filename="/home/fhuizing/Workspace/Aartfaac/data/uvloc/uloc.txt"/>
+        <vloc filename="/home/fhuizing/Workspace/Aartfaac/data/uvloc/vloc.txt"/>
+      </Imager>
+    </modules>
+
+  </pipeline>
+</configuration>

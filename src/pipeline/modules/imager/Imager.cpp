@@ -1,0 +1,57 @@
+#include "Imager.h"
+
+#include "../../UniboardDataBlob.h"
+#include "matlabbridge/src/cpp/matlabbridge.h"
+
+#include <pelican/utility/Config.h>
+#include <QtCore>
+
+Imager::Imager(const ConfigNode &inConfig)
+  : AbstractModule(inConfig)
+{
+  mULoc.resize(288*288);
+  mVLoc.resize(288*288);
+  QString uloc_filename = inConfig.getOption("uloc", "filename");
+  QString vloc_filename = inConfig.getOption("vloc", "filename");
+  readData(uloc_filename, mULoc);
+  readData(vloc_filename, mVLoc);
+  mBridge = new MatlabBridge();
+}
+
+Imager::~Imager()
+{
+  delete mBridge;
+}
+
+void Imager::readData(const QString &inFilename, std::vector<float> &outData)
+{
+  QFile file(inFilename);
+
+  if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+  {
+    qCritical("Failed opening %s", qPrintable(inFilename));
+    return;
+  }
+
+  quint32 i = 0;
+  QTextStream txt(&file);
+  while (!txt.atEnd()) {
+    QString line = txt.readLine();
+    outData[i] = line.toFloat();
+    i++;
+  }
+  qDebug("parsed %s", qPrintable(inFilename));
+  Q_ASSERT(i == 288*288);
+}
+
+void Imager::run(const UniboardDataBlob *input, UniboardDataBlob *output)
+{
+  output->setMJDTime(input->getMJDTime());
+  const std::vector<float> *real = input->getXXReal();
+  const std::vector<float> *imag = input->getXXImag();
+  std::vector<unsigned char> skymap, vismap;
+  mBridge->callMatlab(*real, *imag, mULoc, mVLoc, skymap, vismap);
+  output->createImage(skymap, "skymap");
+  Q_UNUSED(input);
+  Q_UNUSED(output);
+}

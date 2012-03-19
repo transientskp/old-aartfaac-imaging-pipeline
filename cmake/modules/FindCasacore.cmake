@@ -3,15 +3,11 @@
 #
 # CMake script to find the Casacore library associated dependencies.
 #
-# Dependencies for Casacore searched for
-# - fits
-#
 # =============================================================================
 # Defines the following variables:
 #
 #   CASACORE_FOUND             = True if Casacore is found.
 #
-#   CASACORE_INCLUDE_DIR       = Top level Casacore include directory.
 #   CASACORE_INCLUDES          = Set of include directories needed by Casacore.
 #
 #   CASACORE_LIBRARY           = The Casacore library.
@@ -20,7 +16,7 @@
 # ============================================================================
 # Environment and CMake variables effecting this script.
 #
-#   CASACORE_INSTALL_DIR = Top level casacore install directory.
+#   CASACORE_ROOT = Top level casacore install directory.
 #                         This is the root install location of casacore and
 #                         if built from source (on linux) will be usually
 #                         be either /usr/local or /usr
@@ -30,32 +26,36 @@
 #   - This script is untested with either Mac OS or Windows.
 #
 # ============================================================================
-# Last Update: 11 Feb 2012
+# Last Update: 27 Feb 2012
 # =============================================================================
 
 
 # Include default error handling macro.
 include(FindPackageHandleStandardArgs)
 
-
-# Find the top level Casacore include directory.
-find_path(CASACORE_INCLUDE_DIR casa tables
-    PATHS
-    PATH_SUFFIXES casacore
-    ${CASACORE_INSTALL_DIR}/include
-    $ENV{CASACORE_INSTALL_DIR}/include
-    /usr/include
-    /usr/local/include
-)
-set(CASACORE_INCLUDES ${CASACORE_INCLUDE_DIR})
-
+# For convenience, we want two include directories:
+#
+# 1. ${CASACORE_ROOT}/include
+# 2. ${CASACORE_ROOT}/include/casacore/
+#
+# 1 is convenient for our own code: it lets us #include <casacore/..>
+# 2 is *required* for casacore's internal use.
+if (NOT CASACORE_INCLUDES)
+  find_path(CASACORE_INCLUDES casa/aips.h
+    HINTS ${CASACORE_ROOT}
+    PATH_SUFFIXES include/casacore
+  )
+endif(NOT CASACORE_INCLUDES)
+if (CASACORE_ROOT)
+  list(APPEND CASACORE_INCLUDES ${CASACORE_ROOT}/include)
+endif (CASACORE_ROOT)
 
 # Find the Casacore library.
 find_library(CASACORE_LIBRARY casacore
     NAMES casa_casa
     PATHS
-    ${CASACORE_INSTALL_DIR}/lib
-    $ENV{CASACORE_INSTALL_DIR}/lib
+    ${CASACORE_ROOT}/lib
+    $ENV{CASACORE_ROOT}/lib
     /usr/lib
     /usr/local/lib
 )
@@ -65,8 +65,8 @@ set(CASACORE_LIBRARIES ${CASACORE_LIBRARY})
 find_library(CASACORE_MS_LIBRARY casams
     NAMES casa_ms
     PATHS
-    ${CASACORE_INSTALL_DIR}/lib
-    $ENV{CASACORE_INSTALL_DIR}/lib
+    ${CASACORE_ROOT}/lib
+    $ENV{CASACORE_ROOT}/lib
     /usr/lib
     /usr/local/lib
 )
@@ -76,8 +76,8 @@ list(APPEND CASACORE_LIBRARIES ${CASACORE_MS_LIBRARY})
 find_library(CASACORE_TABLES_LIBRARY casacore
     NAMES casa_tables
     PATHS
-    ${CASACORE_INSTALL_DIR}/lib
-    $ENV{CASACORE_INSTALL_DIR}/lib
+    ${CASACORE_ROOT}/lib
+    $ENV{CASACORE_ROOT}/lib
     /usr/lib
     /usr/local/lib
 )
@@ -86,32 +86,25 @@ list(APPEND CASACORE_LIBRARIES ${CASACORE_TABLES_LIBRARY})
 # Check for errors.
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(Casacore
     "ERROR: Could not find Casacore include directory."
-    CASACORE_INCLUDE_DIR
+    CASACORE_INCLUDES
 )
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(Casacore
     "ERROR: Could not find Casacore library."
     CASACORE_LIBRARY
 )
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(Casatables
-    "ERROR: Could not find Casatables library."
+    "ERROR: Could not find Casa tables library."
     CASACORE_TABLES_LIBRARY
 )
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(Casams
-    "ERROR: Could not find Casatables library."
+    "ERROR: Could not find Casa measureset library."
     CASACORE_MS_LIBRARY
 )
-
-# Find dependencies.
-#find_package(ccfits)
-#list(APPEND CASACORE_INCLUDES
-#)
-include_directories(${CASACORE_INCLUDES})
 
 
 # Put variables in the advanced section of the CMake cache.
 mark_as_advanced(
     CASACORE_FOUND
-    CASACORE_INCLUDE_DIR
     CASACORE_INCLUDES
     CASACORE_LIBRARY
     CASACORE_LIBRARIES

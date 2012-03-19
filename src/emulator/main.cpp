@@ -39,10 +39,10 @@ int main(int argc, char* argv[])
   app.setApplicationVersion(VERSION);
   app.setOrganizationName("Anton Pannekoek Institute");
   app.setOrganizationDomain("http://www.aartfaac.org");
-
+  qDebug("%s", HUMAN_NAME);
   pelican::ConfigNode xml_node(
         "<UniboardEmulator>"
-        "  <packet samples=\"33\" />"
+        "  <packet samples=\"74\" />"
         "  <connection host=\"127.0.0.1\" port=\"2001\" />"
         "</UniboardEmulator>"
   );

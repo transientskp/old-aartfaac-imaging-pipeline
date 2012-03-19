@@ -4,34 +4,7 @@
 #include <QtCore/QStringList>
 #include <pelican/utility/ConfigNode.h>
 
-
-/**
- * Header definition:
- *
- * packet size    = sizeof(quint32) = 4 bytes
- * header size    = sizeof(quint32) = 4 bytes
- * nr of samples  = sizeof(quint32) = 4 bytes
- * sample size    = sizeof(quint32) = 4 bytes
- * channel id     = sizeof(quint32) = 4 bytes
- * packet counter = sizeof(quint64) = 8 bytes
- * reserved       = sizeof(quint32) = 4 bytes
- *                = 6 * 4 + 8       = 32 bytes
- */
-#define HEADER_SIZE (6 * sizeof(quint32) + sizeof(quint64))
-
-/**
- * Sample definition:
- *
- * time       = sizeof(double          = 8  bytes
- * antennae1  = sizeof(quint16)        = 2  bytes
- * antennae2  = sizeof(quint16)        = 2  bytes
- * data xx    = sizeof(complex<float>) = 8  bytes
- * data yy    = sizeof(complex<float>) = 8  bytes
- * data xy    = sizeof(complex<float>) = 8  bytes
- * data yx    = sizeof(complex<float>) = 8  bytes
- *            = 8 + 2*2 + 4*8          = 44 bytes
- */
-#define SAMPLE_SIZE (sizeof(double) + 2*sizeof(quint16) + 4*sizeof(std::complex<float>))
+extern "C" void singles2halfp(void *target, void *source, int numel);
 
 UniboardEmulator::UniboardEmulator(const pelican::ConfigNode &inConfigNode)
   : AbstractUdpEmulator(inConfigNode)
@@ -40,98 +13,83 @@ UniboardEmulator::UniboardEmulator(const pelican::ConfigNode &inConfigNode)
   mTotalSamples = 0;
   mRowIndex     = 0;
 
-  mSamples = inConfigNode.getOption("packet", "samples", "52").toULong();
-  mUdpPacket.resize(HEADER_SIZE + mSamples * SAMPLE_SIZE);
+  mMaxSamples = inConfigNode.getOption("packet", "samples").toULong();
+
+  qDebug("Header: %ld bytes", sizeof(UdpPacket::Header));
+  qDebug("Sample: %ld bytes", sizeof(UdpPacket::Correlation));
+  qDebug("Packet: %ld bytes", sizeof(UdpPacket));
 
   QString table_name = QCoreApplication::arguments().at(1);
-  mMeasurementSet = new casa::MeasurementSet(qPrintable(table_name));
+  casa::Table table(qPrintable(table_name));
+  qDebug("Sorting table...");
+//  table = table.sort("TIME");
+  qDebug("Sending data...");
+  mMeasurementSet = new casa::MeasurementSet(table);
   mMSColumns = new casa::ROMSColumns(*mMeasurementSet);
   mTotalTableRows = mMSColumns->data().nrow();
-  qDebug("Header: %ld bytes", HEADER_SIZE);
-  qDebug("Sample: %ld bytes", SAMPLE_SIZE);
-  qDebug("Packet: %d bytes", mUdpPacket.size());
+  mTimer.start();
 }
 
 UniboardEmulator::~UniboardEmulator()
 {
   delete mMeasurementSet;
   delete mMSColumns;
-  qDebug("MBytes: %0.2f sent", (mUdpPacket.size() * mTotalPackets)/(1024*1024.0));
 }
 
 void UniboardEmulator::getPacketData(char *&outData, unsigned long &outSize)
 {
-  outData = mUdpPacket.data();
-  outSize = mUdpPacket.size();
+  outData = (char*) &mUdpPacket;
+  outSize = sizeof(UdpPacket);
+  memset(static_cast<void*>(&mUdpPacket), 0, sizeof(UdpPacket));
+
+  Q_ASSERT(mMSColumns->spectralWindow().numChan().nrow() == 1);
 
   qint32 channel_id = mMSColumns->spectralWindow().numChan()(0);
-  quint64 max_rows = std::min<quint64>(mTotalTableRows, mRowIndex+mSamples);
-  mTotalPackets++;
-  mTotalSamples += max_rows - mRowIndex;
+  double cur_time = mMSColumns->time()(mRowIndex);
 
-  // Set the packet header
-  *reinterpret_cast<quint32*>(outData + 0)  = mUdpPacket.size();
-  *reinterpret_cast<quint32*>(outData + 4)  = HEADER_SIZE;
-  *reinterpret_cast<quint32*>(outData + 8)  = max_rows - mRowIndex;
-  *reinterpret_cast<quint32*>(outData + 12) = SAMPLE_SIZE;
-  *reinterpret_cast<quint32*>(outData + 16) = channel_id;
-  *reinterpret_cast<quint64*>(outData + 20) = mTotalPackets;
-  *reinterpret_cast<quint32*>(outData + 28) = 0;
+  // Set the udp packet header
+  mUdpPacket.mHeader.time    = cur_time;
+  mUdpPacket.mHeader.channel = channel_id;
+  mUdpPacket.mHeader.samples = 0;
 
-  char *data = mUdpPacket.data() + HEADER_SIZE;
-
-  // Set the packet data
+  // Set the udp packet data
   casa::Array<casa::Complex> data_array;
-  casa::Array<casa::Complex>::iterator i;
-  for (; mRowIndex < max_rows; mRowIndex++)
+  casa::Array<casa::Complex>::iterator iter;
+  for (quint32 i = 0; i < mMaxSamples && mRowIndex < mTotalTableRows; i++)
   {
+    UdpPacket::Correlation &sample = mUdpPacket.mSamples[i];
     double time = mMSColumns->time()(mRowIndex);
-    quint16 antenna1 = mMSColumns->antenna1()(mRowIndex);
-    quint16 antenna2 = mMSColumns->antenna2()(mRowIndex);
-    data_array = mMSColumns->data()(mRowIndex);
 
-    // First 8 bytes used for time
-    *reinterpret_cast<double*>(data) = time;
-    data += sizeof(double);
+    // time changed within packet, break and send
+    if (time != cur_time)
+      break;
 
-    // Next 4 bytes used for antennae
-    *reinterpret_cast<quint16*>(data) = antenna1;
-    data += sizeof(quint16);
+    sample.a1   = mMSColumns->antenna1()(mRowIndex);
+    sample.a2   = mMSColumns->antenna2()(mRowIndex);
+    data_array  = mMSColumns->data()(mRowIndex);
 
-    *reinterpret_cast<quint16*>(data) = antenna2;
-    data += sizeof(quint16);
-
-    // Next 32 bytes used for data
-    for (i = data_array.begin(); i != data_array.end(); i++)
+    // Fill sample with complex data polarizations
+    int j = 0;
+    for (iter = data_array.begin(); iter != data_array.end(); iter++)
     {
-      *reinterpret_cast<float*>(data) = float((*i).real());
-      data += sizeof(float);
+      singles2halfp(static_cast<quint16*>(&sample.polarizations[j++]),
+                    static_cast<void*>(&(*iter).real()), 1);
 
-      *reinterpret_cast<float*>(data) = float((*i).imag());
-      data += sizeof(float);
+      singles2halfp(static_cast<quint16*>(&sample.polarizations[j++]),
+                    static_cast<void*>(&(*iter).imag()), 1);
     }
+
+    mUdpPacket.mHeader.samples++;
+    mRowIndex++;
+
+    if (mRowIndex % (mTotalTableRows / 100) == 0)
+      qDebug("Sent %3d%% of measurement set",
+             int(ceil((mRowIndex / double(mTotalTableRows))*100)));
   }
 
-  /*
-  qDebug("--------Packet(%lld)--------", mTotalPackets);
-  data = outData + HEADER_SIZE;
-  for (quint64 i = 0; i < max_rows-mRowIndex+mSamples; i++)
-  {
-    double time = *reinterpret_cast<double*>(data);       data += sizeof(double);
-    quint16 antenna1 = *reinterpret_cast<quint16*>(data); data += sizeof(quint16);
-    quint16 antenna2 = *reinterpret_cast<quint16*>(data); data += sizeof(quint16);
-    qDebug("  Sample(%lld): time(%f) a1(%u) a2(%u)", i, time, antenna1, antenna2);
-    for (int j = 0; j < 4; j++)
-    {
-      std::complex<float> c;
-      c.real() = *reinterpret_cast<float*>(data);
-      data += sizeof(float);
-      c.imag() = *reinterpret_cast<float*>(data);
-      data += sizeof(float);
-      qDebug("    Data(%d): real(%0.5f) imag(%0.5f)", j, c.real(), c.imag());
-    }
-  }
-  */
+  // Increase counters
+  mTotalPackets++;
+  mTotalSamples += mUdpPacket.mHeader.samples;
 }
 
 unsigned long UniboardEmulator::interval()
@@ -141,10 +99,15 @@ unsigned long UniboardEmulator::interval()
 
 int UniboardEmulator::nPackets()
 {
-  return (mTotalTableRows / mSamples) + (mTotalTableRows % mSamples);
+  return (mTotalTableRows / mMaxSamples) + (mTotalTableRows % mMaxSamples);
 }
 
 void UniboardEmulator::emulationFinished()
 {
-  QCoreApplication::exit(0);
+  float seconds = mTimer.elapsed() / 1000.0f;
+  float mbytes = (sizeof(UdpPacket) * mTotalPackets) / (1024.0f * 1024.0f);
+  qDebug("MBytes: %0.2f sent", mbytes);
+  qDebug("MB/sec: %0.2f sent", mbytes/seconds);
+  qDebug("Sent  : %lld samples", mTotalSamples);
+  QCoreApplication::exit(EXIT_SUCCESS);
 }

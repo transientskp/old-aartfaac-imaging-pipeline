@@ -3,10 +3,13 @@ project(aartfaac CXX C Fortran)
 cmake_minimum_required(VERSION 2.8)
 
 # === Compiler options
-SET(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror")
-SET(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DDEBUG")
-SET(CMAKE_CXX_FLAGS_RELEASE "-O2")
-SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DDEBUG")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror -Wno-unused-function -fno-strict-aliasing")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DDEBUG")
+
+# === Enable the cmake testing framework.
+enable_testing()
 
 # === Project version
 execute_process(
@@ -40,16 +43,26 @@ SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
 include(cmake/sources.cmake)
 include_directories(${PROJECT_BINARY_DIR})
 
-# === Enable the cmake testing framework.
-enable_testing()
+# === Add matlab imager module
+add_subdirectory(${PROJECT_SOURCE_DIR}/src/pipeline/modules/imager/matlabbridge imager)
+include_directories(
+  ${IMAGER_SOURCE_DIR}/src
+)
+link_directories(
+  ${MATLAB_ROOT}/runtime/glnxa64
+  ${IMAGER_BINARY_DIR}
+)
 
 # === Find Dependencies.
 find_package(Pelican REQUIRED)
 find_package(CppUnit REQUIRED)
 find_package(Casacore REQUIRED)
+find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
 
 # === Add directories to the include path (i.e. -I<directory> ...)
 include_directories(${PELICAN_INCLUDES})
+include_directories(${CASACORE_INCLUDES})
+include_directories(${QT_INCLUDE_DIR})
 
 # === Create the emulator binary.
 set(EMULATOR ${PROJECT_NAME}-emulator)
@@ -79,9 +92,11 @@ set(PIPELINE ${PROJECT_NAME}-pipeline)
 add_executable(${PIPELINE} ${PIPELINE_SOURCES})
 
 target_link_libraries(${PIPELINE}
+  imager
   ${QT_QTCORE_LIBRARY}
   ${QT_QTNETWORK_LIBRARY}
   ${QT_QTXML_LIBRARY}
+  ${QT_QTGUI_LIBRARY}
   ${PELICAN_LIBRARY}
 )
 
