@@ -1,6 +1,6 @@
 # === Set the project name and specify the required CMAKE version.
 project(aartfaac CXX C Fortran)
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8)
 
 # === Compiler options
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror -Wno-unused-function -fno-strict-aliasing")

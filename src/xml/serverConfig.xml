@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pelican>
+
+<configuration version="1.0">
+
+  <server>
+    <buffers>
+      <UniboardDataBlob>
+        <buffer maxSize="50000000000" maxChunkSize="50000000000"/>
+      </UniboardDataBlob>
+    </buffers>
+
+    <chunkers>
+      <UniboardChunker>
+        <chunk timeout="1500"/>
+        <data type="UniboardDataBlob" chunkSize="842248"/>
+        <connection host="127.0.0.1" port="2001"/>
+      </UniboardChunker>
+    </chunkers>
+  </server>
+
+</configuration>

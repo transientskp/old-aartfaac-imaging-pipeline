@@ -2,26 +2,13 @@
 <!DOCTYPE pelican>
 
 <configuration version="1.0">
+
   <pipeline>
-
-    <buffers>
-      <UniboardDataBlob>
-        <buffer maxSize="50000000000" maxChunkSize="1000000000"/>
-      </UniboardDataBlob>
-    </buffers>
-
-    <chunkers>
-      <UniboardChunker>
-        <chunk timeout="1000"/>
-        <data type="UniboardDataBlob" chunkSize="842248"/>
-        <connection host="127.0.0.1" port="2001"/>
-      </UniboardChunker>
-    </chunkers>
-
     <clients>
-      <UniboardClient>
+      <PelicanServerClient>
+        <server host="127.0.0.1" port="2000"/>
         <data type="UniboardDataBlob" adapter="UniboardAdapter"/>
-      </UniboardClient>
+      </PelicanServerClient>
     </clients>
 
     <adapters>
@@ -37,6 +24,6 @@
         <vloc filename="/home/fhuizing/Workspace/Aartfaac/data/uvloc/vloc.txt"/>
       </Imager>
     </modules>
-
   </pipeline>
+
 </configuration>

@@ -28,11 +28,12 @@ int main(int argc, char* argv[])
   QString config_file(argv[1]);
   pelican::Config config(config_file);
 
+  qDebug("%s", HUMAN_NAME);
   try
   {
     pelican::PelicanServer server(&config);
 
-    server.addStreamChunker("UniboardChunker ");
+    server.addStreamChunker("UniboardChunker");
 
     pelican::AbstractProtocol *protocol = new pelican::PelicanProtocol();
     server.addProtocol(protocol, 2000);

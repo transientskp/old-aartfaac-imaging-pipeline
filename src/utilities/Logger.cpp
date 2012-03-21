@@ -61,7 +61,7 @@ void Logger::messageHandler(QtMsgType inType, const char *inMsg)
     break;
   }
 
-  sFile.write(date_time.toString("(dd/MM/yy hh:mm) ").toAscii());
+  sFile.write(date_time.toString("(dd-MM-yy hh:mm:ss) ").toAscii());
   sFile.write(inMsg);
   sFile.write("\n");
   sFile.flush();

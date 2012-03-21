@@ -2,7 +2,6 @@
 #include "version.h"
 #include "UniboardPipeline.h"
 #include "UniboardAdapter.h"
-#include "UniboardClient.h"
 
 #include <pelican/core/PipelineApplication.h>
 #include <QtCore/QCoreApplication>
@@ -24,7 +23,7 @@ int main(int argc, char* argv[])
   {
     pelican::PipelineApplication p_app(argc, argv);
     p_app.registerPipeline(new UniboardPipeline());
-    p_app.setDataClient("UniboardClient");
+    p_app.setDataClient("PelicanServerClient");
     p_app.start();
   }
   catch (const QString &error)
