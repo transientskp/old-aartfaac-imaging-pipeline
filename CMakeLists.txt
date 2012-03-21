@@ -1,6 +1,6 @@
 # === Set the project name and specify the required CMAKE version.
 project(aartfaac CXX C Fortran)
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.6)
 
 # === Compiler options
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror -Wno-unused-function -fno-strict-aliasing")
@@ -76,17 +76,6 @@ target_link_libraries(${EMULATOR}
   ${CASACORE_LIBRARIES}
 )
 
-# === Create the server binary.
-set(SERVER ${PROJECT_NAME}-server)
-add_executable(${SERVER} ${SERVER_SOURCES})
-
-target_link_libraries(${SERVER}
-  ${QT_QTCORE_LIBRARY}
-  ${QT_QTNETWORK_LIBRARY}
-  ${QT_QTXML_LIBRARY}
-  ${PELICAN_LIBRARY}
-)
-
 # === Create the pipeline binary.
 set(PIPELINE ${PROJECT_NAME}-pipeline)
 add_executable(${PIPELINE} ${PIPELINE_SOURCES})
@@ -97,6 +86,17 @@ target_link_libraries(${PIPELINE}
   ${QT_QTNETWORK_LIBRARY}
   ${QT_QTXML_LIBRARY}
   ${QT_QTGUI_LIBRARY}
+  ${PELICAN_LIBRARY}
+)
+
+# === Create the server binary.
+set(SERVER ${PROJECT_NAME}-server)
+add_executable(${SERVER} ${SERVER_SOURCES})
+
+target_link_libraries(${SERVER}
+  ${QT_QTCORE_LIBRARY}
+  ${QT_QTNETWORK_LIBRARY}
+  ${QT_QTXML_LIBRARY}
   ${PELICAN_LIBRARY}
 )
 

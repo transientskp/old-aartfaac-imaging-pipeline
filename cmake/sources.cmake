@@ -9,14 +9,6 @@ set(EMULATOR_SOURCES
   src/utilities/Logger.cpp
 )
 
-# === Server sources
-set(SERVER_SOURCES
-  src/server/main.cpp
-  src/emulator/UdpPacket.h
-  src/pipeline/UniboardChunker.cpp
-  src/utilities/Logger.cpp
-)
-
 # === Pipeline sources
 set(PIPELINE_SOURCES
   src/pipeline/main.cpp
@@ -25,6 +17,15 @@ set(PIPELINE_SOURCES
   src/pipeline/UniboardPipeline.cpp
   src/pipeline/modules/imager/Imager.cpp
   src/utilities/halfprecision.c
+  src/utilities/Utils.cpp
+  src/utilities/Logger.cpp
+)
+
+# === Server sources
+set(SERVER_SOURCES
+  src/server/main.cpp
+  src/server/UniboardChunker.cpp
+  src/emulator/UdpPacket.h
   src/utilities/Utils.cpp
   src/utilities/Logger.cpp
 )
