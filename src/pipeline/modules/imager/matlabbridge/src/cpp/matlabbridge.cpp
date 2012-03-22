@@ -21,9 +21,10 @@ bool MatlabBridge::callMatlab(const std::vector<float> &inReal,
                               const std::vector<float> &inImag,
                               const std::vector<float> &inULoc,
                               const std::vector<float> &inVLoc,
-                              std::vector<unsigned char> &outSkymap,
-                              std::vector<unsigned char> &outVispad)
+                              std::vector<float> &outSkymap,
+                              std::vector<float> &outVispad)
 {
+  (void) outVispad;
 
   mwArray skymap, vispad;
   mwArray correlations(288*288, 1, mxSINGLE_CLASS, mxCOMPLEX);
@@ -51,24 +52,7 @@ bool MatlabBridge::callMatlab(const std::vector<float> &inReal,
   int width = dimensions(1,1);
   int height = dimensions(1,2);
   outSkymap.resize(width*height);
-  mSkymap.resize(width*height);
-
-  float min = std::numeric_limits<float>::max();
-  float max = std::numeric_limits<float>::min();
-  float val = 0.0f;
-  for (int i = 0; i < height; i++)
-  {
-    for (int j = 0; j < width; j++)
-    {
-      val = skymap(i+1, j+1);
-      mSkymap[i*width+j] = val;
-      min = std::min<float>(val, min);
-      max = std::max<float>(val, max);
-    }
-  }
-
-  for (size_t i = 0; i < mSkymap.size(); i++)
-    outSkymap[i] = (unsigned char) round(((mSkymap[i] - min) / (max - min)) * 255.0f);
+  skymap.GetData(&outSkymap[0], width*height);
 
   return true;
 }

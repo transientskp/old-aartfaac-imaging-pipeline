@@ -24,17 +24,20 @@ public:
 
   void setMJDTime(const double inMJDTime);
 
-  void setChannelId(const quint32 inChannelId) { mChannelId = inChannelId; }
+  void serialise(QIODevice &out) const;
 
-  quint32 getChannelId() const                 { return mChannelId; }
-
-  double getMJDTime() const                    { return mMJDTime; }
-
-  QDateTime getDateTime() const                { return mDateTime; }
+  void deserialise(QIODevice &in, QSysInfo::Endian);
 
   const std::vector<float>* getXXReal() const;
 
   const std::vector<float>* getXXImag() const;
+
+  void setChannelId(const quint32 inChannelId) { mChannelId = inChannelId; }
+  quint32 getChannelId() const                 { return mChannelId; }
+  double getMJDTime() const                    { return mMJDTime; }
+  QDateTime getDateTime() const                { return mDateTime; }
+  std::vector<float>& getSkyMap()              { return mSkyMap; }
+  std::vector<float>& getVisMap()              { return mVisMap; }
 
   void createImage(const std::vector<unsigned char> &inData, const QString &inType);
 
@@ -42,9 +45,13 @@ private:
   double mMJDTime;
   QDateTime mDateTime;
   quint32 mChannelId;
+  quint32 mWidth;
+  quint32 mHeight;
 
-  std::vector<float> mXXReal;
-  std::vector<float> mXXImag;
+  std::vector<float> mXXReal; ///< xx polarized real part of the complex numbers
+  std::vector<float> mXXImag; ///< xx polarized imaginary part of the complex numbers
+  std::vector<float> mSkyMap; ///< raw skymap data from imager (needs normalization)
+  std::vector<float> mVisMap; ///< raw vismap data from imager (needs normalization)
 };
 
 PELICAN_DECLARE_DATABLOB(UniboardDataBlob)

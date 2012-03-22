@@ -16,13 +16,12 @@ public:
                   const std::vector<float> &inImag,
                   const std::vector<float> &inULoc,
                   const std::vector<float> &inVLoc,
-                  std::vector<unsigned char> &outSkymap,
-                  std::vector<unsigned char> &outVispad);
+                  std::vector<float> &outSkymap,
+                  std::vector<float> &outVispad);
 
 private:
   void killMatlab();
   bool initMatlab();
-  std::vector<float> mSkymap;
 };
 
 #endif // MATLAB_BRIDGE_H

@@ -2,6 +2,7 @@
 
 #include "../utilities/Utils.h"
 
+#include <limits>
 #include <QtGui/QImage>
 #include <QtGui/QColor>
 #include <QVector>
@@ -9,8 +10,12 @@
 UniboardDataBlob::UniboardDataBlob()
   : DataBlob("UniboardDataBlob")
 {
+  mWidth = mHeight = 512;
+
   mXXReal.resize(288*288, 0.0f);
   mXXImag.resize(288*288, 0.0f);
+  mSkyMap.resize(mWidth * mHeight);
+  mVisMap.resize(mWidth * mHeight);
   reset();
 }
 
@@ -18,6 +23,30 @@ void UniboardDataBlob::reset()
 {
   mMJDTime = -1.0;
   mChannelId = 0;
+}
+
+void UniboardDataBlob::serialise(QIODevice &out) const
+{
+  QDataStream stream(&out);
+
+  stream << mWidth;
+  stream << mHeight;
+
+  for (int i = 0, n = mSkyMap.size(); i < n; i++)
+    stream << mSkyMap[i];
+}
+
+void UniboardDataBlob::deserialise(QIODevice &in, QSysInfo::Endian)
+{
+  QDataStream stream(&in);
+
+  stream >> mWidth;
+  stream >> mHeight;
+
+  mSkyMap.resize(mWidth * mHeight);
+
+  for (int i = 0, n = mWidth*mHeight; i < n; i++)
+    stream >> mSkyMap[i];
 }
 
 void UniboardDataBlob::createImage(const std::vector<unsigned char> &inData, const QString &inType)

@@ -49,9 +49,7 @@ void Imager::run(const UniboardDataBlob *input, UniboardDataBlob *output)
   output->setMJDTime(input->getMJDTime());
   const std::vector<float> *real = input->getXXReal();
   const std::vector<float> *imag = input->getXXImag();
-  std::vector<unsigned char> skymap, vismap;
+  std::vector<float> &skymap = output->getSkyMap();
+  std::vector<float> &vismap = output->getVisMap();
   mBridge->callMatlab(*real, *imag, mULoc, mVLoc, skymap, vismap);
-  output->createImage(skymap, "skymap");
-  Q_UNUSED(input);
-  Q_UNUSED(output);
 }
