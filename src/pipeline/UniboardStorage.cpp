@@ -2,6 +2,7 @@
 #include "UniboardDataBlob.h"
 
 #include <limits>
+#include <cmath>
 #include <QtCore>
 #include <QtGui/QImage>
 #include <QtGui/QColor>
@@ -34,20 +35,19 @@ void UniboardStorage::sendStream(const QString &inStreamName, const DataBlob *in
 
   float min = std::numeric_limits<float>::max();
   float max = std::numeric_limits<float>::min();
-  float val = 0.0f;
+  //float val = 0.0f;
 
-  for (int i = 0, n = skymap.size(); i < n; i++)
-  {
-    val = skymap[i];
-    min = std::min<float>(val, min);
-    max = std::max<float>(val, max);
-  }
+  //for (int i = 0, n = skymap.size(); i < n; i++)
+  //{
+  //  val = log(skymap[i]);
+  //}
+  min = log(90.0);;
+  max = log(400.0);
 
   std::vector<unsigned char> normalized_skymap(skymap.size());
-
   for (int i = 0, n = skymap.size(); i < n; i++)
   {
-    normalized_skymap[i] = (unsigned char) round(((skymap[i] - min) / (max - min)) * 255.0f);
+    normalized_skymap[i] = (unsigned char) round(((log(skymap[i]) - min) / (max - min)) * 255.0f);
   }
 
   static QVector<QRgb> colors;
@@ -56,8 +56,8 @@ void UniboardStorage::sendStream(const QString &inStreamName, const DataBlob *in
     QColor color;
     for (int i = 0; i < 256; i++)
     {
-      int hue = (int) round((i/256.0)*360.0);
-      color.setHsv(hue, 100, 100);
+      int hue = (int) round(240.0 - (i/255.0*240.0));
+      color.setHsv(hue, 255, 255);
       colors.append(color.rgb());
     }
   }

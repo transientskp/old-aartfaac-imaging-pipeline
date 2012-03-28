@@ -74,7 +74,7 @@ target_link_libraries(${EMULATOR}
   ${QT_QTXML_LIBRARY}
   ${PELICAN_LIBRARY}
   ${CASACORE_LIBRARIES}
-	/usr/local/lib64/liblofarstman.so
+	#/usr/local/lib64/liblofarstman.so
 )
 
 # === Create the pipeline binary.
