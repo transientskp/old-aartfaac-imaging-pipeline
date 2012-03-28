@@ -23,6 +23,6 @@ void UniboardPipeline::run(QHash<QString, DataBlob*>& inRemoteData)
   // Get pointers to the remote data blob(s) from the supplied hash.
   UniboardDataBlob* input_data = (UniboardDataBlob*) inRemoteData["UniboardDataBlob"];
   mImager->run(input_data, mOutputData);
-  dataOutput(mOutputData, "Image");
+  dataOutput(mOutputData, "post");
   qDebug("Processed %4lldth blob with timestamp %s", ++mBlobCount, qPrintable(input_data->getDateTime().toString("dd-MM-yyyy hh:mm:ss")));
 }

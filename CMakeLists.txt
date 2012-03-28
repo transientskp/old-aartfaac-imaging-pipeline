@@ -3,7 +3,7 @@ project(aartfaac CXX C Fortran)
 cmake_minimum_required(VERSION 2.8)
 
 # === Compiler options
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror -Wno-unused-function -fno-strict-aliasing")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror -Wno-unused-function -fno-strict-aliasing -Wl,--no-as-needed")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DDEBUG")
@@ -74,6 +74,7 @@ target_link_libraries(${EMULATOR}
   ${QT_QTXML_LIBRARY}
   ${PELICAN_LIBRARY}
   ${CASACORE_LIBRARIES}
+	/usr/local/lib64/liblofarstman.so
 )
 
 # === Create the pipeline binary.

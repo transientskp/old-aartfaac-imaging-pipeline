@@ -29,6 +29,7 @@ void UniboardDataBlob::serialise(QIODevice &out) const
 {
   QDataStream stream(&out);
 
+  stream << mDateTime;
   stream << mWidth;
   stream << mHeight;
 
@@ -40,6 +41,7 @@ void UniboardDataBlob::deserialise(QIODevice &in, QSysInfo::Endian)
 {
   QDataStream stream(&in);
 
+  stream >> mDateTime;
   stream >> mWidth;
   stream >> mHeight;
 

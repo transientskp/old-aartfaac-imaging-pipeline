@@ -2,7 +2,6 @@
 <!DOCTYPE pelican>
 
 <configuration version="1.0">
-
   <pipeline>
     <clients>
       <PelicanServerClient>
@@ -24,6 +23,16 @@
         <vloc filename="/home/fhuizing/Workspace/Aartfaac/data/uvloc/vloc.txt"/>
       </Imager>
     </modules>
-  </pipeline>
 
+    <output>
+      <streamers>
+				<UniboardStorage name="image" active="true">
+					<file path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
+				</UniboardStorage>
+      </streamers>
+      <dataStreams>
+        <stream name="post" listeners="image"/>
+      </dataStreams>
+    </output>
+  </pipeline>
 </configuration>

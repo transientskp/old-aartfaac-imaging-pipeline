@@ -38,7 +38,8 @@ public:
   QDateTime getDateTime() const                { return mDateTime; }
   std::vector<float>& getSkyMap()              { return mSkyMap; }
   std::vector<float>& getVisMap()              { return mVisMap; }
-
+  const std::vector<float>& getSkyMap() const  { return mSkyMap; }
+  const std::vector<float>& getVisMap() const  { return mVisMap; }
   void createImage(const std::vector<unsigned char> &inData, const QString &inType);
 
 private:
