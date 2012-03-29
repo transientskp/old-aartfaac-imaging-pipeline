@@ -43,14 +43,14 @@ SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
 include(cmake/sources.cmake)
 include_directories(${PROJECT_BINARY_DIR})
 
-# === Add matlab imager module
-add_subdirectory(${PROJECT_SOURCE_DIR}/src/pipeline/modules/imager/matlabbridge imager)
+# === Add matlab bridge
+add_subdirectory(${PROJECT_SOURCE_DIR}/src/matlabbridge matlabbridge)
 include_directories(
-  ${IMAGER_SOURCE_DIR}/src
+  ${MATLABBRIDGE_SOURCE_DIR}/src
 )
 link_directories(
   ${MATLAB_ROOT}/runtime/glnxa64
-  ${IMAGER_BINARY_DIR}
+  ${MATLABBRIDGE_BINARY_DIR}
 )
 
 # === Find Dependencies.
@@ -74,7 +74,7 @@ target_link_libraries(${EMULATOR}
   ${QT_QTXML_LIBRARY}
   ${PELICAN_LIBRARY}
   ${CASACORE_LIBRARIES}
-	#/usr/local/lib64/liblofarstman.so
+  #/usr/local/lib64/liblofarstman.so
 )
 
 # === Create the pipeline binary.
@@ -82,7 +82,7 @@ set(PIPELINE ${PROJECT_NAME}-pipeline)
 add_executable(${PIPELINE} ${PIPELINE_SOURCES})
 
 target_link_libraries(${PIPELINE}
-  imager
+  mbridge
   ${QT_QTCORE_LIBRARY}
   ${QT_QTNETWORK_LIBRARY}
   ${QT_QTXML_LIBRARY}

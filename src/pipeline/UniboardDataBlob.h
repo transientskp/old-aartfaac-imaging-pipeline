@@ -36,6 +36,8 @@ public:
   quint32 getChannelId() const                 { return mChannelId; }
   double getMJDTime() const                    { return mMJDTime; }
   QDateTime getDateTime() const                { return mDateTime; }
+  quint32 getWidth() const                     { return mWidth; }
+  quint32 getHeight() const                    { return mHeight; }
   std::vector<float>& getSkyMap()              { return mSkyMap; }
   std::vector<float>& getVisMap()              { return mVisMap; }
   const std::vector<float>& getSkyMap() const  { return mSkyMap; }

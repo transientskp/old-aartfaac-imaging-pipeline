@@ -3,7 +3,6 @@
 
 #include <limits>
 #include <cmath>
-#include <QtCore>
 #include <QtGui/QImage>
 #include <QtGui/QColor>
 
@@ -11,7 +10,14 @@ UniboardStorage::UniboardStorage(const ConfigNode &inConfigNode)
   : AbstractOutputStream(inConfigNode)
 {
   mPath = inConfigNode.getOption("file", "path", "./");
-  qDebug() << mPath;
+
+  QColor color;
+  for (int i = 0; i < 256; i++)
+  {
+    int hue = (int) round(240.0 - (i/255.0*240.0));
+    color.setHsv(hue, 255, 255);
+    mColors.append(color.rgb());
+  }
 }
 
 UniboardStorage::~UniboardStorage()
@@ -25,46 +31,39 @@ void UniboardStorage::sendStream(const QString &inStreamName, const DataBlob *in
 
   const UniboardDataBlob *blob = static_cast<const UniboardDataBlob*>(inDataBlob);
 
-//  if (blob->type() != "image")
-//  {
-//    qWarning("Expected datablob type 'UniboardDataBlob', got '%s' ignoring...", qPrintable(blob->type()));
-//    return;
-//  }
+  if (blob->type() != "UniboardDataBlob")
+  {
+    qWarning("Expected datablob type 'UniboardDataBlob', got '%s' ignoring...", qPrintable(blob->type()));
+    return;
+  }
 
   const std::vector<float> &skymap = blob->getSkyMap();
 
+  // Obtain min and max value
   float min = std::numeric_limits<float>::max();
   float max = std::numeric_limits<float>::min();
-  //float val = 0.0f;
-
-  //for (int i = 0, n = skymap.size(); i < n; i++)
-  //{
-  //  val = log(skymap[i]);
-  //}
-  min = log(90.0);;
-  max = log(400.0);
-
-  std::vector<unsigned char> normalized_skymap(skymap.size());
   for (int i = 0, n = skymap.size(); i < n; i++)
   {
-    normalized_skymap[i] = (unsigned char) round(((log(skymap[i]) - min) / (max - min)) * 255.0f);
+    min = std::min<float>(min, skymap[i]);
+    max = std::max<float>(max, skymap[i]);
   }
 
-  static QVector<QRgb> colors;
-  if (colors.empty())
-  {
-    QColor color;
-    for (int i = 0; i < 256; i++)
-    {
-      int hue = (int) round(240.0 - (i/255.0*240.0));
-      color.setHsv(hue, 255, 255);
-      colors.append(color.rgb());
-    }
-  }
+  // Normalize between 0..1 and find gamma
+  std::vector<float> normalized(skymap.size());
+  float gamma = 0.6f;
+  for (int i = 0, n = skymap.size(); i < n; i++)
+    normalized[i] = (skymap[i] - min) / (max - min);
 
-  QImage image(&normalized_skymap[0], 512, 512, QImage::Format_Indexed8);
-  image.setColorTable(colors);
-  QString filename = blob->getDateTime().toString("_dd-MM-yyyy_hh-mm-ss") + ".tiff";
+  // Apply gamma correction and put into bitmap
+  // See http://en.wikipedia.org/wiki/Gamma_correction
+  std::vector<unsigned char> bitmap(skymap.size());
+  for (int i = 0, n = skymap.size(); i < n; i++)
+    bitmap[i] = (unsigned char) round(std::pow<float>(normalized[i], gamma) * 255.0f);
+
+  // Create image
+  QImage image(&bitmap[0], blob->getWidth(), blob->getHeight(), QImage::Format_Indexed8);
+  image.setColorTable(mColors);
+  QString filename = blob->getDateTime().toString("dd-MM-yyyy_hh:mm:ss") + ".tiff";
   image.save(mPath + "/" + filename, "TIFF");
 }
 

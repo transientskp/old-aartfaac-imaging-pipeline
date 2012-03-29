@@ -1,4 +1,4 @@
-#include "Imager.h"
+#include "Calibrator.h"
 
 #include "../../UniboardDataBlob.h"
 #include "../../../matlabbridge/src/cpp/MatlabBridge.h"
@@ -6,7 +6,7 @@
 #include <pelican/utility/Config.h>
 #include <QtCore>
 
-Imager::Imager(const ConfigNode &inConfig)
+Calibrator::Calibrator(const ConfigNode &inConfig)
   : AbstractModule(inConfig)
 {
   mULoc.resize(288*288);
@@ -18,12 +18,12 @@ Imager::Imager(const ConfigNode &inConfig)
   mBridge = MatlabBridge::singleton();
 }
 
-Imager::~Imager()
+Calibrator::~Calibrator()
 {
   //delete mBridge;
 }
 
-void Imager::readData(const QString &inFilename, std::vector<float> &outData)
+void Calibrator::readData(const QString &inFilename, std::vector<float> &outData)
 {
   QFile file(inFilename);
 
@@ -44,12 +44,12 @@ void Imager::readData(const QString &inFilename, std::vector<float> &outData)
   Q_ASSERT(i == 288*288);
 }
 
-void Imager::run(const UniboardDataBlob *input, UniboardDataBlob *output)
+void Calibrator::run(const UniboardDataBlob *input, UniboardDataBlob *output)
 {
   output->setMJDTime(input->getMJDTime());
-  const std::vector<float> *real = input->getXXReal();
-  const std::vector<float> *imag = input->getXXImag();
-  std::vector<float> &skymap = output->getSkyMap();
-  std::vector<float> &vismap = output->getVisMap();
-  mBridge->createImage(*real, *imag, mULoc, mVLoc, skymap, vismap);
+//  const std::vector<float> *real = input->getXXReal();
+//  const std::vector<float> *imag = input->getXXImag();
+//  std::vector<float> &skymap = output->getSkyMap();
+//  std::vector<float> &vismap = output->getVisMap();
+//  mBridge->callMatlab(*real, *imag, mULoc, mVLoc, skymap, vismap);
 }

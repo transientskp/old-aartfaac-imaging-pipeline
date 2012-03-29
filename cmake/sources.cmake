@@ -16,6 +16,7 @@ set(PIPELINE_SOURCES
   src/pipeline/UniboardAdapter.cpp
   src/pipeline/UniboardStorage.cpp
   src/pipeline/UniboardPipeline.cpp
+  src/pipeline/modules/calibrator/Calibrator.cpp
   src/pipeline/modules/imager/Imager.cpp
   src/utilities/halfprecision.c
   src/utilities/Utils.cpp
