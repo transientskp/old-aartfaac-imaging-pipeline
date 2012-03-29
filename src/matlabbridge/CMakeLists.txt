@@ -4,7 +4,7 @@ project(MATLABBRIDGE)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter")
 
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE debug)
+	set(CMAKE_BUILD_TYPE debug)
 endif(NOT CMAKE_BUILD_TYPE)
 
 set(MATLAB_ROOT /usr/local/MATLAB/R2011b CACHE PATH "Location of matlab installation")

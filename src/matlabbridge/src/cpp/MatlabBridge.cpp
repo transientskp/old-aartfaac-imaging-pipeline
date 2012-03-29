@@ -19,9 +19,9 @@ MatlabBridge::~MatlabBridge()
 
 MatlabBridge* MatlabBridge::singleton()
 {
-	if (sSingleton == NULL)
-		sSingleton = new MatlabBridge();
-	return sSingleton;
+  if (sSingleton == NULL)
+    sSingleton = new MatlabBridge();
+  return sSingleton;
 }
 
 //[calvis, gainsol, sigmas, sigman, good] = pelican_calib (acc, t_obs, freq, uvflag)

@@ -6,24 +6,25 @@
 using namespace pelican;
 
 class UniboardDataBlob;
+class Calibrator;
 class Imager;
 
 class UniboardPipeline : public AbstractPipeline
 {
 public:
-  // Constructor.
+  /// Constructor.
   UniboardPipeline() : AbstractPipeline() {}
 
-  // Initialises the pipeline.
+  /// Initialises the pipeline.
   void init();
 
-  // Defines one iteration of the pipeline.
+  /// Defines one iteration of the pipeline.
   void run(QHash<QString, DataBlob*>& remoteData);
 
 private:
-  // Local data blob pointers.
   UniboardDataBlob *mOutputData;
   Imager *mImager;
+  Calibrator *mCalibrator;
   quint64 mBlobCount;
 };
 

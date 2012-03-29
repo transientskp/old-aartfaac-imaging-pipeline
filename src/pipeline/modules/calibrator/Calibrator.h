@@ -1,5 +1,5 @@
-#ifndef IMAGER_MODULE_H
-#define IMAGER_MODULE_H
+#ifndef CALIBRATOR_MODULE_H
+#define CALIBRATOR_MODULE_H
 
 #include <pelican/core/AbstractModule.h>
 
@@ -25,4 +25,4 @@ private:
 
 PELICAN_DECLARE_MODULE(Calibrator)
 
-#endif // IMAGER_MODULE_H
+#endif // CALIBRATOR_MODULE_H
