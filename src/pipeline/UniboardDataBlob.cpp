@@ -90,6 +90,16 @@ void UniboardDataBlob::addSample(const quint16 inA1,
   mXXImag[inA2*288+inA1] = xx_conj.imag();
 }
 
+std::vector<float>* UniboardDataBlob::getXXReal()
+{
+  return &mXXReal;
+}
+
+std::vector<float>* UniboardDataBlob::getXXImag()
+{
+  return &mXXImag;
+}
+
 const std::vector<float>* UniboardDataBlob::getXXReal() const
 {
   return &mXXReal;

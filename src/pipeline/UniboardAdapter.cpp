@@ -35,23 +35,23 @@ void UniboardAdapter::deserialise(QIODevice *inDevice)
     if (!is_touched)
     {
       blob->setMJDTime(packet.mHeader.time);
-      blob->setChannelId(packet.mHeader.channel);
+      blob->setFrequency(packet.mHeader.freq);
       is_touched = true;
     }
 
-    for (quint32 j = 0; j < packet.mHeader.samples; j++)
+    for (quint32 j = 0; j < packet.mHeader.correlations; j++)
     {
-      UdpPacket::Correlation &sample = packet.mSamples[j];
+      UdpPacket::Correlation &correlation = packet.mCorrelations[j];
 
       for (quint32 k = 0; k < 8; k+=2)
       {
         halfp2singles(static_cast<float*>(&polarizations[k/2].real()),
-                      static_cast<void*>(&sample.polarizations[k]), 1);
+                      static_cast<void*>(&correlation.polarizations[k]), 1);
         halfp2singles(static_cast<float*>(&polarizations[k/2].imag()),
-                      static_cast<void*>(&sample.polarizations[k+1]), 1);
+                      static_cast<void*>(&correlation.polarizations[k+1]), 1);
       }
 
-      blob->addSample(sample.a1, sample.a2,
+      blob->addSample(correlation.a1, correlation.a2,
                       polarizations[0],
                       polarizations[1],
                       polarizations[2],

@@ -9,12 +9,7 @@
 Calibrator::Calibrator(const ConfigNode &inConfig)
   : AbstractModule(inConfig)
 {
-  mULoc.resize(288*288);
-  mVLoc.resize(288*288);
-  QString uloc_filename = inConfig.getOption("uloc", "filename");
-  QString vloc_filename = inConfig.getOption("vloc", "filename");
-  readData(uloc_filename, mULoc);
-  readData(vloc_filename, mVLoc);
+  mUVFlags.resize(288*288, 0);
   mBridge = MatlabBridge::singleton();
 }
 
@@ -23,33 +18,21 @@ Calibrator::~Calibrator()
   //delete mBridge;
 }
 
-void Calibrator::readData(const QString &inFilename, std::vector<float> &outData)
-{
-  QFile file(inFilename);
-
-  if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-  {
-    qCritical("Failed opening %s", qPrintable(inFilename));
-    return;
-  }
-
-  quint32 i = 0;
-  QTextStream txt(&file);
-  while (!txt.atEnd()) {
-    QString line = txt.readLine();
-    outData[i] = line.toFloat();
-    i++;
-  }
-  qDebug("parsed %s", qPrintable(inFilename));
-  Q_ASSERT(i == 288*288);
-}
-
 void Calibrator::run(const UniboardDataBlob *input, UniboardDataBlob *output)
 {
   output->setMJDTime(input->getMJDTime());
-//  const std::vector<float> *real = input->getXXReal();
-//  const std::vector<float> *imag = input->getXXImag();
-//  std::vector<float> &skymap = output->getSkyMap();
-//  std::vector<float> &vismap = output->getVisMap();
-//  mBridge->callMatlab(*real, *imag, mULoc, mVLoc, skymap, vismap);
+  output->setFrequency(input->getFrequency());
+
+  const std::vector<float> *inp_real = input->getXXReal();
+  const std::vector<float> *inp_imag = input->getXXImag();
+
+  std::vector<float> *out_real = output->getXXReal();
+  std::vector<float> *out_imag = output->getXXImag();
+  mBridge->calibrate(*inp_real,
+                     *inp_imag,
+                     input->getMJDTime(),
+                     input->getFrequency(),
+                     mUVFlags,
+                     *out_real,
+                     *out_imag);
 }

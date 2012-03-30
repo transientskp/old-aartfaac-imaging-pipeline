@@ -50,7 +50,7 @@ void UniboardStorage::sendStream(const QString &inStreamName, const DataBlob *in
 
   // Normalize between 0..1 and find gamma
   std::vector<float> normalized(skymap.size());
-  float gamma = 0.6f;
+  float gamma = 0.75f;
   for (int i = 0, n = skymap.size(); i < n; i++)
     normalized[i] = (skymap[i] - min) / (max - min);
 

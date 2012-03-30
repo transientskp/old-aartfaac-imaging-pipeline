@@ -32,8 +32,12 @@ public:
 
   const std::vector<float>* getXXImag() const;
 
-  void setChannelId(const quint32 inChannelId) { mChannelId = inChannelId; }
-  quint32 getChannelId() const                 { return mChannelId; }
+  std::vector<float>* getXXReal();
+
+  std::vector<float>* getXXImag();
+
+  void setFrequency(const double inFrequency)  { mFrequency = inFrequency; }
+  quint32 getFrequency() const                 { return mFrequency; }
   double getMJDTime() const                    { return mMJDTime; }
   QDateTime getDateTime() const                { return mDateTime; }
   quint32 getWidth() const                     { return mWidth; }
@@ -46,6 +50,7 @@ public:
 
 private:
   double mMJDTime;
+  double mFrequency;
   QDateTime mDateTime;
   quint32 mChannelId;
   quint32 mWidth;

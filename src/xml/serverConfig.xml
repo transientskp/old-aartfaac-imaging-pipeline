@@ -13,7 +13,7 @@
     <chunkers>
       <UniboardChunker>
         <chunk timeout="1500"/>
-        <data type="UniboardDataBlob" chunkSize="842248"/>
+        <data type="UniboardDataBlob" chunkSize="844500"/>
         <connection host="127.0.0.1" port="2001"/>
       </UniboardChunker>
     </chunkers>

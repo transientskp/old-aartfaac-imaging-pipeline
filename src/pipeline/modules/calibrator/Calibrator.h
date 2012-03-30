@@ -16,11 +16,8 @@ public:
   void run(const UniboardDataBlob *input, UniboardDataBlob *output);
 
 private:
-  std::vector<float> mULoc;
-  std::vector<float> mVLoc;
+  std::vector<int> mUVFlags;
   MatlabBridge *mBridge;
-
-  void readData(const QString &inFilename, std::vector<float> &outData);
 };
 
 PELICAN_DECLARE_MODULE(Calibrator)

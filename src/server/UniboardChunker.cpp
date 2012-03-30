@@ -10,10 +10,10 @@ UdpPacket UniboardChunker::sEmptyPacket;
 UniboardChunker::UniboardChunker(const ConfigNode &inConfig)
   : AbstractChunker(inConfig)
 {
-  sEmptyPacket.mHeader.channel = -1;
-  sEmptyPacket.mHeader.samples = 0;
+  sEmptyPacket.mHeader.freq = -1.0;
+  sEmptyPacket.mHeader.correlations = 0;
   sEmptyPacket.mHeader.time    = 0.0;
-  memset(sEmptyPacket.mSamples, 0, sizeof(sEmptyPacket.mSamples));
+  memset(sEmptyPacket.mCorrelations, 0, sizeof(sEmptyPacket.mCorrelations));
 
   // chunksize = ceil(baselines/samples in packet) * packet size
   mChunkSize = inConfig.getOption("data", "chunkSize").toUInt();
@@ -54,7 +54,7 @@ void UniboardChunker::next(QIODevice *inDevice)
       continue;
     }
 
-    QString key = hash(packet.mHeader.time, packet.mHeader.channel);
+    QString key = hash(packet.mHeader.time, packet.mHeader.freq);
     if (!mDataBuffers.contains(key))
       mDataBuffers[key] = new Chunk(this);
 
@@ -87,10 +87,9 @@ void UniboardChunker::next(QIODevice *inDevice)
   }
 }
 
-QString UniboardChunker::hash(const double inTime, const quint32 inChannelId)
+QString UniboardChunker::hash(const double inTime, const double inFrequency)
 {
-
-  return QString("T:%1 C:%2").arg(utils::MJD2QDateTime(inTime).toString("dd-MM-yyyy hh:mm:ss")).arg(inChannelId);
+  return QString("T:%1 C:%2").arg(utils::MJD2QDateTime(inTime).toString("dd-MM-yyyy hh:mm:ss")).arg(inFrequency);
 }
 
 UniboardChunker::Chunk::Chunk(UniboardChunker *inChunker)

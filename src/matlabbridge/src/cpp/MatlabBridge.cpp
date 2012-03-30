@@ -29,12 +29,12 @@ bool MatlabBridge::calibrate(const std::vector<float> &inReal,
                              const std::vector<float> &inImag,
                              const double inMJDTime,
                              const double inFreq,
-                             const std::vector<float> &inUVFlags,
+                             const std::vector<int> &inUVFlags,
                              std::vector<float> &outReal,
                              std::vector<float> &outImag)
 {
   mwArray skymap;
-  mwArray correlations(288*288, 1, mxSINGLE_CLASS, mxCOMPLEX);
+  mwArray correlations(288, 288, mxSINGLE_CLASS, mxCOMPLEX);
   correlations.Real().SetData(const_cast<float*>(&inReal[0]), inReal.size());
   correlations.Imag().SetData(const_cast<float*>(&inImag[0]), inImag.size());
 
@@ -44,8 +44,8 @@ bool MatlabBridge::calibrate(const std::vector<float> &inReal,
   mwArray freq(1, 1, mxDOUBLE_CLASS);
   freq(1) = inFreq;
 
-  mwArray uv_flags(288*288, 1, mxSINGLE_CLASS);
-  uv_flags.SetData(const_cast<float*>(&inUVFlags[0]), inUVFlags.size());
+  mwArray uv_flags(288, 288, mxINT32_CLASS);
+  uv_flags.SetData(const_cast<int*>(&inUVFlags[0]), inUVFlags.size());
 
   mwArray gain, sigmas, sigman, good;
   pelican_calib(5, skymap, gain, sigmas, sigman, good, correlations, time, freq, uv_flags);
@@ -90,7 +90,7 @@ bool MatlabBridge::createImage(const std::vector<float> &inReal,
   mwArray uvsize(1, 1, mxSINGLE_CLASS);
   uvsize(1) = 512;
 
-  fft_imager(2, skymap, vispad, correlations, uloc, vloc, duv, nuv, uvsize);
+  fft_imager_sjw(2, skymap, vispad, correlations, uloc, vloc, duv, nuv, uvsize);
 
   mwArray dimensions = skymap.GetDimensions();
   int width = dimensions(1,1);

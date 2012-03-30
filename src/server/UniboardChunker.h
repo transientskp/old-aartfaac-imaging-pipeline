@@ -41,7 +41,7 @@ private:
     static UdpPacket sEmptyPacket; ///< Default empty packet
 
     QHash<QString, Chunk*> mDataBuffers;
-    QString hash(const double inTime, const quint32 inChannelId);
+    QString hash(const double inTime, const double inFrequency);
 };
 
 PELICAN_DECLARE_CHUNKER(UniboardChunker)

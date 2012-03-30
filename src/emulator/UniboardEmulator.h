@@ -21,7 +21,7 @@ public:
 private:
   void emulationFinished();
 
-  quint64 mTotalSamples;
+  quint64 mTotalCorrelations;
   quint64 mTotalPackets;
   quint64 mTotalTableRows;
   quint64 mMaxSamples;

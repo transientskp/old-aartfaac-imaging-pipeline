@@ -8,7 +8,7 @@ public:
   MatlabBridge();
   ~MatlabBridge();
 
-	static MatlabBridge* singleton();
+  static MatlabBridge* singleton();
 
   bool process();
 
@@ -16,7 +16,7 @@ public:
                  const std::vector<float> &inImag,
                  const double inMJDTime,
                  const double inFreq,
-                 const std::vector<float> &inUVFlags,
+                 const std::vector<int> &inUVFlags,
                  std::vector<float> &outReal,
                  std::vector<float> &outImag);
 
@@ -28,7 +28,7 @@ public:
                    std::vector<float> &outVispad);
 
 private:
-	static MatlabBridge *sSingleton;
+  static MatlabBridge *sSingleton;
   void killMatlab();
   bool initMatlab();
 };
