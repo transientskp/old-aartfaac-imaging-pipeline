@@ -82,7 +82,7 @@ bool MatlabBridge::createImage(const std::vector<float> &inReal,
   vloc.SetData(const_cast<float*>(&inVLoc[0]), inVLoc.size());
 
   mwArray duv(1, 1, mxSINGLE_CLASS);
-  duv(1) = 600.0f/511.0f;
+  duv(1) = 600.0f/256.0f;
 
   mwArray nuv(1, 1, mxSINGLE_CLASS);
   nuv(1) = 512;
