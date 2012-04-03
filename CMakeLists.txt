@@ -56,12 +56,14 @@ link_directories(
 # === Find Dependencies.
 find_package(Pelican REQUIRED)
 find_package(Casacore REQUIRED)
-find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
+find_package(Qt4 COMPONENTS QtCore QtNetwork QtXml REQUIRED)
+find_package(Boost COMPONENTS program_options REQUIRED)
 
 # === Add directories to the include path (i.e. -I<directory> ...)
 include_directories(${PELICAN_INCLUDES})
 include_directories(${CASACORE_INCLUDES})
 include_directories(${QT_INCLUDE_DIR})
+include_directories(${QT_QTCORE_INCLUDE_DIR})
 
 # === Create the emulator binary.
 set(EMULATOR ${PROJECT_NAME}-emulator)
@@ -71,7 +73,7 @@ target_link_libraries(${EMULATOR}
   ${QT_QTCORE_LIBRARY}
   ${QT_QTNETWORK_LIBRARY}
   ${QT_QTXML_LIBRARY}
-  ${PELICAN_LIBRARY}
+  ${PELICAN_LIBRARIES}
   ${CASACORE_LIBRARIES}
   #/usr/local/lib64/liblofarstman.so
 )
@@ -86,7 +88,7 @@ target_link_libraries(${PIPELINE}
   ${QT_QTNETWORK_LIBRARY}
   ${QT_QTXML_LIBRARY}
   ${QT_QTGUI_LIBRARY}
-  ${PELICAN_LIBRARY}
+  ${PELICAN_LIBRARIES}
 )
 
 # === Create the server binary.
@@ -97,7 +99,7 @@ target_link_libraries(${SERVER}
   ${QT_QTCORE_LIBRARY}
   ${QT_QTNETWORK_LIBRARY}
   ${QT_QTXML_LIBRARY}
-  ${PELICAN_LIBRARY}
+  ${PELICAN_LIBRARIES}
 )
 
 # === Doxygen documentation targets.

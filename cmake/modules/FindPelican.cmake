@@ -1,11 +1,7 @@
 # FindPelican.cmake
 # =============================================================================
 #
-# CMake script to find the Pelican libraray and its associated dependencies.
-#
-# Dependencies for Pelican searched for
-# - Boost program options
-# - Qt (Core, Xml, Network, Gui)
+# CMake script to find the Pelican library.
 #
 # =============================================================================
 # Defines the following variables:
@@ -61,15 +57,6 @@ if (NOT PELICAN_FOUND)
         Pelican
         "ERROR: Could not find Pelican library."
         PELICAN_LIBRARIES
-    )
-
-    # Find dependencies.
-    find_package(Boost COMPONENTS program_options REQUIRED)
-    find_package(Qt4 COMPONENTS QtCore QtNetwork QtXml REQUIRED)
-    list(APPEND PELICAN_INCLUDES
-        ${Boost_PROJECT_OPTIONS_INCLUDE_DIR}
-        ${QT_INCLUDE_DIR}
-        ${QT_QTCORE_INCLUDE_DIR}
     )
 
     # Put variables in the advanced section of the CMake cache.
