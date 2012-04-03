@@ -57,7 +57,6 @@ link_directories(
 find_package(Pelican REQUIRED)
 find_package(Casacore REQUIRED)
 find_package(Qt4 COMPONENTS QtCore QtNetwork QtXml REQUIRED)
-find_package(Boost COMPONENTS program_options REQUIRED)
 
 # === Add directories to the include path (i.e. -I<directory> ...)
 include_directories(${PELICAN_INCLUDES})
