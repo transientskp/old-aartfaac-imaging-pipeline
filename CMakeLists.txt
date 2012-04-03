@@ -55,7 +55,6 @@ link_directories(
 
 # === Find Dependencies.
 find_package(Pelican REQUIRED)
-find_package(CppUnit REQUIRED)
 find_package(Casacore REQUIRED)
 find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
 
