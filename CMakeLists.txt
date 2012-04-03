@@ -57,12 +57,16 @@ link_directories(
 find_package(Pelican REQUIRED)
 find_package(Casacore REQUIRED)
 find_package(Qt4 COMPONENTS QtCore QtNetwork QtXml REQUIRED)
+if (USE_LOFARSTMAN)
+    find_package(Lofar REQUIRED)
+endif (USE_LOFARSTMAN)
 
 # === Add directories to the include path (i.e. -I<directory> ...)
 include_directories(${PELICAN_INCLUDES})
 include_directories(${CASACORE_INCLUDES})
 include_directories(${QT_INCLUDE_DIR})
 include_directories(${QT_QTCORE_INCLUDE_DIR})
+include_directories(${LOFAR_INCLUDES})
 
 # === Create the emulator binary.
 set(EMULATOR ${PROJECT_NAME}-emulator)
@@ -74,7 +78,7 @@ target_link_libraries(${EMULATOR}
   ${QT_QTXML_LIBRARY}
   ${PELICAN_LIBRARIES}
   ${CASACORE_LIBRARIES}
-  #/usr/local/lib64/liblofarstman.so
+  ${LOFAR_LIBRARIES}
 )
 
 # === Create the pipeline binary.
