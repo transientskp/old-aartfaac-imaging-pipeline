@@ -1,6 +1,6 @@
 # === Set the project name and specify the required CMAKE version.
 project(aartfaac CXX C Fortran)
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.6)
 
 # === Compiler options
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror -Wno-unused-function -fno-strict-aliasing -Wl,--no-as-needed")
@@ -55,14 +55,18 @@ link_directories(
 
 # === Find Dependencies.
 find_package(Pelican REQUIRED)
-find_package(CppUnit REQUIRED)
 find_package(Casacore REQUIRED)
-find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
+find_package(Qt4 COMPONENTS QtCore QtNetwork QtXml REQUIRED)
+if (USE_LOFARSTMAN)
+    find_package(Lofar REQUIRED)
+endif (USE_LOFARSTMAN)
 
 # === Add directories to the include path (i.e. -I<directory> ...)
 include_directories(${PELICAN_INCLUDES})
 include_directories(${CASACORE_INCLUDES})
 include_directories(${QT_INCLUDE_DIR})
+include_directories(${QT_QTCORE_INCLUDE_DIR})
+include_directories(${LOFAR_INCLUDES})
 
 # === Create the emulator binary.
 set(EMULATOR ${PROJECT_NAME}-emulator)
@@ -72,9 +76,9 @@ target_link_libraries(${EMULATOR}
   ${QT_QTCORE_LIBRARY}
   ${QT_QTNETWORK_LIBRARY}
   ${QT_QTXML_LIBRARY}
-  ${PELICAN_LIBRARY}
+  ${PELICAN_LIBRARIES}
   ${CASACORE_LIBRARIES}
-  #/usr/local/lib64/liblofarstman.so
+  ${LOFAR_LIBRARIES}
 )
 
 # === Create the pipeline binary.
@@ -87,7 +91,7 @@ target_link_libraries(${PIPELINE}
   ${QT_QTNETWORK_LIBRARY}
   ${QT_QTXML_LIBRARY}
   ${QT_QTGUI_LIBRARY}
-  ${PELICAN_LIBRARY}
+  ${PELICAN_LIBRARIES}
 )
 
 # === Create the server binary.
@@ -98,7 +102,7 @@ target_link_libraries(${SERVER}
   ${QT_QTCORE_LIBRARY}
   ${QT_QTNETWORK_LIBRARY}
   ${QT_QTXML_LIBRARY}
-  ${PELICAN_LIBRARY}
+  ${PELICAN_LIBRARIES}
 )
 
 # === Doxygen documentation targets.
