@@ -24,8 +24,12 @@ private:
   quint64 mTotalCorrelations;
   quint64 mTotalPackets;
   quint64 mTotalTableRows;
+  quint64 mTotalChannelsAndTableRows;
+  quint64 mTotalChannels;
+  quint64 mCurChannelId;
   quint64 mMaxSamples;
   quint64 mRowIndex;
+  quint64 mTotalRowIndex;
 
   QTime mTimer;
   UdpPacket mUdpPacket;

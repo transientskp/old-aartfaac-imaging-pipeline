@@ -12,21 +12,26 @@ UniboardEmulator::UniboardEmulator(const pelican::ConfigNode &inConfigNode)
   mTotalPackets = 0;
   mTotalCorrelations = 0;
   mRowIndex     = 0;
+  mTotalRowIndex = 0;
 
   mMaxSamples = inConfigNode.getOption("packet", "samples").toULong();
 
-  qDebug("Header: %ld bytes", sizeof(UdpPacket::Header));
-  qDebug("Sample: %ld bytes", sizeof(UdpPacket::Correlation));
-  qDebug("Packet: %ld bytes", sizeof(UdpPacket));
+
 
   QString table_name = QCoreApplication::arguments().at(1);
   casa::Table table(qPrintable(table_name));
-  qDebug("Sorting table...");
-//  table = table.sort("TIME");
-  qDebug("Sending data...");
   mMeasurementSet = new casa::MeasurementSet(table);
   mMSColumns = new casa::ROMSColumns(*mMeasurementSet);
   mTotalTableRows = mMSColumns->data().nrow();
+  mTotalChannels = mMSColumns->spectralWindow().numChan()(0);
+  mTotalChannelsAndTableRows = mTotalTableRows * mTotalChannels;
+  mCurChannelId = 0;
+  if (mMSColumns->spectralWindow().numChan().nrow() != 1)
+    qFatal("Varying channels in single MS not supported");
+  qDebug("Header     : %ld bytes", sizeof(UdpPacket::Header));
+  qDebug("Correlation: %ld bytes", sizeof(UdpPacket::Correlation));
+  qDebug("Packet     : %ld bytes", sizeof(UdpPacket));
+  qDebug("Channels   : %lld channels", mTotalChannels);
   mTimer.start();
 }
 
@@ -42,10 +47,7 @@ void UniboardEmulator::getPacketData(char *&outData, unsigned long &outSize)
   outSize = sizeof(UdpPacket);
   memset(static_cast<void*>(&mUdpPacket), 0, sizeof(UdpPacket));
 
-  Q_ASSERT(mMSColumns->spectralWindow().numChan().nrow() == 1);
-  Q_ASSERT(mMSColumns->spectralWindow().numChan()(0) == 1);
-
-  double freq = mMSColumns->spectralWindow().chanFreq()(0).data()[0];
+  double freq = mMSColumns->spectralWindow().chanFreq()(0).data()[mCurChannelId];
   double cur_time = mMSColumns->time()(mRowIndex);
 
   // Set the udp packet header
@@ -67,7 +69,7 @@ void UniboardEmulator::getPacketData(char *&outData, unsigned long &outSize)
 
     correlation.a1  = mMSColumns->antenna1()(mRowIndex);
     correlation.a2  = mMSColumns->antenna2()(mRowIndex);
-    data_array = mMSColumns->data()(mRowIndex);
+    data_array = mMSColumns->data()(mRowIndex)[mCurChannelId];
 
     // Fill sample with complex data polarizations
     int j = 0;
@@ -82,10 +84,17 @@ void UniboardEmulator::getPacketData(char *&outData, unsigned long &outSize)
 
     mUdpPacket.mHeader.correlations++;
     mRowIndex++;
+    mTotalRowIndex++;
 
-    if (mRowIndex % (mTotalTableRows / 100) == 0)
+    if (mTotalRowIndex % (mTotalChannelsAndTableRows / 100) == 0)
       qDebug("Sent %3d%% of measurement set",
-             int(ceil((mRowIndex / double(mTotalTableRows))*100)));
+             int(ceil((mTotalRowIndex / double(mTotalChannelsAndTableRows))*100)));
+  }
+
+  if (mRowIndex >= mTotalTableRows)
+  {
+    mRowIndex = 0;
+    mCurChannelId++;
   }
 
   // Increase counters
@@ -100,15 +109,15 @@ unsigned long UniboardEmulator::interval()
 
 int UniboardEmulator::nPackets()
 {
-  return (mTotalTableRows / mMaxSamples) + (mTotalTableRows % mMaxSamples);
+  return (mTotalChannelsAndTableRows / mMaxSamples) + (mTotalChannelsAndTableRows % mMaxSamples);
 }
 
 void UniboardEmulator::emulationFinished()
 {
   float seconds = mTimer.elapsed() / 1000.0f;
   float mbytes = (sizeof(UdpPacket) * mTotalPackets) / (1024.0f * 1024.0f);
-  qDebug("MBytes: %0.2f sent", mbytes);
-  qDebug("MB/sec: %0.2f sent", mbytes/seconds);
-  qDebug("Sent  : %lld samples", mTotalCorrelations);
+  qDebug("MBytes:      %0.2f sent", mbytes);
+  qDebug("MB/sec:      %0.2f sent", mbytes/seconds);
+  qDebug("Sent  :      %lld samples", mTotalCorrelations);
   QCoreApplication::exit(EXIT_SUCCESS);
 }
