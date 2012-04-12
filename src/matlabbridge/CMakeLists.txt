@@ -1,21 +1,16 @@
 cmake_minimum_required(VERSION 2.6)
 project(MATLABBRIDGE)
 
+find_package(Matlab REQUIRED)
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter")
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE debug)
 endif(NOT CMAKE_BUILD_TYPE)
 
-set(MATLAB_ROOT /usr/local/MATLAB/R2011b CACHE PATH "Location of matlab installation")
-
-link_directories(
-  ${MATLAB_ROOT}/runtime/glnxa64
-  ${MATLABBRIDGE_BINARY_DIR}
-)
-
 include_directories(
-  ${MATLAB_ROOT}/extern/include
+  ${MATLAB_INCLUDES}
   ${MATLABBRIDGE_BINARY_DIR}
 )
 
@@ -53,10 +48,18 @@ if(CMAKE_VERBOSE_MAKEFILE MATCHES ON)
 endif()
 
 add_custom_command(
-  OUTPUT libmatlabbridge.cpp libmatlabbridge.h libmatlabbridge.exports libmatlabbridge.so mccExcludedFiles.log readme.txt
+  OUTPUT
+    libmatlabbridge.cpp
+    libmatlabbridge.h
+    libmatlabbridge.exports
+    libmatlabbridge.so
+    mccExcludedFiles.log
+    readme.txt
   DEPENDS ${MM_FILES}
-  COMMAND ${MATLAB_ROOT}/bin/mcc -B cpplib:libmatlabbridge
-  ${MCC_FLAGS} ${MM_FILES}
+  COMMAND ${MCC_EXECUTABLE} -B cpplib:libmatlabbridge ${MCC_FLAGS} ${MM_FILES}
 )
 
-target_link_libraries(mbridge matlabbridge mwmclmcrrt)
+target_link_libraries(mbridge
+  ${MATLABBRIDGE_BINARY_DIR}/libmatlabbridge.so
+  ${MATLAB_LIBRARIES}
+)

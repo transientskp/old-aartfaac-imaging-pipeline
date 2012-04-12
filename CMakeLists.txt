@@ -43,15 +43,8 @@ SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
 include(cmake/sources.cmake)
 include_directories(${PROJECT_BINARY_DIR})
 
-# === Add matlab bridge
+# === Add Matlab bridge.
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/matlabbridge matlabbridge)
-include_directories(
-  ${MATLABBRIDGE_SOURCE_DIR}/src
-)
-link_directories(
-  ${MATLAB_ROOT}/runtime/glnxa64
-  ${MATLABBRIDGE_BINARY_DIR}
-)
 
 # === Find Dependencies.
 find_package(Pelican REQUIRED)
