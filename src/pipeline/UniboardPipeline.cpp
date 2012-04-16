@@ -31,7 +31,7 @@ void UniboardPipeline::run(QHash<QString, DataBlob*>& inRemoteData)
   // Create image
   mImager->run(mOutputData, mOutputData);
 
-  // Output to stream(s)
+  // Output to stream(s), see modules/output
   dataOutput(mOutputData, "post");
   qDebug("Processed %4lldth blob with timestamp %s", ++mBlobCount, qPrintable(input_data->getDateTime().toString("dd-MM-yyyy hh:mm:ss")));
 }

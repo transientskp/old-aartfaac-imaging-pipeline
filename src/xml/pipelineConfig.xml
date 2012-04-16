@@ -26,9 +26,9 @@
 
     <output>
       <streamers>
-				<UniboardStorage name="image" active="true">
+				<TiffStorage name="image" active="true">
 					<file path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
-				</UniboardStorage>
+				</TiffStorage>
       </streamers>
       <dataStreams>
         <stream name="post" listeners="image"/>

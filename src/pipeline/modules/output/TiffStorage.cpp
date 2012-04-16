@@ -1,12 +1,12 @@
-#include "UniboardStorage.h"
-#include "UniboardDataBlob.h"
+#include "TiffStorage.h"
+#include "../../UniboardDataBlob.h"
 
 #include <limits>
 #include <cmath>
 #include <QtGui/QImage>
 #include <QtGui/QColor>
 
-UniboardStorage::UniboardStorage(const ConfigNode &inConfigNode)
+TiffStorage::TiffStorage(const ConfigNode &inConfigNode)
   : AbstractOutputStream(inConfigNode)
 {
   mPath = inConfigNode.getOption("file", "path", "./");
@@ -20,12 +20,12 @@ UniboardStorage::UniboardStorage(const ConfigNode &inConfigNode)
   }
 }
 
-UniboardStorage::~UniboardStorage()
+TiffStorage::~TiffStorage()
 {
 
 }
 
-void UniboardStorage::sendStream(const QString &inStreamName, const DataBlob *inDataBlob)
+void TiffStorage::sendStream(const QString &inStreamName, const DataBlob *inDataBlob)
 {
   Q_UNUSED(inStreamName);
 
