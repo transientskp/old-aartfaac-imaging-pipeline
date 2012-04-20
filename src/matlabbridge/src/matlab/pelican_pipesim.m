@@ -2,17 +2,20 @@
 % and fft_imager_sjw () functions.
 % pep/23Mar12
 
-function pelica_pipesim (fname)
+function pelican_pipesim (fname)
     Nelem = 288; 
     nblines = Nelem * (Nelem + 1)/2; 
     uvflag = eye (288); % Flag only the autocorrelations
-    freq = 59951782.2;
+    % freq = 59951782.2;
+    freq = 59756469;
     mins2cal = 2;
-    
+    debuglev = 2;
+
     % FFT Imaging related
-    duv = 600/511;                % In meters, grid spacing in fft imager
-    Nuv = 512;                    % size of gridded visibility matrix
-    uvpad = 512;                  % specifies if any padding needs to be added
+    % duv = 600/511;                % In meters, grid spacing in fft imager
+    duv = 2;
+    Nuv = 1000;                    % size of gridded visibility matrix
+    uvpad = 1024;                  % specifies if any padding needs to be added
 
     % Local horizon based coordinates of array in ITRF
     load ('poslocal.mat', 'posITRF', 'poslocal'); 
@@ -26,7 +29,8 @@ function pelica_pipesim (fname)
     
     fid = fopen (fname, 'rb');
     outfilename = strrep (fname, '.bin', '_pelpipe.mat');
-    disp(['Writing cal solutions to file: ' outfilename]);
+    badcalfilename = strrep (fname, '.bin', '_pelpipe_badcal.mat');
+    disp(['Writing cal solutions to file: ' outfilename '  Badcalsol to file: ' badcalfilename]);
 
     t_obs = fread (fid, 1, 'double');
     disp (['Timeslice: ' num2str(t_obs, '%f') ' (MJD secs) for initial estimation']);
@@ -66,22 +70,40 @@ function pelica_pipesim (fname)
     %% calibrate using source positions from catalog and a baseline
     % restriction of 10 wavelengths or 60 meters (whichever is smaller)
     % This results in estimated source fluxes of the model sources
-    [calvis, gainsol, sigmas, sigman, good] = pelican_calib (acc, t_obs, freq, uvflag);
-    [calmap calvis] = fft_imager_sjw (calvis (:), uloc(:), vloc(:), duv, Nuv, uvpad);              
+    % [calvis, gainsol, sigmas, sigman, good] = pelican_calib (acc, t_obs, freq, uvflag);
+    [thsrc_cat, phisrc_cat, thsrc_wsf, phisrc_wsf, calvis, gainsol, sigmas, sigman, good] = pelican_sunAteamsub (acc, t_obs, freq, uvflag, debuglev);
+    % [calmap, calvis, l, m] = fft_imager_sjw (calvis (:), uloc(:), vloc(:), duv, Nuv, uvpad, freq);              
+    [calmap, ~] = fft_imager (calvis, uloc, vloc, duv, Nuv, uvpad);
     t_obs_store (1) = t_obs;
     cal_store (:,1) = gainsol;
     sigmas_store = {};
     sigmas_store{1} = sigmas;
     sigman_store(:,:,1) = sigman;
     image_store (:,:,1) = calmap; 
-    
+
+    badt_obs_store (1) = t_obs;
+    badcal_store (:,1) = gainsol;
+    badsigmas_store = {};
+    badsigmas_store{1} = sigmas;
+    badsigman_store(:,:,1) = sigman;
+    badimage_store (:,:,1) = calmap; 
+    badcalrun = 1;
+    % Quality of calibration solutions, as determined by the phase solutions
+    for station=1:6
+      ph_var (station) = var (angle(gainsol (1+(station-1)*48:station*48)));
+    end
+    if sum(ph_var > 1) ~= 0 
+      good_cal (1) = false;
+    else
+      good_cal (1) = true;
+    end 
     t = 1;
     calrun = 1;
     stop_processing = 0 ;
     %%
    try
-        while (feof (fid) ~= 1 & stop_processing == 0)
-        % for i=1:10
+        % while (feof (fid) ~= 1 & stop_processing == 0)
+        for i=1:5
 
             t = t + 1;
 
@@ -89,6 +111,7 @@ function pelica_pipesim (fname)
             if (isempty (t_obs))
                 break;
             end
+            disp ('---->');
             disp (['Timeslice: ' num2str(t) ' (' num2str(t_obs, '%f') ')']);
 
             % Reading real and imaginary, available as a stream of floats.
@@ -107,28 +130,52 @@ function pelica_pipesim (fname)
             % JulianDay () should not be called now!
             calrun = calrun + 1;            
             t_obs_store (calrun) = t_obs;           
-            t_obs = t_obs/86400 + 2400000.5;
+            % t_obs = t_obs/86400 + 2400000.5;
             
             % Calibrate this timeslice
-            [calvis, gainsol, sigmas, sigman, good] = pelican_calib (acc, t_obs, freq, uvflag);
+            % [calvis, gainsol, sigmas, sigman, good] = pelican_calib (acc, t_obs, freq, uvflag);
+            [calvis, gainsol, sigmas, sigman, good] = pelican_sunAteamsub (acc, t_obs, freq, uvflag, posITRF);
             cal_store (:,calrun) = gainsol;
             sigmas_store {calrun} = sigmas;
             sigman_store (:,:,calrun) = sigman;            
+            % Quality of calibration solutions, as determined by the phase solutions
+            for station=1:6
+              ph_var (station) = var (angle(gainsol (1+(station-1)*48:station*48)));
+            end
 
             % Image this data
-            [calmap calvis] = fft_imager_sjw (calvis (:), uloc(:), vloc(:), duv, Nuv, uvpad);  
+            % [calmap, calvis, l, m] = fft_imager_sjw (calvis (:), uloc(:), vloc(:), duv, Nuv, uvpad, freq);  
+            [calmap, ~] = fft_imager (calvis, uloc, vloc, duv, Nuv, uvpad);
             image_store (:,:,calrun) = calmap;
+
+            if sum(ph_var > 1) ~= 0 
+              good_cal (calrun) = false;
+              disp ('CALIBRATION SOLUTION DETERMINED TO BE BAD!!')
+              disp ('Storing to badcal file!');
+              badcalrun = badcalrun + 1;            
+              badt_obs_store (badcalrun) = t_obs;           
+              badcal_store (:,badcalrun) = gainsol;
+              badsigmas_store {badcalrun} = sigmas;
+              badsigman_store (:,:,calrun) = sigman;            
+              badimage_store (:,:,calrun) = calmap;
+            else
+              good_cal (calrun) = true;
+              disp ('Good calibration solution found');
+            end 
+
             
-            for t_ind = 1:tslices2cal
-                t_obs = fread (fid, 1, 'double');
-                a = fread (fid, 2*nblines, 'float'); % Read one ccm worth
-            end    
+%            for t_ind = 1:tslices2cal
+%                t_obs = fread (fid, 1, 'double');
+%                a = fread (fid, 2*nblines, 'float'); % Read one ccm worth
+%            end    
         end
     catch err
         disp ('Error encountered! Saving variables to disk..');
-        save (outfilename, 'cal_store', 'sigmas_store', 'sigman_store', 't_obs_store', 'image_store');
+        save (outfilename, 'cal_store', 'sigmas_store', 'sigman_store', 't_obs_store', 'image_store', 'good_cal');
+        save (badcalfilename, 'badcal_store', 'badsigmas_store', 'badsigman_store', 'badt_obs_store', 'badimage_store', 'badgood_cal');
         rethrow (err);
     end
 
     disp ('Calibration check completed. Storing variables to file');
-    save (outfilename, 'cal_store', 'sigmas_store', 'sigman_store', 't_obs_store', 'image_store');
+    save (outfilename, 'cal_store', 'sigmas_store', 'sigman_store', 't_obs_store', 'image_store', 'good_cal');
+    save (badcalfilename, 'badcal_store', 'badsigmas_store', 'badsigman_store', 'badt_obs_store', 'badimage_store', 'badgood_cal');

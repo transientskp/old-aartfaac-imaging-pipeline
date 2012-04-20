@@ -33,6 +33,12 @@ set(MM_FILES
   ${MATLABBRIDGE_SOURCE_DIR}/src/matlab/radectoITRF.m
   ${MATLABBRIDGE_SOURCE_DIR}/src/matlab/statcal_vlss.m
   ${MATLABBRIDGE_SOURCE_DIR}/src/matlab/SunRaDec.m
+  ${MATLABBRIDGE_SOURCE_DIR}/src/matlab/pelican_sunAteamsub.m
+  ${MATLABBRIDGE_SOURCE_DIR}/src/matlab/statcal_stefcal.m
+  ${MATLABBRIDGE_SOURCE_DIR}/src/matlab/cal_ext_stefcal.m
+  ${MATLABBRIDGE_SOURCE_DIR}/src/matlab/gainsolv.m
+  ${MATLABBRIDGE_SOURCE_DIR}/src/matlab/WSFcostfunITRF.m
+  ${MATLABBRIDGE_SOURCE_DIR}/src/matlab/pelican_pipesim_cpp.m
 )
 
 add_library(mbridge STATIC ${SOURCE_FILES})
@@ -56,7 +62,7 @@ add_custom_command(
     mccExcludedFiles.log
     readme.txt
   DEPENDS ${MM_FILES}
-  COMMAND ${MCC_EXECUTABLE} -B cpplib:libmatlabbridge ${MCC_FLAGS} ${MM_FILES}
+  COMMAND ${MCC_EXECUTABLE}  -B cpplib:libmatlabbridge ${MCC_FLAGS} ${MM_FILES}
 )
 
 target_link_libraries(mbridge

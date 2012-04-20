@@ -47,8 +47,12 @@ bool MatlabBridge::calibrate(const std::vector<float> &inReal,
   mwArray uv_flags(288, 288, mxINT32_CLASS);
   uv_flags.SetData(const_cast<int*>(&inUVFlags[0]), inUVFlags.size());
 
-  mwArray gain, sigmas, sigman, good;
-  pelican_calib(5, skymap, gain, sigmas, sigman, good, correlations, time, freq, uv_flags);
+  mwArray gain, sigmas, sigman;
+  mwArray debug_lev (1, 1, mxINT32_CLASS), good (1, 1, mxINT32_CLASS);
+  debug_lev(1) = 2;
+  // pelican_calib(5, skymap, gain, sigmas, sigman, good, correlations, time, freq, uv_flags);
+  // pelican_sunAteamsub (5, skymap, gain, sigmas, sigman, good, correlations, time, freq, uv_flags, debug_lev);
+  pelican_pipesim_cpp (1, good, correlations, time, freq);
 
   mwArray dimensions = skymap.GetDimensions();
   int width = dimensions(1,1);
@@ -83,14 +87,19 @@ bool MatlabBridge::createImage(const std::vector<float> &inReal,
 
   mwArray duv(1, 1, mxSINGLE_CLASS);
   duv(1) = 600.0f/256.0f;
+  // duv(1) = 2;
 
   mwArray nuv(1, 1, mxSINGLE_CLASS);
   nuv(1) = 512;
+  // nuv(1) = 1000;
 
   mwArray uvsize(1, 1, mxSINGLE_CLASS);
   uvsize(1) = 512;
+  // uvsize(1) = 1024;
 
   fft_imager_sjw(2, skymap, vispad, correlations, uloc, vloc, duv, nuv, uvsize);
+  // fft_imager (2, skymap, vispad, correlations, uloc, vloc, duv, nuv, uvsize);
+
 
   mwArray dimensions = skymap.GetDimensions();
   int width = dimensions(1,1);

@@ -6,7 +6,7 @@ vis = zeros(Nuv);
 for idx = 1:length(u(:)) 
     ampl = abs(acc(idx));
     phasor = acc(idx) / ampl;
-    uidx = u(idx) / duv + Nuv / 2;
+    uidx = u(idx) / duv + Nuv/2;
     uidxl = floor(uidx);
     uidxh = ceil(uidx);
     dul = abs(uidx - uidxl);
@@ -42,8 +42,4 @@ vispad = [zeros(N1, uvsize); ...
 vispad(~isfinite(vispad)) = 0;
 
 % compute image
-ac = zeros(size(vispad));
-ac(256, 256) = 100;
-vispad = vispad + ac;
-vispad = conj(flipud(fliplr(fftshift(vispad))));
-skymap = abs(fftshift(fft2(vispad)));
+skymap = fftshift(fft2(vispad));
