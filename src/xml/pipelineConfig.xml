@@ -26,15 +26,16 @@
 
     <output>
       <streamers>
-				<TiffStorage name="tiffimage" active="true">
+				<TiffStorage active="true">
 					<file path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
 				</TiffStorage>
-				<CasaImageStorage name="casaimage" active="true">
+				<CasaImageStorage active="true">
 					<file path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
 				</CasaImageStorage>
       </streamers>
       <dataStreams>
-        <stream name="post" listeners="image"/>
+        <stream name="post" listeners="TiffStorage"/>
+        <stream name="post" listeners="CasaImageStorage"/>
       </dataStreams>
     </output>
   </pipeline>
