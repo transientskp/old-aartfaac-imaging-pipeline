@@ -84,10 +84,10 @@ void UniboardDataBlob::addSample(const quint16 inA1,
   Q_UNUSED(inYX);
 
   std::complex<float> xx_conj = std::conj<float>(inXX);
-  mXXReal[inA1*288+inA2] = inXX.real();
-  mXXReal[inA2*288+inA1] = xx_conj.real();
-  mXXImag[inA1*288+inA2] = inXX.imag();
-  mXXImag[inA2*288+inA1] = xx_conj.imag();
+  mXXReal[inA1*288+inA2] = xx_conj.real();
+  mXXReal[inA2*288+inA1] = inXX.real();
+  mXXImag[inA1*288+inA2] = xx_conj.imag();
+  mXXImag[inA2*288+inA1] = inXX.imag();
 }
 
 std::vector<float>* UniboardDataBlob::getXXReal()
