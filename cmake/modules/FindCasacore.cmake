@@ -30,6 +30,8 @@ if (NOT CASACORE_FOUND)
         ms
         tables
         images
+        lattices
+        coordinates
     )
 
     # For convenience, we want two include directories:
