@@ -2,6 +2,7 @@
 #include "../../UniboardDataBlob.h"
 
 #include <casacore/images/Images/PagedImage.h>
+#include <casacore/coordinates/Coordinates/CoordinateUtil.h>
 #include <QtCore>
 
 CasaImageStorage::CasaImageStorage(const ConfigNode &inConfigNode)
@@ -17,13 +18,12 @@ CasaImageStorage::~CasaImageStorage()
 
 void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *inDataBlob)
 {
-  Q_UNUSED(inStreamName);
-
   const UniboardDataBlob *blob = static_cast<const UniboardDataBlob*>(inDataBlob);
 
   if (blob->type() != "UniboardDataBlob")
   {
-    qWarning("Expected datablob type 'UniboardDataBlob', got '%s' ignoring...", qPrintable(blob->type()));
+    qWarning("Expected 'UniboardDataBlob', got '%s' on stream '%s', ignoring...",
+             qPrintable(blob->type()), qPrintable(inStreamName));
     return;
   }
 
@@ -32,11 +32,15 @@ void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *i
       QString::number(blob->getFrequency(), 'f', 6) +
       "_" + blob->getDateTime().toString("dd-MM-yyyy_hh:mm:ss") + ".image";
 
-  casa::TiledShape map_shape;
-  casa::CoordinateSystem coordinate_info;
-  casa::PagedImage<casa::Float> image(map_shape, coordinate_info, qPrintable(filename));
+  static casa::TiledShape map_shape(casa::IPosition(2, 512, 512));
+  static casa::CoordinateSystem coordinate_info = casa::CoordinateUtil::defaultCoords2D();
 
-  Q_UNUSED(image);
-  Q_UNUSED(skymap);
+  casa::PagedImage<casa::Float> image(map_shape, coordinate_info, qPrintable(filename));
+  for (int i = 0, x, y, n = skymap.size(); i < n; i++)
+  {
+    x = i % 512;
+    y = 511 - i / 512;
+    image.putAt(skymap[i], casa::IPosition(2, x, y));
+  }
 }
 
