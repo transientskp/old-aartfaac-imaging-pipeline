@@ -12,7 +12,6 @@
 
     <adapters>
       <UniboardAdapter>
-        <packet maxSamples="74"/>
         <antennae amount="288"/>
       </UniboardAdapter>
     </adapters>

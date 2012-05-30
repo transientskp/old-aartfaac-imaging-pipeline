@@ -16,7 +16,10 @@ UniboardChunker::UniboardChunker(const ConfigNode &inConfig)
   memset(sEmptyPacket.mCorrelations, 0, sizeof(sEmptyPacket.mCorrelations));
 
   // chunksize = ceil(baselines/samples in packet) * packet size
-  mChunkSize = inConfig.getOption("data", "chunkSize").toUInt();
+  int antennae_count = inConfig.getOption("antennae", "count").toInt();
+  int packet_correlations = sizeof(UdpPacket::mCorrelations) / sizeof(UdpPacket::Correlation);
+  int baselines = (antennae_count*(antennae_count+1)) / 2;
+  mChunkSize = ceil(baselines/double(packet_correlations)) * sizeof(UdpPacket);
   mTimeout = inConfig.getOption("chunk", "timeout").toInt();
   mPacketSize = sizeof(UdpPacket);
 
