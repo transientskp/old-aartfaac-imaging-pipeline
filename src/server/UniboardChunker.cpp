@@ -41,10 +41,13 @@ void UniboardChunker::next(QIODevice *inDevice)
   if (!isActive())
     return;
 
+  quint64 bytes_received = 0;
+
   QUdpSocket *udp_socket = static_cast<QUdpSocket*>(inDevice);
 
   quint32 packets = mChunkSize / mPacketSize;
   UdpPacket packet;
+  quint64 key;
   for (quint32 i = 0; i < packets; i++)
   {
     while (inDevice->bytesAvailable() < mPacketSize)
@@ -57,14 +60,15 @@ void UniboardChunker::next(QIODevice *inDevice)
       continue;
     }
 
-    QString key = hash(packet.mHeader.time, packet.mHeader.freq);
+    key = hash(packet.mHeader.time, packet.mHeader.freq);
     if (!mDataBuffers.contains(key))
       mDataBuffers[key] = new Chunk(this);
 
     mDataBuffers[key]->addData(static_cast<void*>(&packet), mPacketSize);
+    bytes_received += mPacketSize;
   }
 
-  QHash<QString, Chunk*>::iterator i = mDataBuffers.begin();
+  QHash<quint64, Chunk*>::iterator i = mDataBuffers.begin();
   Chunk *chunk;
   while (i != mDataBuffers.end())
   {
@@ -78,8 +82,7 @@ void UniboardChunker::next(QIODevice *inDevice)
     if (chunk->isTimeUp())
     {
       quint32 missing_bytes = chunk->fill();
-      qWarning("Chunk '%s' is incomplete, missing %u/%lld bytes",
-               qPrintable(i.key()), missing_bytes, mChunkSize);
+      qWarning("Chunk incomplete, missing %u/%lld bytes", missing_bytes, mChunkSize);
       delete chunk;
       i = mDataBuffers.erase(i);
     }
@@ -90,9 +93,9 @@ void UniboardChunker::next(QIODevice *inDevice)
   }
 }
 
-QString UniboardChunker::hash(const double inTime, const double inFrequency)
+quint64 UniboardChunker::hash(const double inTime, const double inFrequency)
 {
-  return QString("T:%1 C:%2").arg(utils::MJD2QDateTime(inTime).toString("dd-MM-yyyy hh:mm:ss")).arg(inFrequency);
+  return static_cast<quint64>(inTime*inFrequency);
 }
 
 UniboardChunker::Chunk::Chunk(UniboardChunker *inChunker)
