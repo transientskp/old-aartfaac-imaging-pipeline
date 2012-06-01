@@ -21,17 +21,35 @@ void UniboardPipeline::init()
 
 // Defines a single iteration of the pipeline.
 void UniboardPipeline::run(QHash<QString, DataBlob*>& inRemoteData)
-{
+{ static int miss = 0;
+  int stride = 5, skiprecs = 10;
   // Get pointers to the remote data blob(s) from the supplied hash.
-  UniboardDataBlob* input_data = (UniboardDataBlob*) inRemoteData["UniboardDataBlob"];
+  UniboardDataBlob* input_data = 
+                         (UniboardDataBlob*) inRemoteData["UniboardDataBlob"];
 
-  // Calibrate correlations
-  mCalibrator->run(input_data, mOutputData);
+  if (miss++ < skiprecs) 
+  { qDebug("Skipped %4lldth blob with timestamp %s", ++mBlobCount, 
+        qPrintable(input_data->getDateTime().toString("dd-MM-yyyy hh:mm:ss")));
+    return;
+  }
 
-  // Create image
-  // mImager->run(mOutputData, mOutputData);
+  if (miss % stride != 0)
+  { qDebug("Skipped %4lldth blob with timestamp %s", ++mBlobCount, 
+        qPrintable(input_data->getDateTime().toString("dd-MM-yyyy hh:mm:ss")));
+  }
+  else
+  {
+    // Calibrate correlations
+    mCalibrator->run(input_data, mOutputData);
 
-  // Output to stream(s)
-  // dataOutput(mOutputData, "post");
-  qDebug("Processed %4lldth blob with timestamp %s", ++mBlobCount, qPrintable(input_data->getDateTime().toString("dd-MM-yyyy hh:mm:ss")));
+    // Create image
+    mImager->run(mOutputData, mOutputData);
+
+    // Output to stream(s)
+    dataOutput(mOutputData, "post");
+    qDebug("Processed %4lldth blob with timestamp %s, written to file %s.", 
+           ++mBlobCount, 
+        qPrintable(input_data->getDateTime().toString("dd-MM-yyyy hh:mm:ss")), 
+        qPrintable(input_data->getDateTime().toString("dd-MM-yyyy hh:mm:ss")));
+  }
 }

@@ -15,6 +15,7 @@ UniboardDataBlob::UniboardDataBlob()
   mXXReal.resize(288*288, 0.0f);
   mXXImag.resize(288*288, 0.0f);
   mSkyMap.resize(mWidth * mHeight);
+  mSkyMapradec.resize(mWidth * mHeight); // Same size as mSkyMap
   mVisMap.resize(mWidth * mHeight);
   reset();
 }
@@ -35,6 +36,8 @@ void UniboardDataBlob::serialise(QIODevice &out) const
 
   for (int i = 0, n = mSkyMap.size(); i < n; i++)
     stream << mSkyMap[i];
+  for (int i = 0, n = mSkyMapradec.size(); i < n; i++)
+    stream << mSkyMapradec[i];
 }
 
 void UniboardDataBlob::deserialise(QIODevice &in, QSysInfo::Endian)
@@ -49,6 +52,8 @@ void UniboardDataBlob::deserialise(QIODevice &in, QSysInfo::Endian)
 
   for (int i = 0, n = mWidth*mHeight; i < n; i++)
     stream >> mSkyMap[i];
+  for (int i = 0, n = mWidth*mHeight; i < n; i++)
+    stream >> mSkyMapradec[i];
 }
 
 void UniboardDataBlob::createImage(const std::vector<unsigned char> &inData, const QString &inType)

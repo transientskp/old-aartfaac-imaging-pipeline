@@ -1,4 +1,7 @@
-function [cal, sigmahat, Sigman] = statcal_stefcal(acc, t_obs, freq, pos, srcsel, normal, restriction, maxrestriction, uvflag, debug)
+% CHANGE IN FUNCTION CALL to return sigmas (instead of sigmahat), which has a zero for sources
+% not above the horizon.
+% function [cal, sigmahat, Sigman] = statcal_stefcal(acc, t_obs, freq, pos, srcsel, normal, restriction, maxrestriction, uvflag, debug)
+function [cal, sigmas, Sigman] = statcal_stefcal(acc, t_obs, freq, pos, srcsel, normal, restriction, maxrestriction, uvflag, debug)
 
 % [cal, sigmas, Sigman] =
 %     statcal(acc, t_obs, freq, pos, srcsel, normal, restriction,
@@ -46,7 +49,7 @@ v = meshgrid(pos(:, 2)) - meshgrid(pos(:, 2)).';
 w = meshgrid(pos(:, 3)) - meshgrid(pos(:, 3)).';
 uvw = [u(:), v(:), w(:)];
 uvdist = sqrt(sum(uvw.^2, 2) - (uvw * normal).^2);
-disp (['Length of freq: ' num2str(length(freq))]);
+% disp (['Length of freq: ' num2str(length(freq))]);
 for idx = 1:length(freq)
     % disp (['NOTE: Time expected in MJD!']);
     % disp(['working on subband ' num2str(idx) ' of ' num2str(length(freq))]);
@@ -65,22 +68,24 @@ for idx = 1:length(freq)
     end
     % srcpos = radectoITRF(rasrc, decsrc, epoch, JulianDay(t_obs(idx)));
     % disp (['t_obs: ' num2str(t_obs)]);
-    pos
-    srcpos = radectoITRF(rasrc, decsrc, epoch, t_obs)
-    normal
-    up = srcpos * normal > 0
+    % pos
+    srcpos = radectoITRF(rasrc, decsrc, epoch, t_obs);
+    %normal
+    up = srcpos * normal > 0;
    
-    del1 = pos * srcpos(up, :).'
-    del2 = -(2*pi*1i*freq(idx)/c)
-    del3 = -(2 * pi * 1i * freq(idx) / c) * (pos * srcpos(up, :).')
-    A = exp(-(2 * pi * 1i * freq(idx) / c) * (pos * srcpos(up, :).'))
-    del4 = real (A)
-    del5 = imag(A)
-    % A(1:5, 1:5)
-    Rhat = squeeze(acc(:, :, idx))
+    % del1 = pos * srcpos(up, :).'
+    % del2 = -(2*pi*1i*freq(idx)/c)
+    % del3 = -(2 * pi * 1i * freq(idx) / c) * (pos * srcpos(up, :).')
+    A = exp(-(2 * pi * 1i * freq(idx) / c) * (pos * srcpos(up, :).'));
+    % del4 = real (A)
+    % del5 = imag(A)
+    % acc(:)
+    Rhat = squeeze(acc(:, :, idx));
+   %  Rhat (:)
 
     mask = reshape(uvdist, [Nelem, Nelem]) < min([restriction * (c / freq(idx)), maxrestriction]);
-    mask = mask | uvflag
+    mask = mask | uvflag;
+    % mask (:)
 
     flux = real(((abs(A' * A).^2) \ khatrirao(conj(A), A)') * (Rhat(:) .* (1 - mask(:))));
     flux = flux / flux(1);

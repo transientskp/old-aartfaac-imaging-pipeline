@@ -29,9 +29,12 @@ rotmat = [-0.1195950000, -0.7919540000, 0.5987530000; ...
 poslocal = posITRF * rotmat;
 uloc = meshgrid (poslocal (:,1)) - meshgrid (poslocal(:,1)).';
 vloc = meshgrid (poslocal (:,2)) - meshgrid (poslocal(:,2)).';
-duv = 600/256;
-Nuv = 256;
-uvpad = 256; % Final FFT image will have this dimension
+% duv = 600/256;
+% Nuv = 256;
+% uvpad = 256; % Final FFT image will have this dimension
+duv = 2;
+Nuv = 1000;
+uvpad = 1024;
 
 % create 3D matrix to store images in time order
 ccm_fname = datafiles {1}{1};
@@ -47,6 +50,9 @@ sky_radecimage_subAteam = zeros (uvpad, uvpad, nfiles);
 
 lfft = linspace (-1, 1, uvpad);
 mfft = lfft;
+alpha = zeros (uvpad, nfiles);
+delta = zeros (uvpad, nfiles);
+
 
 sky_tobs = zeros (nfiles);
 sky_l = zeros (z(2), nfiles);
@@ -55,6 +61,10 @@ sky_m = zeros (z(2), nfiles);
 
 fnum = 1;
 %% 
+
+outfilename = 'sky_radec_images_roysoc.mat';
+try
+
 for fnum = 1:nfiles
     disp (['Processing file ' num2str(fnum) ' of ' num2str(nfiles)]);
     ccm_fname = datafiles {1}{fnum};
@@ -69,8 +79,9 @@ for fnum = 1:nfiles
     % Generate the skyimage with a DFT imager in l,m space
     % sky_cal2(:, :, fnum) = acm2skyimage(acccal2, poslocal(:, 1), poslocal(:, 2), freq, l, m);
     
+% -------- calibrated image -----
     % Generate a skyimage with an FFT imager in l, m space
-    [tmp_image ~] = fft_imager_sjw (acccal2(:), uloc (:), vloc (:), duv ,Nuv, uvpad);  
+    [tmp_image ~] = fft_imager (acccal2(:), uloc (:), vloc (:), duv ,Nuv, uvpad);  
     sky_cal2 (:, :, fnum) = tmp_image;
     
     %% convert images to RA/dec coordinate system
@@ -80,15 +91,16 @@ for fnum = 1:nfiles
     
     % Then interpolate the image to create a model surface
     radecimage = TriScatteredInterp (alpha (sel), delta (sel), abs(tmp_image (sel)));
-    radecimage_subAteam = TriScatteredInterp (alpha(sel), delta(sel), abs (tmp_image(sel)));
     % Create the regularly sampled RA/dec plane
     [ragrid, decgrid] = meshgrid (linspace (0,2*pi, uvpad), linspace (-pi/2,pi/2, uvpad));
     
     % generate samples from model skyimage
     sky_radecimage(:,:,fnum) = radecimage (ragrid, decgrid);
+
+% -------- calibrated image, A-team subtracted -----
     
     % Do the same for A-team subtracted images
-    [tmp_image ~] = fft_imager_sjw (accsubAteam, uloc (:), vloc (:), duv ,Nuv, uvpad);  
+    [tmp_image ~] = fft_imager (accsubAteam, uloc (:), vloc (:), duv ,Nuv, uvpad);  
     sky_subAteam (:, :, fnum) = tmp_image;
     
     % Then interpolate the image to create a model surface
@@ -112,10 +124,13 @@ for fnum = 1:nfiles
 %     ylabel('East \leftarrow l \rightarrow West');
 %     set(colorbar, 'FontSize', 16);
 end
-
+catch err
+        disp ('Error encountered! Saving variables to disk..');
+        save (outfilename, 'sky_radecimage', 'sky_cal2', 'sky_alpha', 'sky_delta', 'sky_radecimage_subAteam', 'sky_subAteam', 'sky_tobs', 'ragrid', 'sky_m');
+  
+end 
 %%
-outfilename = 'sky_radec_images.mat';
-save (outfilename, 'sky_radecimage', 'sky_tobs', 'ragrid', 'sky_m');
+save (outfilename, 'sky_radecimage', 'sky_cal2', 'sky_alpha', 'sky_delta', 'sky_radecimage_subAteam', 'sky_subAteam', 'sky_tobs', 'ragrid', 'sky_m');
 
 % outfilename = 'sky_subAteam_images.mat';
 %save (outfilename, 'sky_subAteam', 'sky_tobs', 'sky_l', 'sky_m');

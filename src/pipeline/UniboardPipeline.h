@@ -8,6 +8,7 @@ using namespace pelican;
 class UniboardDataBlob;
 class Calibrator;
 class Imager;
+class UniboardMonData;
 
 class UniboardPipeline : public AbstractPipeline
 {
@@ -25,6 +26,7 @@ private:
   UniboardDataBlob *mOutputData;
   Imager *mImager;
   Calibrator *mCalibrator;
+  UniboardMonData *mMonData;
   quint64 mBlobCount;
 };
 

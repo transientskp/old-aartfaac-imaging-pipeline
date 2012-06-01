@@ -2,7 +2,10 @@
 #define MATLAB_BRIDGE_H
 
 #include <vector>
+#include <iostream>
+#include <fstream>
 
+class mwArray;
 class MatlabBridge {
 public:
   MatlabBridge();
@@ -25,12 +28,32 @@ public:
                    const std::vector<float> &inULoc,
                    const std::vector<float> &inVLoc,
                    std::vector<float> &outSkymap,
+                   std::vector<float> &outSkymapradec,
                    std::vector<float> &outVispad);
 
 private:
   static MatlabBridge *sSingleton;
   void killMatlab();
   bool initMatlab();
+
+  // Gain solution pre-applied to all timeslices
+  mwArray *mPreCalGain;
+
+  // Details of this timeslice.
+  mwArray *mTime, *mFreq; 
+
+  // Solutions for this timeslice
+  mwArray *mGain, *mSigmas, *mSigman; 
+
+  // raw, calibrated and gridded visibilities
+  mwArray *mVis, *mCalVis, *mVisPad;
+  // Generate maps in local and RA/DEC coordinates
+  mwArray *mSkyMap, *mSkyMapradec;
+  mwArray *mUVFlag, *mDebugLev, *mGoodCal;
+
+  // Catalog + estimated source positions
+  mwArray *mThSrcCat, *mPhiSrcCat, *mThSrcWsf, *mPhiSrcWsf;
+  std::ofstream mMonFile, mSrcPosFile;
 };
 
 #endif // MATLAB_BRIDGE_H

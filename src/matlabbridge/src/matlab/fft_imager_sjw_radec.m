@@ -42,25 +42,31 @@ vispad = [zeros(N1, uvsize); ...
 vispad(~isfinite(vispad)) = 0;
 
 % compute image
-ac = zeros(size(vispad));
-ac(256, 256) = 100;
-vispad = vispad + ac;
+% ac = zeros(size(vispad));
+% ac(256, 256) = 100;
+% vispad = vispad + ac;
 vispad = conj(flipud(fliplr(fftshift(vispad))));
-lmskymap = fftshift(fft2(vispad));
+skymap = fftshift(fft2(vispad));
 
-lfft = linspace (-1, 1, length (lmskymap));
-mask = zeros (length(lfft));
-mask(meshgrid(lfft).^2 + meshgrid(lfft).'.^2 < 1) = 1;
-lmskymap = lmskymap .* mask;
+% Create l,m axis corresponding to choices of duv
+dl = (299792458/(freq * uvsize * duv)); % dimensionless, in dir. cos. units
+lmax = dl * uvsize / 2;
+l = [-lmax:dl:lmax-1e-3];
+m = l;  % Identical resolution and extent along m-axis
+
+mask = zeros (length(l));
+mask(meshgrid(l).^2 + meshgrid(l).'.^2 < 1) = 1;
+lmskymap = single (abs(skymap) .* mask);
+disp (['-->Max/min from matlab: ' num2str(max(max(lmskymap))) ' ' num2str(min(min(lmskymap)))]);
 
 % Section converting image from local coordinates to RA/DEC coordinates
 alpha = zeros (uvsize, 1);
 delta = zeros (uvsize, 1);
 t_obs  = t_obs/86400 + 2400000.5; % Convert to MJD day units
-[alpha, delta] = lmtoradec (lfft, lfft, t_obs);
+[alpha, delta] = lmtoradec (l, l, t_obs);
 sel = ~isnan (alpha(:));
 
-radecimage = TriScatteredInterp (alpha (sel), delta (sel), abs(lmskymap (sel)));
+radecimage = TriScatteredInterp (alpha (sel), delta (sel), abs(skymap (sel)));
 % Create the regularly sampled RA/dec plane
 [ragrid, decgrid] = meshgrid (linspace (0,2*pi, uvsize), linspace (-pi/2,pi/2, uvsize));
     

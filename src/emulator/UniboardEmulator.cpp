@@ -75,11 +75,15 @@ void UniboardEmulator::getPacketData(char *&outData, unsigned long &outSize)
     int j = 0;
     for (cIter = data_array.begin(); cIter != data_array.end(); cIter++)
     {
+/*
       singles2halfp(static_cast<quint16*>(&correlation.polarizations[j++]),
                     static_cast<void*>(&(*cIter).real()), 1);
 
       singles2halfp(static_cast<quint16*>(&correlation.polarizations[j++]),
                     static_cast<void*>(&(*cIter).imag()), 1);
+*/
+	correlation.polarizations[j++] = cIter->real();
+	correlation.polarizations[j++] = cIter->imag();
     }
 
     mUdpPacket.mHeader.correlations++;
@@ -95,6 +99,7 @@ void UniboardEmulator::getPacketData(char *&outData, unsigned long &outSize)
   {
     mRowIndex = 0;
     mCurChannelId++;
+    qDebug("---> Now Sending Channel %d.", (int)mCurChannelId);
   }
 
   // Increase counters

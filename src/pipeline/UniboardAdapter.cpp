@@ -45,10 +45,14 @@ void UniboardAdapter::deserialise(QIODevice *inDevice)
 
       for (quint32 k = 0; k < 8; k+=2)
       {
+	polarizations[k/2].real() = correlation.polarizations[k];
+	polarizations[k/2].imag() = correlation.polarizations[k+1];
+	/*
         halfp2singles(static_cast<float*>(&polarizations[k/2].real()),
                       static_cast<void*>(&correlation.polarizations[k]), 1);
         halfp2singles(static_cast<float*>(&polarizations[k/2].imag()),
                       static_cast<void*>(&correlation.polarizations[k+1]), 1);
+	*/
       }
 
       blob->addSample(correlation.a1, correlation.a2,

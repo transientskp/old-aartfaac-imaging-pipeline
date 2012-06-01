@@ -50,6 +50,7 @@ void Imager::run(const UniboardDataBlob *input, UniboardDataBlob *output)
   const std::vector<float> *real = input->getXXReal();
   const std::vector<float> *imag = input->getXXImag();
   std::vector<float> &skymap = output->getSkyMap();
+  std::vector<float> &skymapradec = output->getSkyMapradec();
   std::vector<float> &vismap = output->getVisMap();
-  mBridge->createImage(*real, *imag, mULoc, mVLoc, skymap, vismap);
+  mBridge->createImage(*real, *imag, mULoc, mVLoc, skymap, skymapradec, vismap);
 }

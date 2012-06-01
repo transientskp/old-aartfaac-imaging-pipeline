@@ -25,6 +25,7 @@ protected:
 private:
   QString mPath; ///< Path to store images at
   QVector<QRgb> mColors; ///< Colortable for 8bit image
+  float saturate_min, saturate_max;
 };
 
 PELICAN_DECLARE(AbstractOutputStream, UniboardStorage)

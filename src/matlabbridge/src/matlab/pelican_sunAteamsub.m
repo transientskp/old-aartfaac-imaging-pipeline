@@ -4,6 +4,7 @@
 % pep/14Apr2012
 
 function [thsrc_cat, phisrc_cat, thsrc_wsf, phisrc_wsf, calvis, gainsol, sigmas, sigman, good] = pelican_sunAteamsub (acc, t_obs, freq, uvflag, debug)
+% function [calvis, gainsol, sigmas, sigman, good] = pelican_sunAteamsub (acc, t_obs, freq, uvflag, debug)
 % Arguments:
 % t_obs : Time in MJD secs, as extracted from a MS
 % acc   : Filled, square ACM of size 288x288 complex numbers
@@ -28,26 +29,20 @@ function [thsrc_cat, phisrc_cat, thsrc_wsf, phisrc_wsf, calvis, gainsol, sigmas,
     persistent poslocal;
 
     if (isempty (first_call))
-
         disp ('   --- Non Tracking Stef. calibration to convergence ---   ');
         disp ('Loading 3CR catalog and local antenna positions.');
     	load srclist3CR
     	load ('poslocal.mat', 'posITRF', 'poslocal'); 
         first_call = 0;
-
-%        acc_re = real (acc);
-%        save ('acc_re.txt', 'acc_re', '-ascii');
-%        acc_im = imag (acc);
-%        save ('acc_im.txt', 'acc_im', '-ascii');
-%        save ('acc.mat', 'acc');
     end
+
     % disp ('---> Loading acc.mat');
     % load ('acc.mat');
     C = 299792458;               % speed of light, m/s
     lon = 6.869837540;           % longitude of CS002 in degrees
     lat = 52.915122495;          % latitude of CS002 in degrees
     restriction = 4;             % Avoid uv values with <10 wavelengths length
-    maxrestriction = 60;         % Avoid uv values with >60 wavelengths length
+    maxrestriction = 60;         % Avoid uv values with >60m length
     Nelem = 288;                 % NOTE: Hardcoded!
     nblines = Nelem * (Nelem + 1)/2; 
     normal = [0.598753, 0.072099, 0.797682].';
@@ -59,6 +54,7 @@ function [thsrc_cat, phisrc_cat, thsrc_wsf, phisrc_wsf, calvis, gainsol, sigmas,
         return;
     end
     disp (['t_obs :' num2str(t_obs) ' Freq: ' num2str(freq)]);
+    % disp (['Class of acc/t_obs/freq/uvflag/debuglev' class(acc) class(t_obs) class(freq) class(uvflag) class(debug)]);
     % acc = acc' % For Pelican pipeline
     % abs (acc(:))
     % disp ('All abs. done');
@@ -68,7 +64,7 @@ function [thsrc_cat, phisrc_cat, thsrc_wsf, phisrc_wsf, calvis, gainsol, sigmas,
     
     % whitening of the array covariance matrix (required for DOA estimation)
     % tic
-    % acc = acc ./ sqrt(diag(acc) * diag(acc).');
+    acc = acc ./ sqrt(diag(acc) * diag(acc).');
     % calibrate using source positions from 3C catalog and a baseline
     % restriction of 10 wavelengths or 60 meters (whichever is smaller)
     [cal1, sigmas1, Sigman1] = statcal_stefcal (acc, t_obs, freq, posITRF, srcsel, normal, 10, 60, eye(Nelem), debug);
@@ -108,6 +104,8 @@ function [thsrc_cat, phisrc_cat, thsrc_wsf, phisrc_wsf, calvis, gainsol, sigmas,
     end
     % srcpos0 = radectoITRF(rasrc(sel), decsrc(sel), epoch, JulianDay(tobs));
     srcpos0 = radectoITRF(rasrc(sel), decsrc(sel), epoch(sel), t_obs);
+    up = srcpos0 * normal > 0;
+    disp(['Srcs from srclist above horizon: ' num2str(srcsel(up))]);
     thsrc0 = asin(srcpos0(:, 3));
     phisrc0 = atan2(srcpos0(:, 2), srcpos0(:, 1));
     
@@ -168,14 +166,15 @@ function [thsrc_cat, phisrc_cat, thsrc_wsf, phisrc_wsf, calvis, gainsol, sigmas,
     end 
     % toc
 
-    %% Sun subtraction
-    % The Sun is modeled using a 3-sparse grid of pixels around the estimated
-    % position of the Sun. High resolution imaging using the MVDR beamformer to
-    % obtain a model of the Sun in the image domain proved unsuccessful.
-    % Finding the 3-sparse solution using an exhaustive search it the most
-    % computationally demanding part of this script. Hopefully Arash can
-    % improve on this using convex optimization.
-    % tic
+%
+%    %% Sun subtraction
+%    % The Sun is modeled using a 3-sparse grid of pixels around the estimated
+%    % position of the Sun. High resolution imaging using the MVDR beamformer to
+%    % obtain a model of the Sun in the image domain proved unsuccessful.
+%    % Finding the 3-sparse solution using an exhaustive search it the most
+%    % computationally demanding part of this script. Hopefully Arash can
+%    % improve on this using convex optimization.
+%    % tic
 %    phi0sun = atan2(srcposhat(srcsel == 0, 2), srcposhat(srcsel == 0, 1));
 %    th0sun = asin(srcposhat(srcsel == 0, 3));
 %    % define grid of pixels
@@ -228,10 +227,11 @@ function [thsrc_cat, phisrc_cat, thsrc_wsf, phisrc_wsf, calvis, gainsol, sigmas,
 
 
     calvis = accsubAteam;
-    % calvis = accsubSunS;
+    % calvis = single(accsubSunS);
     gainsol = cal2;
     sigmas = sigmas2;
     sigman = Sigman2;
+    % disp (['Class of calvis/gainsol/sigmas/sigman' class(calvis) class(gainsol) class(sigmas) class(sigman)]);
 
     % Quality of calibration solutions, as determined by the phase solutions
     for station=1:6

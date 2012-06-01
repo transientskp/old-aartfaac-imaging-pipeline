@@ -1,5 +1,9 @@
-function [skymap, vispad] = fft_imager(acc, u, v, duv, Nuv, uvsize)
+function [lmskymap, vispad] = fft_imager(acc, u, v, duv, Nuv, uvsize)
 
+re=real(acc(:)); im = imag(acc(:));
+for i=1:length(acc)
+   disp ([num2str(re(i)) ' ' num2str(im(i))]);
+end
 % create object for interpolation
 vis = zeros(Nuv);
 %W = zeros(Nuv);
@@ -43,3 +47,8 @@ vispad(~isfinite(vispad)) = 0;
 
 % compute image
 skymap = fftshift(fft2(vispad));
+lfft = linspace (-1, 1, length (skymap));
+mask = zeros (length(lfft));
+mask(meshgrid(lfft).^2 + meshgrid(lfft).'.^2 < 1) = 1;
+lmskymap = single (abs(skymap) .* mask);
+disp (['-->Max/min from matlab: ' num2str(max(max(lmskymap))) ' ' num2str(min(min(lmskymap)))]);

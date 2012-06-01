@@ -43,8 +43,10 @@ public:
   quint32 getWidth() const                     { return mWidth; }
   quint32 getHeight() const                    { return mHeight; }
   std::vector<float>& getSkyMap()              { return mSkyMap; }
+  std::vector<float>& getSkyMapradec()         { return mSkyMapradec; }
   std::vector<float>& getVisMap()              { return mVisMap; }
   const std::vector<float>& getSkyMap() const  { return mSkyMap; }
+  const std::vector<float>& getSkyMapradec() const  { return mSkyMapradec; }
   const std::vector<float>& getVisMap() const  { return mVisMap; }
   void createImage(const std::vector<unsigned char> &inData, const QString &inType);
 
@@ -59,6 +61,7 @@ private:
   std::vector<float> mXXReal; ///< xx polarized real part of the complex numbers
   std::vector<float> mXXImag; ///< xx polarized imaginary part of the complex numbers
   std::vector<float> mSkyMap; ///< raw skymap data from imager (needs normalization)
+  std::vector<float> mSkyMapradec; ///< raw skymap data from imager (needs normalization)
   std::vector<float> mVisMap; ///< raw vismap data from imager (needs normalization)
 };
 

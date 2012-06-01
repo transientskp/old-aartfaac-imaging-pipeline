@@ -15,7 +15,7 @@ public:
   struct Correlation {
     quint16 a1; ///< antenna1 casacore id
     quint16 a2; ///< antenna2 casacore id
-    quint16 polarizations[8]; ///< half precision xx, yy, xy, yx polarizations in [re_{xx},im_{xx},...,re_{yx},im_{yx}]
+    float polarizations[8]; ///< single precision xx, yy, xy, yx polarizations in [re_{xx},im_{xx},...,re_{yx},im_{yx}]
   } __attribute__((packed)) mCorrelations[74];
 };
 

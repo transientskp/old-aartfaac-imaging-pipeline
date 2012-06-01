@@ -1,4 +1,4 @@
-function [skymap, vispad] = fft_imager_sjw(acc, u, v, duv, Nuv, uvsize)
+function [outskymap, vispad] = fft_imager_sjw(acc, u, v, duv, Nuv, uvsize)
 
 % create object for interpolation
 vis = zeros(Nuv);
@@ -42,8 +42,13 @@ vispad = [zeros(N1, uvsize); ...
 vispad(~isfinite(vispad)) = 0;
 
 % compute image
-ac = zeros(size(vispad));
-ac(256, 256) = 100;
-vispad = vispad + ac;
+% ac = zeros(size(vispad));
+% ac(256, 256) = 100;
+% vispad = vispad + ac;
 vispad = conj(flipud(fliplr(fftshift(vispad))));
 skymap = fftshift(fft2(vispad));
+
+l = linspace (-1, 1, length (skymap));
+mask = zeros (length(l));
+mask(meshgrid(l).^2 + meshgrid(l).'.^2 < 1) = 1;
+outskymap = abs (skymap .* mask);
