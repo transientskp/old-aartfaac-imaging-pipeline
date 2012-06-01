@@ -42,7 +42,6 @@ int main(int argc, char* argv[])
   qDebug("%s", HUMAN_NAME);
   pelican::ConfigNode xml_node(
         "<UniboardEmulator>"
-        "  <packet samples=\"74\" />"
         "  <connection host=\"127.0.0.1\" port=\"2001\" />"
         "</UniboardEmulator>"
   );

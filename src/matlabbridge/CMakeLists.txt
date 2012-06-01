@@ -17,8 +17,6 @@ include_directories(
 set(SOURCE_FILES
   ${MATLABBRIDGE_SOURCE_DIR}/src/cpp/MatlabBridge.cpp
   ${MATLABBRIDGE_SOURCE_DIR}/src/cpp/MatlabBridge.h
-  ${MATLABBRIDGE_SOURCE_DIR}/src/cpp/UniboardMonitor.cpp
-  ${MATLABBRIDGE_SOURCE_DIR}/src/cpp/UniboardMonitor.h
   ${MATLABBRIDGE_BINARY_DIR}/libmatlabbridge.h
 )
 

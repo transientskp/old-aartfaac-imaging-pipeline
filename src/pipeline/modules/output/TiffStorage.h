@@ -1,5 +1,5 @@
-#ifndef UNIBOARD_STORAGE_H
-#define UNIBOARD_STORAGE_H
+#ifndef TIFFSTORAGE_H
+#define TIFFSTORAGE_H
 
 #include <pelican/output/AbstractOutputStream.h>
 #include <pelican/utility/ConfigNode.h>
@@ -9,14 +9,14 @@
 
 using namespace pelican;
 
-class UniboardStorage : public AbstractOutputStream
+class TiffStorage : public AbstractOutputStream
 {
 public:
   /// Constructor
-  UniboardStorage(const ConfigNode& inConfigNode);
+  TiffStorage(const ConfigNode& inConfigNode);
 
   /// Destructor
-  ~UniboardStorage();
+  ~TiffStorage();
 
 protected:
   /// Send the datablob to the output stream
@@ -28,6 +28,6 @@ private:
   float saturate_min, saturate_max;
 };
 
-PELICAN_DECLARE(AbstractOutputStream, UniboardStorage)
+PELICAN_DECLARE(AbstractOutputStream, TiffStorage)
 
-#endif // UNIBOARD_STORAGE_H
+#endif // TIFFSTORAGE_H

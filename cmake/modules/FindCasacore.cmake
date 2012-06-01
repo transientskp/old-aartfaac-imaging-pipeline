@@ -29,6 +29,9 @@ if (NOT CASACORE_FOUND)
         casa
         ms
         tables
+        images
+        lattices
+        coordinates
     )
 
     # For convenience, we want two include directories:

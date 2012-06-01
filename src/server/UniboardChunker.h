@@ -40,8 +40,8 @@ private:
     int mTimeout; ///< Max time a chunk will wait for data in milliseconds
     static UdpPacket sEmptyPacket; ///< Default empty packet
 
-    QHash<QString, Chunk*> mDataBuffers;
-    QString hash(const double inTime, const double inFrequency);
+    QHash<quint64, Chunk*> mDataBuffers;
+    quint64 hash(const double inTime, const double inFrequency);
 };
 
 PELICAN_DECLARE_CHUNKER(UniboardChunker)

@@ -12,7 +12,6 @@
 
     <adapters>
       <UniboardAdapter>
-        <packet maxSamples="74"/>
         <antennae amount="288"/>
       </UniboardAdapter>
     </adapters>
@@ -26,12 +25,16 @@
 
     <output>
       <streamers>
-				<UniboardStorage name="image" active="true">
+				<TiffStorage active="true">
 					<file path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
-				</UniboardStorage>
+				</TiffStorage>
+				<CasaImageStorage active="true">
+					<file path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
+				</CasaImageStorage>
       </streamers>
       <dataStreams>
-        <stream name="post" listeners="image"/>
+        <stream name="post" listeners="TiffStorage"/>
+        <stream name="post" listeners="CasaImageStorage"/>
       </dataStreams>
     </output>
   </pipeline>
