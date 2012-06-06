@@ -1,4 +1,5 @@
 #include "Utils.h"
+#include <sys/time.h>
 
 namespace utils
 {
@@ -10,5 +11,12 @@ namespace utils
     quint32 unix_time = static_cast<quint32>(inMJD + secs_in_day * (2400000.5 - 2440587.5));
 
     return QDateTime::fromTime_t(unix_time);
+  }
+  
+  long GetTimeInMicros()
+  {
+    timeval time;
+    gettimeofday(&time, NULL);
+    return time.tv_sec*1000000 + time.tv_usec;    
   }
 }
