@@ -2,6 +2,15 @@
 project(aartfaac CXX C Fortran)
 cmake_minimum_required(VERSION 2.6)
 
+# === Components to build
+set(BUILD_EMULATOR ON CACHE "Build emulator" BOOL)
+set(BUILD_SERVER ON CACHE "Build server" BOOL)
+set(BUILD_PIPELINE ON CACHE "Build pipeline" BOOL)
+
+if (NOT BUILD_EMULATOR AND NOT BUILD_SERVER AND NOT BUILD_PIPLEINE)
+    message(FATAL_ERROR "Nothing to build")
+endif (NOT BUILD_EMULATOR AND NOT BUILD_SERVER AND NOT BUILD_PIPLEINE)
+
 # === Compiler options
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror -Wno-unused-function -fno-strict-aliasing -Wl,--no-as-needed")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DDEBUG")
@@ -43,61 +52,70 @@ SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
 include(cmake/sources.cmake)
 include_directories(${PROJECT_BINARY_DIR})
 
-# === Add Matlab bridge.
-add_subdirectory(${PROJECT_SOURCE_DIR}/src/matlabbridge matlabbridge)
-
 # === Find Dependencies.
-find_package(Pelican REQUIRED)
-find_package(Casacore REQUIRED)
 find_package(Qt4 COMPONENTS QtCore QtNetwork QtXml REQUIRED)
-if (USE_LOFARSTMAN)
-    find_package(Lofar REQUIRED)
-endif (USE_LOFARSTMAN)
-
-# === Add directories to the include path (i.e. -I<directory> ...)
-include_directories(${PELICAN_INCLUDES})
-include_directories(${CASACORE_INCLUDES})
 include_directories(${QT_INCLUDE_DIR})
 include_directories(${QT_QTCORE_INCLUDE_DIR})
-include_directories(${LOFAR_INCLUDES})
+
+find_package(Pelican REQUIRED)
+include_directories(${PELICAN_INCLUDES})
+
+if (BUILD_EMULATOR OR BUILD_PIPELINE)
+    find_package(Casacore REQUIRED)
+    include_directories(${CASACORE_INCLUDES})
+endif (BUILD_EMULATOR OR BUILD_PIPELINE)
+
+if (BUILD_EMULATOR AND USE_LOFARSTMAN)
+    find_package(Lofar REQUIRED)
+    include_directories(${LOFAR_INCLUDES})
+endif (BUILD_EMULATOR AND USE_LOFARSTMAN)
 
 # === Create the emulator binary.
-set(EMULATOR ${PROJECT_NAME}-emulator)
-add_executable(${EMULATOR} ${EMULATOR_SOURCES})
+if (BUILD_EMULATOR)
+    set(EMULATOR ${PROJECT_NAME}-emulator)
+    add_executable(${EMULATOR} ${EMULATOR_SOURCES})
 
-target_link_libraries(${EMULATOR}
-  ${QT_QTCORE_LIBRARY}
-  ${QT_QTNETWORK_LIBRARY}
-  ${QT_QTXML_LIBRARY}
-  ${PELICAN_LIBRARIES}
-  ${CASACORE_LIBRARIES}
-  ${LOFAR_LIBRARIES}
-)
+    target_link_libraries(${EMULATOR}
+      ${QT_QTCORE_LIBRARY}
+      ${QT_QTNETWORK_LIBRARY}
+      ${QT_QTXML_LIBRARY}
+      ${PELICAN_LIBRARIES}
+      ${CASACORE_LIBRARIES}
+      ${LOFAR_LIBRARIES}
+    )
+endif (BUILD_EMULATOR)
 
 # === Create the pipeline binary.
-set(PIPELINE ${PROJECT_NAME}-pipeline)
-add_executable(${PIPELINE} ${PIPELINE_SOURCES})
+if (BUILD_PIPELINE)
+    # === Add Matlab bridge.
+    add_subdirectory(${PROJECT_SOURCE_DIR}/src/matlabbridge matlabbridge)
 
-target_link_libraries(${PIPELINE}
-  mbridge
-  ${QT_QTCORE_LIBRARY}
-  ${QT_QTNETWORK_LIBRARY}
-  ${QT_QTXML_LIBRARY}
-  ${QT_QTGUI_LIBRARY}
-  ${CASACORE_LIBRARIES}
-  ${PELICAN_LIBRARIES}
-)
+    set(PIPELINE ${PROJECT_NAME}-pipeline)
+    add_executable(${PIPELINE} ${PIPELINE_SOURCES})
+
+    target_link_libraries(${PIPELINE}
+      mbridge
+      ${QT_QTCORE_LIBRARY}
+      ${QT_QTNETWORK_LIBRARY}
+      ${QT_QTXML_LIBRARY}
+      ${QT_QTGUI_LIBRARY}
+      ${CASACORE_LIBRARIES}
+      ${PELICAN_LIBRARIES}
+    )
+endif (BUILD_PIPELINE)
 
 # === Create the server binary.
-set(SERVER ${PROJECT_NAME}-server)
-add_executable(${SERVER} ${SERVER_SOURCES})
+if (BUILD_SERVER)
+    set(SERVER ${PROJECT_NAME}-server)
+    add_executable(${SERVER} ${SERVER_SOURCES})
 
-target_link_libraries(${SERVER}
-  ${QT_QTCORE_LIBRARY}
-  ${QT_QTNETWORK_LIBRARY}
-  ${QT_QTXML_LIBRARY}
-  ${PELICAN_LIBRARIES}
-)
+    target_link_libraries(${SERVER}
+      ${QT_QTCORE_LIBRARY}
+      ${QT_QTNETWORK_LIBRARY}
+      ${QT_QTXML_LIBRARY}
+      ${PELICAN_LIBRARIES}
+    )
+endif (BUILD_SERVER)
 
 # === Doxygen documentation targets.
 # include(UseDoxygen)
