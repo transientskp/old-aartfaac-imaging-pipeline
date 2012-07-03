@@ -6,6 +6,7 @@
 #include "version.h"
 
 #include <QtCore>
+#include <iostream>
 
 int main(int argc, char* argv[])
 {
