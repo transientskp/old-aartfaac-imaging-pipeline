@@ -10,7 +10,7 @@ extern "C" void halfp2singles(void *target, void *source, int numel);
 UniboardAdapter::UniboardAdapter(const ConfigNode& config)
     : AbstractStreamAdapter(config)
 {
-  mMaxPacketSamples = sizeof(UdpPacket::mCorrelations) / sizeof(UdpPacket::Correlation);
+  mMaxPacketSamples = MAX_CORRELATIONS;
   mAntennae = config.getOption("antennae", "amount").toUInt();
   mPacketSize = sizeof(UdpPacket);
 }

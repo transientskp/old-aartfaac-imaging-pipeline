@@ -5,6 +5,7 @@
 #include "../utilities/Logger.h"
 #include "version.h"
 
+#include <iostream>
 #include <QtCore>
 
 int main(int argc, char* argv[])
