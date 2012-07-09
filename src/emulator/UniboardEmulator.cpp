@@ -14,7 +14,7 @@ UniboardEmulator::UniboardEmulator(const pelican::ConfigNode &inConfigNode)
   mRowIndex = 0;
   mTotalRowIndex = 0;
 
-  mMaxSamples = sizeof(UdpPacket::mCorrelations) / sizeof(UdpPacket::Correlation);
+  mMaxSamples = MAX_CORRELATIONS;
 
   QString table_name = QCoreApplication::arguments().at(1);
   casa::Table table(qPrintable(table_name));

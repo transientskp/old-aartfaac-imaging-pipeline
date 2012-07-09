@@ -3,6 +3,8 @@
 
 #include <QtCore>
 
+#define MAX_CORRELATIONS 200
+
 class UdpPacket
 {
 public:
@@ -15,8 +17,13 @@ public:
   struct Correlation {
     quint16 a1; ///< antenna1 casacore id
     quint16 a2; ///< antenna2 casacore id
+<<<<<<< HEAD
     float polarizations[8]; ///< single precision xx, yy, xy, yx polarizations in [re_{xx},im_{xx},...,re_{yx},im_{yx}]
   } __attribute__((packed)) mCorrelations[74];
+=======
+    quint16 polarizations[8]; ///< half precision xx, yy, xy, yx polarizations in [re_{xx},im_{xx},...,re_{yx},im_{yx}]
+  } __attribute__((packed)) mCorrelations[MAX_CORRELATIONS];
+>>>>>>> server
 };
 
 #endif // UDP_PACKET_H
