@@ -56,7 +56,7 @@ m = l;  % Identical resolution and extent along m-axis
 
 mask = zeros (length(l));
 mask(meshgrid(l).^2 + meshgrid(l).'.^2 < 1) = 1;
-lmskymap = single (abs(skymap) .* mask);
+lmskymap = single (real(skymap) .* mask);
 disp (['-->Max/min from matlab: ' num2str(max(max(lmskymap))) ' ' num2str(min(min(lmskymap)))]);
 
 % Section converting image from local coordinates to RA/DEC coordinates
@@ -66,7 +66,7 @@ t_obs  = t_obs/86400 + 2400000.5; % Convert to MJD day units
 [alpha, delta] = lmtoradec (l, l, t_obs);
 sel = ~isnan (alpha(:));
 
-radecimage = TriScatteredInterp (alpha (sel), delta (sel), abs(skymap (sel)));
+radecimage = TriScatteredInterp (alpha (sel), delta (sel), real(skymap (sel)));
 % Create the regularly sampled RA/dec plane
 [ragrid, decgrid] = meshgrid (linspace (0,2*pi, uvsize), linspace (-pi/2,pi/2, uvsize));
     

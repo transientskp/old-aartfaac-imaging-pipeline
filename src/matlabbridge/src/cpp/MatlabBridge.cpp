@@ -8,6 +8,9 @@
 #include <iomanip>
 #include <time.h>
 #include <sstream>
+#include <sys/types.h>
+#include <sys/stat.h>
+
 using namespace std;
 
 MatlabBridge* MatlabBridge::sSingleton = NULL;
@@ -15,15 +18,23 @@ MatlabBridge* MatlabBridge::sSingleton = NULL;
 MatlabBridge::MatlabBridge()
 { initMatlab();
   try 
-  { mTime = new mwArray (1, 1, mxDOUBLE_CLASS, mxREAL);
+  { mAntFlag = new mwArray (1,2,mxINT32_CLASS); 
+    (*mAntFlag)(1) = 6; (*mAntFlag)(2) =103;
+    nAnts = 288; nActiveAnts = nAnts - 2;
+    // Use when no flagging needed.
+    // mAntFlag = new mwArray;
+    // nAnts = 288; nActiveAnts = nAnts;
+
+    mTime = new mwArray (1, 1, mxDOUBLE_CLASS, mxREAL);
     mFreq = new mwArray (1, 1, mxDOUBLE_CLASS, mxREAL);
     mGoodCal = new mwArray (1, 1, mxINT32_CLASS);
-    mVis = new mwArray (288, 288, mxSINGLE_CLASS, mxCOMPLEX);
-    mCalVis = new mwArray (288, 288, mxSINGLE_CLASS, mxCOMPLEX);
+    mVis = new mwArray (nAnts, nAnts, mxSINGLE_CLASS, mxCOMPLEX);
+    mCalVis = new mwArray (nActiveAnts, nActiveAnts, mxSINGLE_CLASS, mxCOMPLEX);
     mVisPad = new mwArray (1024, 1024, mxSINGLE_CLASS, mxCOMPLEX);
     mSkyMap = new mwArray (1024, 1024, mxSINGLE_CLASS, mxREAL);
     mSkyMapradec = new mwArray;
-    mUVFlag = new mwArray (288, 288, mxINT32_CLASS);
+    mUVFlag = new mwArray (nAnts, nAnts, mxINT32_CLASS);
+    mUVMask = new mwArray (nAnts, nAnts, mxLOGICAL_CLASS);
     mDebugLev = new mwArray (1, 1, mxSINGLE_CLASS, mxREAL);
     mGain = new mwArray;
     mSigmas = new mwArray;
@@ -32,7 +43,15 @@ MatlabBridge::MatlabBridge()
     mPhiSrcCat = new mwArray;
     mThSrcWsf = new mwArray;
     mPhiSrcWsf = new mwArray;
-    mPreCalGain = new mwArray (1, 288, mxSINGLE_CLASS, mxCOMPLEX);
+    mPreCalGain = new mwArray (1, nActiveAnts, mxSINGLE_CLASS, mxCOMPLEX);
+    mUloc = new mwArray (1, nActiveAnts*nActiveAnts, mxSINGLE_CLASS);
+    mVloc = new mwArray (1, nActiveAnts*nActiveAnts, mxSINGLE_CLASS);
+    mDuv = new mwArray (1, 1, mxSINGLE_CLASS);
+    (*mDuv)(1) = 1.5;
+    mNuv = new mwArray (1, 1, mxSINGLE_CLASS);
+    (*mNuv)(1) = 500;
+    mUVSize = new mwArray (1, 1, mxSINGLE_CLASS);
+    (*mUVSize)(1) = 512;
   }
   catch (const mwException& e)
   { std::cerr << e.what() << std::endl; }
@@ -44,20 +63,43 @@ MatlabBridge::MatlabBridge()
   struct tm *timeinfo;
   time (&rawtime);
   timeinfo = localtime ( &rawtime );
+  mBridgeId = getpid();
+
   stringstream gainfname, posfname; 
-  gainfname <<"Mon_"<< timeinfo->tm_mday<<timeinfo->tm_mon<<timeinfo->tm_year+1900<<"_"<<timeinfo->tm_hour<<timeinfo->tm_min <<"_gains.txt";
+  gainfname <<"Mon_"<< timeinfo->tm_mday<<timeinfo->tm_mon<<timeinfo->tm_year+1900<<"_"<<timeinfo->tm_hour<<timeinfo->tm_min <<"_gains_" <<mBridgeId<< ".txt";
+/*
+  struct stat st;
+  int id = 0;
+  if (!stat (gainfname.str().c_str(), &st)) // file exists! try opening another
+  { id++;
+    do
+    { gainfname.str("");
+      gainfname <<"Mon_"<< timeinfo->tm_mday<<timeinfo->tm_mon<<timeinfo->tm_year+1900<<"_"<<timeinfo->tm_hour<<timeinfo->tm_min <<"_gains" <<id<< ".txt";
+    }
+    while (!stat (gainfname.str().c_str(), &st));
+  }
+*/
   mMonFile.open (gainfname.str().c_str());
-  posfname <<"Mon_"<< timeinfo->tm_mday<<timeinfo->tm_mon<<timeinfo->tm_year+1900<<"_"<<timeinfo->tm_hour<<timeinfo->tm_min <<"_srcpos.txt";
+  posfname <<"Mon_"<< timeinfo->tm_mday<<timeinfo->tm_mon<<timeinfo->tm_year+1900<<"_"<<timeinfo->tm_hour<<timeinfo->tm_min <<"_srcpos_"<<mBridgeId<<".txt"; // Use previous id
   mSrcPosFile.open (posfname.str().c_str());
+  // NOTE: Columns are defined within the calibration/imaging routines, so make 
+  // sure file header matches what is actually printed!
+  // mSrcPosFile << "# Cols: Time, norm_acc, norm_uvmaskacc, thsrccat, phisrccat, thsrcwsf, phisrcwsf, multiple sigmas, norm_calvis, norm_sigman, norm_gain, norm_calmap" << endl;
+  // NOTE: By default, the position estimates and flux estimates of all the
+  // model sources (CasA, CygA, TauA, VirA and sun) are printed, with 0 values 
+  // if any source is not above the horizon, or if it is very weak.
+  mSrcPosFile << "\"Time (MJD secs)\" \"Freq (Hz)\" \"Raw vis. norm\" \"UVmask vis. norm\" \"CasA cat. th\" \"CasA cat. phi\" \"CasA wsf th\" \"CasA wsf phi\" \"CygA cat. th\" \"CygA cat. phi\" \"CygA wsf th\" \"CygA wsf phi\" \"TauA cat. th\" \"TauA cat. phi\" \"TauA wsf th\" \"TauA wsf phi\" \"VirA cat. th\" \"VirA cat. phi\" \"VirA wsf th\" \"VirA wsf phi\" \"Sun cat. th\" \"Sun cat. phi\" \"Sun wsf th\" \"Sun wsf phi\" \"CasA flux\" \"CygA flux\" \"TauA flux\" \"VirA flux\" \"Sun flux\" \"Calvis norm\" \"Noise norm\" \"gain norm\" \"calmap norm\"" << endl;
 
   // Set Debug Level
   (*mDebugLev)(1) = 0;
   cerr << "MatlabBridge created: Debug level set to " << mDebugLev->Get(1,1) 
        << endl << endl;
+  // Create Telescope information object
 }
 
 MatlabBridge::~MatlabBridge()
 { if (mTime) delete mTime;
+  if (mAntFlag) delete mAntFlag;
   if (mFreq) delete mFreq;
   if (mGoodCal) delete mGoodCal;
   if (mVis)  delete mVis;
@@ -69,12 +111,18 @@ MatlabBridge::~MatlabBridge()
   if (mSigmas) delete mSigmas;
   if (mSigman) delete mSigman;
   if (mUVFlag) delete mUVFlag;
+  if (mUVMask) delete mUVMask;
   if (mDebugLev) delete mDebugLev;
   if (mThSrcCat) delete mThSrcCat;
   if (mPhiSrcCat) delete mPhiSrcCat;
   if (mThSrcWsf) delete mThSrcWsf;
   if (mPhiSrcWsf) delete mPhiSrcWsf;
   if (mPreCalGain) delete mPreCalGain;
+  if (mUloc) delete mUloc;
+  if (mVloc) delete mVloc;
+  if (mDuv) delete mDuv; 
+  if (mNuv) delete mNuv; 
+  if (mUVSize) delete mUVSize;
   mMonFile.close();
   mSrcPosFile.close();
 
@@ -110,17 +158,40 @@ bool MatlabBridge::calibrate(const std::vector<float> &inReal,
   */
 
   // PerTimeslice flag
-  mUVFlag->SetData(const_cast<int*>(&inUVFlags[0]), inUVFlags.size());
-
+  // mUVFlag->SetData(const_cast<int*>(&inUVFlags[0]), inUVFlags.size());
+  // NOTE: Currently hand setting the flags to ignore autocorrelations, antenna
+  // number ?? and ??. Using till the time a flagger module passes on currect 
+  // flagging.
+/*
+  for (int i=1; i<=nAnts; i++)
+  { (*mUVFlag) (i,i)  = 1; // 1 => ignore visibility, 0 => use visibility
+    (*mUVFlag) (103,i) = 1; 
+    (*mUVFlag) (i,103) = 1; // NOTE: Matlab like 1-ref. ind
+    (*mUVFlag) (6,i) = 1; 
+    (*mUVFlag) (i,6) = 1;
+  }
+*/
   // pelican_sunAteamsub (5, *mSkyMap, *mGain, *mSigmas, *mSigman, *mGoodCal, 
   //                      *mVis, *mTime, *mFreq, *mUVFlag, *mDebugLev);
   // pelican_pipesim_cpp (1, good, correlations, time, freq);
 
+  mwArray norm, maskvis, flag_ant (1, 2, mxINT32_CLASS);
+  matelemul (1, maskvis, *mUVMask, *mVis);
+  mSrcPosFile<< std::setprecision(10)<<inMJDTime << " " << inFreq;
+  frobenius_norm (1, norm, *mVis);   mSrcPosFile << " "<<norm.Get (1,1);
+  frobenius_norm (1, norm, maskvis); mSrcPosFile << " "<<norm.Get (1,1);
+
   // Within the precal part
   if (calrun < maxprecal)
-  { pelican_sunAteamsub (9, *mThSrcCat, *mPhiSrcCat, *mThSrcWsf, *mPhiSrcWsf, 
+  { if (calrun == 0)
+    { mwArray restriction (1, 1, mxINT32_CLASS);
+      restriction (1) = 10;
+      cal_uvmask (1, *mUVMask, restriction, *mFreq);
+      flag_ant(1,1) = 3; flag_ant (1,2) = 106;
+    }
+    pelican_sunAteamsub (9, *mThSrcCat, *mPhiSrcCat, *mThSrcWsf, *mPhiSrcWsf, 
                        *mCalVis, *mGain, *mSigmas, *mSigman, *mGoodCal, 
-                       *mVis, *mTime, *mFreq, *mUVFlag, *mDebugLev);
+                       *mVis, *mTime, *mFreq, *mUVFlag, *mAntFlag, *mDebugLev);
     // Only store the good calibration runs
     if (mGoodCal->Get(1,1)) 
     { matadd (1, *mPreCalGain, *mPreCalGain, *mGain);
@@ -135,10 +206,10 @@ bool MatlabBridge::calibrate(const std::vector<float> &inReal,
   }
   else
   { // Apply the precal to the data
-    applycal (1, *mVis, *mVis, *mPreCalGain);
+    // applycal (1, *mVis, *mVis, *mPreCalGain);
     pelican_sunAteamsub (9, *mThSrcCat, *mPhiSrcCat, *mThSrcWsf, *mPhiSrcWsf, 
                        *mCalVis, *mGain, *mSigmas, *mSigman, *mGoodCal, 
-                       *mVis, *mTime, *mFreq, *mUVFlag, *mDebugLev);
+                       *mVis, *mTime, *mFreq, *mUVFlag, *mAntFlag, *mDebugLev);
   }
 
   mwArray re, im;
@@ -166,20 +237,22 @@ bool MatlabBridge::calibrate(const std::vector<float> &inReal,
   // Write out WSF estimated positions
   width = mThSrcCat->GetDimensions().Get(1,1);
   height = mThSrcCat->GetDimensions().Get(1,2);
-  mSrcPosFile<< std::setprecision(10)<<inMJDTime;
   for (int i=1; i<=width; i++)
-  { mSrcPosFile <<" "<<mThSrcCat->Get(1,i)<<" "<<mPhiSrcCat->Get(1,i)
-                <<" "<<mThSrcWsf->Get(1,i)<<" "<<mPhiSrcWsf->Get(1,i);
+  { mSrcPosFile <<" "<<std::setprecision(10)<<mThSrcCat->Get(1,i)<<" "<<mPhiSrcCat->Get(1,i) <<" "<<mThSrcWsf->Get(1,i)<<" "<<mPhiSrcWsf->Get(1,i);
   }
   // Also write out estimated source fluxes of model sources.
   width = mSigmas->GetDimensions().Get(1,1);
   height = mSigmas->GetDimensions().Get(1,2);
-  for (int i=1; i<=width; i++)
+  for (int i=1; i<=height; i++)
   { mSrcPosFile <<" "<<mSigmas->Get(1,i);
   }
-  
-  mSrcPosFile << endl;
-  mSrcPosFile.flush ();
+  // ... and norms of various inputs
+  frobenius_norm (1, norm, *mCalVis); mSrcPosFile << " "<<norm.Get (1,1);
+  frobenius_norm (1, norm, *mSigman); mSrcPosFile << " "<<norm.Get (1,1);
+  frobenius_norm (1, norm, *mGain);   mSrcPosFile << " "<<norm.Get (1,1);
+  // Writing some more in the imager routine...
+  // mSrcPosFile << endl;
+  // mSrcPosFile.flush ();
   return true;
 }
 
@@ -191,8 +264,9 @@ bool MatlabBridge::createImage(const std::vector<float> &inReal,
                                std::vector<float> &outSkymap,
                                std::vector<float> &outSkymapradec,
                                std::vector<float> &outVispad)
-{
+{ static int first = 1;
   (void) outVispad;
+  
 
 /*
   mwArray skymap, vispad, skymapradec;
@@ -201,12 +275,34 @@ bool MatlabBridge::createImage(const std::vector<float> &inReal,
   correlations.Imag().SetData(const_cast<float*>(&inImag[0]), inImag.size());
 */
 
-  mwArray uloc(288*288, 1, mxSINGLE_CLASS);
-  uloc.SetData(const_cast<float*>(&inULoc[0]), inULoc.size());
+  if (first)
+  { // call matlab function to separate out unflagged uloc, vloc, which 
+    // fills in the private uloc, vloc.
+    first = 0;
+    cout << "---> FIRST IMAGER CALL! SETTING UP ULOC?VLOC..."<<endl;
+    cout << "Antflag dimensions: " << mAntFlag->GetDimensions().Get(1,1)
+         << " and " << mAntFlag->GetDimensions().Get(1,2);
+    // if (!mAntFlag->IsEmpty()) // No flagging!
+    if (!mAntFlag->GetDimensions().Get(1,2)) // No flagging, 0 sized array!
+    { mUloc->SetData(const_cast<float*>(&inULoc[0]), inULoc.size());
+      mVloc->SetData(const_cast<float*>(&inVLoc[0]), inVLoc.size());
+    }
+    else
+    { cout << "-->Applying flagging on UV ITRF coordinates..\n";
+      mwArray uloc(1, nAnts*nAnts, mxSINGLE_CLASS);
+      uloc.SetData(const_cast<float*>(&inULoc[0]), inULoc.size());
+      mwArray vloc(1, nAnts*nAnts, mxSINGLE_CLASS);
+      vloc.SetData(const_cast<float*>(&inVLoc[0]), inVLoc.size());
+      gen_flagged_uvloc (2, *mUloc, *mVloc, uloc, vloc, *mAntFlag);
+    }
+  }
 
-  mwArray vloc(288*288, 1, mxSINGLE_CLASS);
-  vloc.SetData(const_cast<float*>(&inVLoc[0]), inVLoc.size());
-
+/*
+      mwArray uloc(1, nAnts*nAnts, mxSINGLE_CLASS);
+      uloc.SetData(const_cast<float*>(&inULoc[0]), inULoc.size());
+      mwArray vloc(1, nAnts*nAnts, mxSINGLE_CLASS);
+      vloc.SetData(const_cast<float*>(&inVLoc[0]), inVLoc.size());
+*/
   mwArray duv(1, 1, mxSINGLE_CLASS);
   mwArray nuv(1, 1, mxSINGLE_CLASS);
   mwArray uvsize(1, 1, mxSINGLE_CLASS);
@@ -217,13 +313,22 @@ bool MatlabBridge::createImage(const std::vector<float> &inReal,
   // uvsize(1) = 512;
 
   // Parameters to fft_imager ()
-  duv(1) = 1.5;
+  // duv(1) = 1.2;
+  duv(1) = 2.5;
   nuv(1) = 500; // 1000;
   uvsize(1) = 512; // 1024;
 
   // fft_imager (2, *mSkyMap, *mVisPad, *mCalVis, uloc, vloc, duv, nuv, uvsize);
-  fft_imager_sjw_radec (3, *mSkyMapradec, *mSkyMap, *mVisPad, *mCalVis, uloc, 
-                        vloc, duv, nuv, uvsize, *mTime, *mFreq);
+   // fft_imager_sjw_radec (3, *mSkyMapradec, *mSkyMap, *mVisPad, *mCalVis, *mUloc,
+   //                       *mVloc, duv, nuv, uvsize, *mTime, *mFreq);
+   fft_imager_sjw_radec (3, *mSkyMapradec, *mSkyMap, *mVisPad, *mCalVis, *mUloc,
+                         *mVloc, duv, nuv, uvsize, *mTime, *mFreq);
+
+  // Write out image statistics to file, continuing from calibrate function
+  mwArray norm;
+  frobenius_norm (1, norm, *mSkyMap);    mSrcPosFile << " "<<norm.Get (1,1);
+  mSrcPosFile << endl;
+  mSrcPosFile.flush ();
 
   // Write out an all-sky map in RA/DEC coordinates
   int width = mSkyMapradec->GetDimensions().Get(1,1);

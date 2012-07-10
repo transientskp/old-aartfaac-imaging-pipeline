@@ -36,24 +36,28 @@ private:
   void killMatlab();
   bool initMatlab();
 
-  // Gain solution pre-applied to all timeslices
-  mwArray *mPreCalGain;
-
   // Details of this timeslice.
   mwArray *mTime, *mFreq; 
 
+  /*** Calibration related private members */
+  // Gain solution pre-applied to all timeslices
+  mwArray *mPreCalGain;
   // Solutions for this timeslice
   mwArray *mGain, *mSigmas, *mSigman; 
-
   // raw, calibrated and gridded visibilities
   mwArray *mVis, *mCalVis, *mVisPad;
-  // Generate maps in local and RA/DEC coordinates
-  mwArray *mSkyMap, *mSkyMapradec;
-  mwArray *mUVFlag, *mDebugLev, *mGoodCal;
-
   // Catalog + estimated source positions
   mwArray *mThSrcCat, *mPhiSrcCat, *mThSrcWsf, *mPhiSrcWsf;
+  mwArray *mUVFlag, *mAntFlag, *mDebugLev, *mGoodCal, *mUVMask;
+
+  /*** Imaging related private members */
+  // Generate maps in local and RA/DEC coordinates
+  mwArray *mSkyMap, *mSkyMapradec;
+  mwArray *mUloc, *mVloc, *mDuv, *mNuv, *mUVSize;
+
   std::ofstream mMonFile, mSrcPosFile;
+  int mBridgeId;
+  int nAnts, nActiveAnts;
 };
 
 #endif // MATLAB_BRIDGE_H

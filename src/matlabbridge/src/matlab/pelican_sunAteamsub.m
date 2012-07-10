@@ -3,7 +3,7 @@
 % and basically packages aartfaac_demo_stefcal.m to be called from a pelican pipeline.
 % pep/14Apr2012
 
-function [thsrc_cat, phisrc_cat, thsrc_wsf, phisrc_wsf, calvis, gainsol, sigmas, sigman, good] = pelican_sunAteamsub (acc, t_obs, freq, uvflag, debug)
+function [thsrc_cat, phisrc_cat, thsrc_wsf, phisrc_wsf, calvis, gainsol, sigmas, sigman, good] = pelican_sunAteamsub (acc, t_obs, freq, uvflag, flagant, debug)
 % function [calvis, gainsol, sigmas, sigman, good] = pelican_sunAteamsub (acc, t_obs, freq, uvflag, debug)
 % Arguments:
 % t_obs : Time in MJD secs, as extracted from a MS
@@ -54,11 +54,25 @@ function [thsrc_cat, phisrc_cat, thsrc_wsf, phisrc_wsf, calvis, gainsol, sigmas,
         return;
     end
     disp (['t_obs :' num2str(t_obs) ' Freq: ' num2str(freq)]);
-    % disp (['Class of acc/t_obs/freq/uvflag/debuglev' class(acc) class(t_obs) class(freq) class(uvflag) class(debug)]);
-    % acc = acc' % For Pelican pipeline
-    % abs (acc(:))
-    % disp ('All abs. done');
-    % angle (acc(:))
+
+    % if (~isempty (flagant)) % Need to reshape the array
+    if (length(flagant) ~= 0) % Need to reshape the array
+	disp (['Flagant' num2str(flagant)]);
+	antmask = zeros (size (acc));
+	posmask = zeros (size (posITRF));
+	rem_ants = length(acc) - length(flagant);
+	for ind = 1:length(flagant)
+		antmask (flagant(ind), :) = 1; antmask (:,flagant(ind)) = 1;
+		posmask (flagant(ind), :) = 1;
+	end
+	acc = reshape (acc(antmask ~= 1), [rem_ants, rem_ants]);
+	posITRF_fl = reshape (posITRF(posmask ~=1), [rem_ants, 3]);
+	uvflag  = reshape (uvflag(antmask ~= 1), [rem_ants, rem_ants]);
+	disp (['NOTE: ACM resized after flagging to ' num2str(size (acc))]);
+	%disp (['Size of uvflag, antmask' num2str(size(uvflag), size (antmask))]);
+    else
+      posITRF_fl = posITRF;
+    end
     t_obs  = t_obs/86400 + 2400000.5; % Convert to MJD day units
     catalog = srclist3CR;
     
@@ -67,7 +81,7 @@ function [thsrc_cat, phisrc_cat, thsrc_wsf, phisrc_wsf, calvis, gainsol, sigmas,
     acc = acc ./ sqrt(diag(acc) * diag(acc).');
     % calibrate using source positions from 3C catalog and a baseline
     % restriction of 10 wavelengths or 60 meters (whichever is smaller)
-    [cal1, sigmas1, Sigman1] = statcal_stefcal (acc, t_obs, freq, posITRF, srcsel, normal, 10, 60, eye(Nelem), debug);
+    [cal1, sigmas1, Sigman1] = statcal_stefcal (acc, t_obs, freq, posITRF_fl, srcsel, normal, 10, 60, uvflag, debug);
     % [cal1, sigmas1, Sigman1] = statcal_vlss(acc, t_obs, freq, posITRF, srcsel, normal, 10, maxrestriction, eye(Nelem), catalog);
     if (debug > 1)
       disp('First round of antenna calibration completed, sigmas1:'); disp (sigmas1');
@@ -82,11 +96,6 @@ function [thsrc_cat, phisrc_cat, thsrc_wsf, phisrc_wsf, calvis, gainsol, sigmas,
     % We only estimate source positions for sources with an apparent flux
     % larger than 1% of the apparent flux of Cas A.
     % tic
-    sel = sigmas1 > 0.01;
-    nsrc = sum(sel);
-    if (debug > 0)
-       disp (['WSF: Working with ' num2str(nsrc) ' selected sources, t_obs(MJD): ' num2str(t_obs)]);
-    end
     % use source positions from 3C catalog as initial estimate
     % load srclist3CR
     if (sum(srcsel == 0) ~= 0)
@@ -103,11 +112,17 @@ function [thsrc_cat, phisrc_cat, thsrc_wsf, phisrc_wsf, calvis, gainsol, sigmas,
         % disp (['Sun NOT included, len of epoch ' num2str(length(epoch))]);
     end
     % srcpos0 = radectoITRF(rasrc(sel), decsrc(sel), epoch, JulianDay(tobs));
-    srcpos0 = radectoITRF(rasrc(sel), decsrc(sel), epoch(sel), t_obs);
+    % srcpos0 = radectoITRF(rasrc(sel), decsrc(sel), epoch(sel), t_obs);
+    srcpos0 = radectoITRF(rasrc, decsrc, epoch, t_obs); % Postions of all srcs
     up = srcpos0 * normal > 0;
+    sel = sigmas1 > 0.01 & up'; % Srcs with enough power, and above the horizon
+    nsrc = sum(sel);
+    if (debug > 0)
+       disp (['WSF: Working with ' num2str(nsrc) ' selected sources, t_obs(MJD): ' num2str(t_obs)]);
+    end
     disp(['Srcs from srclist above horizon: ' num2str(srcsel(up))]);
-    thsrc0 = asin(srcpos0(:, 3));
-    phisrc0 = atan2(srcpos0(:, 2), srcpos0(:, 1));
+    thsrc0 = asin(srcpos0(sel, 3));
+    phisrc0 = atan2(srcpos0(sel, 2), srcpos0(sel, 1));
     
     % find source positions using WSF algorithm
     % whitening of the array covariance matrix (required for DOA estimation)
@@ -118,10 +133,11 @@ function [thsrc_cat, phisrc_cat, thsrc_wsf, phisrc_wsf, calvis, gainsol, sigmas,
     Wopt = (diag(d(1:nsrc)) - mean(diag(squeeze(Sigman1))) * eye(nsrc))^2 / diag(d(1:nsrc));
     Es = v(:, 1:nsrc);
     EsWEs = Es * Wopt * Es';
-    theta = fminsearch(@(x) WSFcostfunITRF(x, EsWEs, diag(conj(1 ./ cal1)), freq, posITRF), [phisrc0; thsrc0]);
-    phisrchat = theta(1:nsrc);
-    thsrchat = theta(nsrc+1:end);
-    srcposhat = [cos(phisrchat) .* cos(thsrchat), sin(phisrchat) .* cos(thsrchat), sin(thsrchat)];
+    theta = fminsearch(@(x) WSFcostfunITRF(x, EsWEs, diag(conj(1 ./ cal1)), freq, posITRF_fl), [phisrc0; thsrc0]);
+    phisrchat = zeros (length(srcsel),1); phisrchat(sel) = theta(1:nsrc);
+    thsrchat  = zeros (length(srcsel),1); thsrchat (sel) = theta(nsrc+1:end);
+    % srcposhat = [cos(phisrchat) .* cos(thsrchat), sin(phisrchat) .* cos(thsrchat), sin(thsrchat)];
+    srcposhat = [cos(phisrchat(sel)) .* cos(thsrchat(sel)), sin(phisrchat(sel)) .* cos(thsrchat(sel)), sin(thsrchat(sel))];
     if (debug > 0)
       disp('Position estimation using WSF done: ');
     end 
@@ -129,15 +145,15 @@ function [thsrc_cat, phisrc_cat, thsrc_wsf, phisrc_wsf, calvis, gainsol, sigmas,
      disp ('Catalog positions: '); disp ([thsrc0 phisrc0]');
      disp ('WSF     positions: '); disp ([thsrchat phisrchat]');
     end
-    thsrc_cat = thsrc0;
-    phisrc_cat = phisrc0;
+    thsrc_cat  = zeros (length(srcsel), 1); thsrc_cat (sel) = thsrc0;
+    phisrc_cat = zeros (length(srcsel), 1); phisrc_cat (sel) = phisrc0;
     thsrc_wsf = thsrchat;
     phisrc_wsf = phisrchat;
     % toc
     
     % use updated source positions to improve calibration
     % tic
-    A = exp(-(2 * pi * 1i * freq / C) * (posITRF * srcposhat.'));
+    A = exp(-(2 * pi * 1i * freq / C) * (posITRF_fl * srcposhat.'));
     [ghat, sigmas2, Sigman2] = cal_ext_stefcal(acc, A, sigmas1(sel), squeeze(abs(Sigman1)) > 0, debug);
     cal2 = (1 ./ ghat)';
     % calibrate visibilities removing extended emission and system noise
@@ -155,92 +171,104 @@ function [thsrc_cat, phisrc_cat, thsrc_wsf, phisrc_wsf, calvis, gainsol, sigmas,
     % reduce srcsel to source that appear brighter than 1% if Cas A, note that
     % 0 is used to denote the Sun
     % tic
-    srcsel = srcsel(sel);
+    visibleAteamsun = srcsel(sel);
     % construct model visibilities for A-team sources
-    A = exp(-(2 * pi * 1i * freq / C) * (posITRF * srcposhat(srcsel ~= 0, :).'));
-    RAteam = A * diag(sigmas2(srcsel ~= 0)) * A';
+    A = exp(-(2 * pi * 1i * freq / C) * (posITRF_fl * srcposhat(visibleAteamsun ~= 0, :).'));
+    RAteam = A * diag(sigmas2(visibleAteamsun ~= 0)) * A';
     % subtract A-team
     accsubAteam = acccal - RAteam;
+    accsubSunS = accsubAteam;
     if (debug > 0)
       disp('A-team subtracted');
     end 
     % toc
 
-%
-%    %% Sun subtraction
-%    % The Sun is modeled using a 3-sparse grid of pixels around the estimated
-%    % position of the Sun. High resolution imaging using the MVDR beamformer to
-%    % obtain a model of the Sun in the image domain proved unsuccessful.
-%    % Finding the 3-sparse solution using an exhaustive search it the most
-%    % computationally demanding part of this script. Hopefully Arash can
-%    % improve on this using convex optimization.
-%    % tic
-%    phi0sun = atan2(srcposhat(srcsel == 0, 2), srcposhat(srcsel == 0, 1));
-%    th0sun = asin(srcposhat(srcsel == 0, 3));
-%    % define grid of pixels
-%    delta = 0.01;
-%    res = 2 * delta / 8;
-%    [phisun, thsun] = meshgrid(phi0sun-delta:res:phi0sun+delta, th0sun-delta:res:th0sun+delta);
-%    phith_dist = sqrt((phisun(:) - phi0sun).^2 + (thsun(:) - th0sun).^2);
-%    phisun = phisun(phith_dist < delta);
-%    thsun = thsun(phith_dist < delta);
-%    sunpos = [cos(phisun) .* cos(thsun), sin(phisun) .* cos(thsun), sin(thsun)];
-%    
-%    % solar component estimation using sparse reconstruction
-%    A = exp(-(2 * pi * 1i * freq / C) * (posITRF * sunpos.'));
-%    A = double (A);
-%    accsubAteam = double (accsubAteam);
-%    fluxSun = 1.20 * sigmas2(srcsel == 0);
-%    cvx_begin
-%        variable sigmaSun(size(A, 2));
-%        minimize norm(accsubAteam(:) - khatrirao(conj(A), A) * sigmaSun, 2);
-%        subject to
-%        norm(sigmaSun, 1) <= fluxSun;
-%    cvx_end
-%    
-%    % iterate, increasing resolution
-%    sigmaSun(sigmaSun < 1e-3) = 0;
-%    phi0sun = phisun(sigmaSun ~= 0);
-%    th0sun = thsun(sigmaSun ~= 0);
-%    res2 = res / 3;
-%    [phigrid, thgrid] = meshgrid(-res2:res2:res2);
-%    phisun2 = kron(phi0sun, ones(9, 1)) + kron(ones(length(phi0sun), 1), phigrid(:));
-%    thsun2 = kron(th0sun, ones(9, 1)) + kron(ones(length(th0sun), 1), thgrid(:));
-%    sunpos2 = [cos(phisun2) .* cos(thsun2), sin(phisun2) .* cos(thsun2), sin(thsun2)];
-%    A = exp(-(2 * pi * 1i * freq / C) * (posITRF * sunpos2.'));
-%    fluxSun = 1.20 * sigmas2(srcsel == 0);
-%    cvx_begin
-%        variable sigmaSun(size(A, 2));
-%        minimize norm(accsubAteam(:) - khatrirao(conj(A), A) * sigmaSun, 2);
-%        subject to
-%        norm(sigmaSun, 1) <= fluxSun;
-%    cvx_end
-%    
-%    % try subtraction
-%    sigmaSun(sigmaSun < 1e-3) = 0;
-%    RSunS = A * diag(sigmaSun) * A';
-%    accsubSunS = acccal - RAteam - RSunS;
-%    if (debug > 0)
-%      disp('Sun subtracted');
-%    end
-%    %toc
+
+    %% Sun subtraction
+    % The Sun is modeled using a 3-sparse grid of pixels around the estimated
+    % position of the Sun. High resolution imaging using the MVDR beamformer to
+    % obtain a model of the Sun in the image domain proved unsuccessful.
+    % Finding the 3-sparse solution using an exhaustive search it the most
+    % computationally demanding part of this script. Hopefully Arash can
+    % improve on this using convex optimization.
+    % tic
+    phi0sun = atan2(srcposhat(visibleAteamsun == 0, 2), srcposhat(visibleAteamsun == 0, 1));
+    th0sun = asin(srcposhat(visibleAteamsun == 0, 3));
+    % define grid of pixels
+    delta = 0.01;
+    res = 2 * delta / 8;
+    [phisun, thsun] = meshgrid(phi0sun-delta:res:phi0sun+delta, th0sun-delta:res:th0sun+delta);
+    phith_dist = sqrt((phisun(:) - phi0sun).^2 + (thsun(:) - th0sun).^2);
+    phisun = phisun(phith_dist < delta);
+    thsun = thsun(phith_dist < delta);
+    sunpos = [cos(phisun) .* cos(thsun), sin(phisun) .* cos(thsun), sin(thsun)];
+    
+    % solar component estimation using sparse reconstruction
+    A = exp(-(2 * pi * 1i * freq / C) * (posITRF_fl * sunpos.'));
+    A = double (A);
+    accsubAteam = double (accsubAteam);
+    fluxSun = 1.20 * sigmas2(visibleAteamsun == 0);
+    cvx_begin
+        variable sigmaSun(size(A, 2));
+        minimize norm(accsubAteam(:) - khatrirao(conj(A), A) * sigmaSun, 2);
+        subject to
+        norm(sigmaSun, 1) <= fluxSun;
+    cvx_end
+    
+    % iterate, increasing resolution
+    sigmaSun(sigmaSun < 1e-3) = 0;
+    phi0sun = phisun(sigmaSun ~= 0);
+    th0sun = thsun(sigmaSun ~= 0);
+    res2 = res / 3;
+    [phigrid, thgrid] = meshgrid(-res2:res2:res2);
+    phisun2 = kron(phi0sun, ones(9, 1)) + kron(ones(length(phi0sun), 1), phigrid(:));
+    thsun2 = kron(th0sun, ones(9, 1)) + kron(ones(length(th0sun), 1), thgrid(:));
+    sunpos2 = [cos(phisun2) .* cos(thsun2), sin(phisun2) .* cos(thsun2), sin(thsun2)];
+    A = exp(-(2 * pi * 1i * freq / C) * (posITRF_fl * sunpos2.'));
+    fluxSun = 1.20 * sigmas2(visibleAteamsun == 0);
+    cvx_begin
+        variable sigmaSun(size(A, 2));
+        minimize norm(accsubAteam(:) - khatrirao(conj(A), A) * sigmaSun, 2);
+        subject to
+        norm(sigmaSun, 1) <= fluxSun;
+    cvx_end
+    
+    % try subtraction
+    sigmaSun(sigmaSun < 1e-3) = 0;
+    RSunS = A * diag(sigmaSun) * A';
+    accsubSunS = acccal - RAteam - RSunS;
+    if (debug > 0)
+      disp('Sun subtracted');
+    end
+    %toc
 
 
-    calvis = accsubAteam;
-    % calvis = single(accsubSunS);
+    % calvis = accsubAteam;
+    calvis = single(accsubSunS);
     gainsol = cal2;
-    sigmas = sigmas2;
+    sigmas(sel) = sigmas2;
     sigman = Sigman2;
     % disp (['Class of calvis/gainsol/sigmas/sigman' class(calvis) class(gainsol) class(sigmas) class(sigman)]);
 
     % Quality of calibration solutions, as determined by the phase solutions
-    for station=1:6
-      ph_var (station) = var (angle(gainsol (1+(station-1)*48:station*48)));
-    end
-    if sum(ph_var > 1) ~= 0 
-      good = 0;
-      disp ('NOTE: Bad calib solu:');
-      disp (ph_var');
-    else
-      good = 1;
-    end 
+%    flag_ant_stations = zeros (1,6);
+%    for ant = 1:length(flagant)
+%        % Which station does current flagged antenna belong
+%	flag_station = int32(flagant(ant)/48) + 1; 
+%	flag_ant_stations (flag_station) = flag_ant_stations(flag_station) + 1;
+%    end 
+    % disp (['Flag_ant_stations ' num2str(flag_ant_stations)]);
+
+%    ant_ind = 1;
+%    for station=1:6
+%      ph_var (station) = var (angle(gainsol (1+(station-1)*48:station*48)));
+%%      ph_var (station) = var (angle(gainsol (ant_ind:ant_ind+47-flag_ant_stations(station))));
+%%      ant_ind = ant_ind + 47 -flag_ant_stations(station) + 1;
+%    end
+%    if sum(ph_var > 1) ~= 0 
+%      good = 0;
+%      disp ('NOTE: Bad calib solu:');
+%      disp (ph_var');
+%    else
+%      good = 1;
+%    end 

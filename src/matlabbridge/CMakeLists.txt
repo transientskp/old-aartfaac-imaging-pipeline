@@ -44,6 +44,10 @@ set(MM_FILES
   ${MATLABBRIDGE_SOURCE_DIR}/src/matlab/normalize.m
   ${MATLABBRIDGE_SOURCE_DIR}/src/matlab/matadd.m
   ${MATLABBRIDGE_SOURCE_DIR}/src/matlab/lmtoradec.m
+  ${MATLABBRIDGE_SOURCE_DIR}/src/matlab/frobenius_norm.m
+  ${MATLABBRIDGE_SOURCE_DIR}/src/matlab/matelemul.m
+  ${MATLABBRIDGE_SOURCE_DIR}/src/matlab/cal_uvmask.m
+  ${MATLABBRIDGE_SOURCE_DIR}/src/matlab/gen_flagged_uvloc.m
 )
 
 add_library(mbridge STATIC ${SOURCE_FILES})
@@ -67,7 +71,8 @@ add_custom_command(
     mccExcludedFiles.log
     readme.txt
   DEPENDS ${MM_FILES}
-  COMMAND ${MCC_EXECUTABLE} -a  ${MATLABBRIDGE_SOURCE_DIR}/src/matlab/cvx -B cpplib:libmatlabbridge ${MCC_FLAGS} ${MM_FILES}
+  # COMMAND ${MCC_EXECUTABLE} -a  ${MATLABBRIDGE_SOURCE_DIR}/src/matlab/cvx -B cpplib:libmatlabbridge ${MCC_FLAGS} ${MM_FILES}
+  COMMAND ${MCC_EXECUTABLE} -a  /home/peeyush/Matlab/cvx -B cpplib:libmatlabbridge ${MCC_FLAGS} ${MM_FILES}
 )
 
 target_link_libraries(mbridge

@@ -101,7 +101,7 @@ for idx = 1:length(freq)
     [ghat, sigmahat, Sigmanhat] = cal_ext_stefcal(Rhat, A, flux, mask, debug, diffstop, maxiter);
     
     cal(idx, :) = conj(1./ghat);
-    sigmas(idx, up) = sigmahat; % Returning sigmahat
+    sigmas(idx, up) = sigmahat; % Returning sigmahat for valid (above horizon) sources
     Sigman(idx, :, :) = Sigmanhat;    
     % toc
 end
