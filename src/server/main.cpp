@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <QtCore>
+#include <iostream>
 
 int main(int argc, char* argv[])
 {
