@@ -17,9 +17,6 @@ set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DDEBUG")
 
-# === Enable the cmake testing framework.
-enable_testing()
-
 # === Project version
 execute_process(
   COMMAND git describe --tags
@@ -59,6 +56,8 @@ include_directories(${QT_QTCORE_INCLUDE_DIR})
 
 find_package(Pelican REQUIRED)
 include_directories(${PELICAN_INCLUDES})
+
+find_package(CppUnit REQUIRED)
 
 if (BUILD_EMULATOR OR BUILD_PIPELINE)
     find_package(Casacore REQUIRED)
@@ -116,6 +115,16 @@ if (BUILD_SERVER)
       ${PELICAN_LIBRARIES}
     )
 endif (BUILD_SERVER)
+
+# === Enable the cmake testing framework.
+enable_testing()
+
+# === Compile and add tests to cmake framework.
+foreach (TEST ${TESTS})
+    add_executable(${TEST} ${${TEST}_SOURCES})
+		target_link_libraries(${TEST} ${CPPUNIT_LIBRARIES})
+		add_test(${TEST} ${TEST})
+endforeach (TEST)
 
 # === Doxygen documentation targets.
 # include(UseDoxygen)
