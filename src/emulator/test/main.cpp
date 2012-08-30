@@ -16,5 +16,7 @@ int main(int argc, char *argv[])
 
 	runner.setOutputter(outputter);
   runner.addTest(CppUnit::TestFactoryRegistry::getRegistry().makeTest());
-  return runner.run() ? 1 : 0;
+  runner.run();
+
+	return 0;
 }
