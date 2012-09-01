@@ -40,5 +40,5 @@ void UniboardEmulatorTest::emulate()
   );
 
   pelican::EmulatorDriver driver(new UniboardEmulator(xml_node));
-	mApp->exec();
+	CPPUNIT_ASSERT(mApp->exec() == 0);
 }
