@@ -122,7 +122,15 @@ enable_testing()
 # === Compile and add tests to cmake framework.
 foreach (TEST ${TESTS})
     add_executable(${TEST} ${${TEST}_SOURCES})
-		target_link_libraries(${TEST} ${CPPUNIT_LIBRARIES})
+		target_link_libraries(${TEST} 
+			${CPPUNIT_LIBRARIES}
+      ${QT_QTCORE_LIBRARY}
+      ${QT_QTNETWORK_LIBRARY}
+      ${QT_QTXML_LIBRARY}
+      ${PELICAN_LIBRARIES}
+      ${CASACORE_LIBRARIES}
+      ${LOFAR_LIBRARIES}
+		)
 		add_test(${TEST} ${TEST})
 endforeach (TEST)
 

@@ -5,18 +5,15 @@
 #include <cppunit/XmlOutputter.h>
 #include <cppunit/portability/Stream.h>
 
-int main(int argc, char *argv[])
+int main(int, char **)
 {
-  (void) argc;
-  (void) argv;
-
-	CppUnit::OFileStream stream("server.xml");
+  CppUnit::OFileStream stream("server.xml");
   CppUnit::TextUi::TestRunner runner;
-	CppUnit::XmlOutputter *outputter = new CppUnit::XmlOutputter(&runner.result(), stream);
+  CppUnit::XmlOutputter *outputter = new CppUnit::XmlOutputter(&runner.result(), stream);
 
-	runner.setOutputter(outputter);
+  runner.setOutputter(outputter);
   runner.addTest(CppUnit::TestFactoryRegistry::getRegistry().makeTest());
   runner.run();
 
-	return 0;
+  return 0;
 }

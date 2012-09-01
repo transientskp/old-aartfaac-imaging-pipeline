@@ -38,6 +38,9 @@ set (TESTS emulatortest pipelinetest servertest)
 
 set (emulatortest_SOURCES
 	src/emulator/test/main.cpp
+	src/emulator/test/UniboardEmulatorTest.cpp
+  src/emulator/UniboardEmulator.cpp
+  src/utilities/halfprecision.c
 )
 
 set (pipelinetest_SOURCES
