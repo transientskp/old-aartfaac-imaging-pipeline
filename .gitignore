@@ -1,4 +1,5 @@
 .*swp
+*.autosave
 build/
 !build/*.sh
 CMakeLists.txt.user
