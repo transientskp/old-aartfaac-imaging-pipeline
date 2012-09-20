@@ -58,6 +58,7 @@ void Logger::messageHandler(QtMsgType inType, const char *inMsg)
       std::cerr << qPrintable(colorize(msg, RED)) << std::endl;
     else
       std::cerr << "[FATAL] " << inMsg << std::endl;
+    exit(EXIT_FAILURE);
     break;
   }
 
