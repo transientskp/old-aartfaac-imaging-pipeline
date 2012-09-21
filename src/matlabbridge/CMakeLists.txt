@@ -48,6 +48,7 @@ set(MM_FILES
   ${MATLABBRIDGE_SOURCE_DIR}/src/matlab/matelemul.m
   ${MATLABBRIDGE_SOURCE_DIR}/src/matlab/cal_uvmask.m
   ${MATLABBRIDGE_SOURCE_DIR}/src/matlab/gen_flagged_uvloc.m
+  ${MATLABBRIDGE_SOURCE_DIR}/src/matlab/imgdiff.m
 )
 
 add_library(mbridge STATIC ${SOURCE_FILES})

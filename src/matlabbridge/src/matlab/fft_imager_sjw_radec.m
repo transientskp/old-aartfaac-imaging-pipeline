@@ -1,4 +1,26 @@
-function [radecskymap, lmskymap, vispad] = fft_imager_sjw_radec(acc, u, v, duv, Nuv, uvsize, t_obs, freq)
+% Function to generate an image from calibrated visibilities.
+% pep/18Jul12
+% Arguments: 
+%     acc   : Complex, Hermitean symmetric Array Correlation Matrix
+%     u/v   : u/v coordinates of antenna elements in ITRF coordinates (meters) 
+%             wrt. CS002
+%     duv   : Grid size in meters, in the uv domain. Keep at least a couple of 
+%             gridpoints per wavelength.
+%     Nuv   : Number of gridpoints sampling the available UV plane.
+%     uvsize: Padded size of uv grid, for imaging with higher resolution than
+%             warranted by uv coverage.
+%     t_obs : Time of observation in MJD seconds, for converting local 
+%             coordinates to absolute RA/DEC coordinates.
+%     freq  : Frequency of observation in Hz, of this ACM.
+%     radec : Switch to turn on (=1) or off(=0) the generation of images 
+%             reprojected onto the RA/DEC plane.
+% Returns: 
+%    radecskymap: Reprojected skymap in RA/DEC coordinates, 
+%    lmskymap   : Map in lm local coordinates.
+%    vispad     : Gridded and padded visibilities
+%    l,m        : l,m coordinates for this skymap.
+
+function [radecskymap, lmskymap, vispad] = fft_imager_sjw_radec(acc, u, v, duv, Nuv, uvsize, t_obs, freq, radec)
 
 % create object for interpolation
 vis = zeros(Nuv);
@@ -57,19 +79,24 @@ m = l;  % Identical resolution and extent along m-axis
 mask = zeros (length(l));
 mask(meshgrid(l).^2 + meshgrid(l).'.^2 < 1) = 1;
 lmskymap = single (real(skymap) .* mask);
-disp (['-->Max/min from matlab: ' num2str(max(max(lmskymap))) ' ' num2str(min(min(lmskymap)))]);
+disp (['-->Max/min from lm skymap: ' num2str(max(max(lmskymap))) ' ' num2str(min(min(lmskymap)))]);
 
 % Section converting image from local coordinates to RA/DEC coordinates
-alpha = zeros (uvsize, 1);
-delta = zeros (uvsize, 1);
-t_obs  = t_obs/86400 + 2400000.5; % Convert to MJD day units
-[alpha, delta] = lmtoradec (l, l, t_obs);
-sel = ~isnan (alpha(:));
-
-radecimage = TriScatteredInterp (alpha (sel), delta (sel), real(skymap (sel)));
-% Create the regularly sampled RA/dec plane
-[ragrid, decgrid] = meshgrid (linspace (0,2*pi, uvsize), linspace (-pi/2,pi/2, uvsize));
-    
-% generate samples from model skyimage
-radecskymap = radecimage (ragrid, decgrid);
-
+if (radec == 1)
+  disp ('Converting to RA/DEC image');
+  alpha = zeros (uvsize, 1);
+  delta = zeros (uvsize, 1);
+  t_obs  = t_obs/86400 + 2400000.5; % Convert to MJD day units
+  [alpha, delta] = lmtoradec (l, l, t_obs);
+  sel = ~isnan (alpha(:));
+  
+  radecimage = TriScatteredInterp (alpha (sel), delta (sel), real(skymap (sel)));
+  % Create the regularly sampled RA/dec plane
+  [ragrid, decgrid] = meshgrid (linspace (0,2*pi, uvsize), linspace (-pi/2,pi/2, uvsize));
+      
+  % generate samples from model skyimage
+  radecskymap = radecimage (ragrid, decgrid);
+else 
+  disp ('Not converting to RA/DEC images');
+  radecskymap = lmskymap;
+end

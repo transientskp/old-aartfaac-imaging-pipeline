@@ -32,10 +32,13 @@ MatlabBridge::MatlabBridge()
     mCalVis = new mwArray (nActiveAnts, nActiveAnts, mxSINGLE_CLASS, mxCOMPLEX);
     mVisPad = new mwArray (1024, 1024, mxSINGLE_CLASS, mxCOMPLEX);
     mSkyMap = new mwArray (1024, 1024, mxSINGLE_CLASS, mxREAL);
+    mSkyMapPrev = new mwArray (1024, 1024, mxSINGLE_CLASS, mxREAL);
+    mSkyMapDiff = new mwArray; //  (1024, 1024, mxSINGLE_CLASS, mxREAL);
     mSkyMapradec = new mwArray;
     mUVFlag = new mwArray (nAnts, nAnts, mxINT32_CLASS);
     mUVMask = new mwArray (nAnts, nAnts, mxLOGICAL_CLASS);
     mDebugLev = new mwArray (1, 1, mxSINGLE_CLASS, mxREAL);
+    mptSun = new mwArray (1, 1, mxINT32_CLASS);
     mGain = new mwArray;
     mSigmas = new mwArray;
     mSigman = new mwArray;
@@ -52,6 +55,7 @@ MatlabBridge::MatlabBridge()
     (*mNuv)(1) = 500;
     mUVSize = new mwArray (1, 1, mxSINGLE_CLASS);
     (*mUVSize)(1) = 512;
+    mSunComps = new mwArray; // CVX Solar model extraction, pep/17Sep12
   }
   catch (const mwException& e)
   { std::cerr << e.what() << std::endl; }
@@ -91,9 +95,12 @@ MatlabBridge::MatlabBridge()
   mSrcPosFile << "\"Time (MJD secs)\" \"Freq (Hz)\" \"Raw vis. norm\" \"UVmask vis. norm\" \"CasA cat. th\" \"CasA cat. phi\" \"CasA wsf th\" \"CasA wsf phi\" \"CygA cat. th\" \"CygA cat. phi\" \"CygA wsf th\" \"CygA wsf phi\" \"TauA cat. th\" \"TauA cat. phi\" \"TauA wsf th\" \"TauA wsf phi\" \"VirA cat. th\" \"VirA cat. phi\" \"VirA wsf th\" \"VirA wsf phi\" \"Sun cat. th\" \"Sun cat. phi\" \"Sun wsf th\" \"Sun wsf phi\" \"CasA flux\" \"CygA flux\" \"TauA flux\" \"VirA flux\" \"Sun flux\" \"Calvis norm\" \"Noise norm\" \"gain norm\" \"calmap norm\"" << endl;
 
   // Set Debug Level
-  (*mDebugLev)(1) = 0;
+  (*mDebugLev)(1) = 3;
   cerr << "MatlabBridge created: Debug level set to " << mDebugLev->Get(1,1) 
        << endl << endl;
+  // Choose point source or sparse reconstruction modelling of the Sun.
+  (*mptSun) (1) = 1;
+
   // Create Telescope information object
 }
 
@@ -106,6 +113,8 @@ MatlabBridge::~MatlabBridge()
   if (mCalVis) delete mCalVis;
   if (mVisPad) delete mVisPad;
   if (mSkyMap) delete mSkyMap;
+  if (mSkyMapPrev) delete mSkyMapPrev;
+  if (mSkyMapDiff) delete mSkyMapDiff;
   if (mSkyMapradec) delete mSkyMapradec;
   if (mGain) delete mGain;
   if (mSigmas) delete mSigmas;
@@ -113,6 +122,7 @@ MatlabBridge::~MatlabBridge()
   if (mUVFlag) delete mUVFlag;
   if (mUVMask) delete mUVMask;
   if (mDebugLev) delete mDebugLev;
+  if (mptSun) delete mptSun;
   if (mThSrcCat) delete mThSrcCat;
   if (mPhiSrcCat) delete mPhiSrcCat;
   if (mThSrcWsf) delete mThSrcWsf;
@@ -123,6 +133,7 @@ MatlabBridge::~MatlabBridge()
   if (mDuv) delete mDuv; 
   if (mNuv) delete mNuv; 
   if (mUVSize) delete mUVSize;
+  if (mSunComps) delete mSunComps;
   mMonFile.close();
   mSrcPosFile.close();
 
@@ -189,9 +200,9 @@ bool MatlabBridge::calibrate(const std::vector<float> &inReal,
       cal_uvmask (1, *mUVMask, restriction, *mFreq);
       flag_ant(1,1) = 3; flag_ant (1,2) = 106;
     }
-    pelican_sunAteamsub (9, *mThSrcCat, *mPhiSrcCat, *mThSrcWsf, *mPhiSrcWsf, 
-                       *mCalVis, *mGain, *mSigmas, *mSigman, *mGoodCal, 
-                       *mVis, *mTime, *mFreq, *mUVFlag, *mAntFlag, *mDebugLev);
+    pelican_sunAteamsub (10, *mThSrcCat, *mPhiSrcCat, *mThSrcWsf, *mPhiSrcWsf, 
+                   *mSunComps, *mCalVis, *mGain, *mSigmas, *mSigman, *mGoodCal, 
+                       *mVis, *mTime, *mFreq, *mUVFlag, *mAntFlag, *mDebugLev, *mptSun);
     // Only store the good calibration runs
     if (mGoodCal->Get(1,1)) 
     { matadd (1, *mPreCalGain, *mPreCalGain, *mGain);
@@ -207,9 +218,9 @@ bool MatlabBridge::calibrate(const std::vector<float> &inReal,
   else
   { // Apply the precal to the data
     // applycal (1, *mVis, *mVis, *mPreCalGain);
-    pelican_sunAteamsub (9, *mThSrcCat, *mPhiSrcCat, *mThSrcWsf, *mPhiSrcWsf, 
-                       *mCalVis, *mGain, *mSigmas, *mSigman, *mGoodCal, 
-                       *mVis, *mTime, *mFreq, *mUVFlag, *mAntFlag, *mDebugLev);
+    pelican_sunAteamsub (10, *mThSrcCat, *mPhiSrcCat, *mThSrcWsf, *mPhiSrcWsf, 
+                   *mSunComps, *mCalVis, *mGain, *mSigmas, *mSigman, *mGoodCal, 
+                       *mVis, *mTime, *mFreq, *mUVFlag, *mAntFlag, *mDebugLev, *mptSun);
   }
 
   mwArray re, im;
@@ -259,6 +270,8 @@ bool MatlabBridge::calibrate(const std::vector<float> &inReal,
 
 bool MatlabBridge::createImage(const std::vector<float> &inReal,
                                const std::vector<float> &inImag,
+                 	       const double inMJDTime,
+                               const double inFreq,
                                const std::vector<float> &inULoc,
                                const std::vector<float> &inVLoc,
                                std::vector<float> &outSkymap,
@@ -279,9 +292,9 @@ bool MatlabBridge::createImage(const std::vector<float> &inReal,
   { // call matlab function to separate out unflagged uloc, vloc, which 
     // fills in the private uloc, vloc.
     first = 0;
-    cout << "---> FIRST IMAGER CALL! SETTING UP ULOC?VLOC..."<<endl;
+    cout << "---> FIRST IMAGER CALL! SETTING UP ULOC/VLOC..."<<endl;
     cout << "Antflag dimensions: " << mAntFlag->GetDimensions().Get(1,1)
-         << " and " << mAntFlag->GetDimensions().Get(1,2);
+         << " and " << mAntFlag->GetDimensions().Get(1,2) << endl;
     // if (!mAntFlag->IsEmpty()) // No flagging!
     if (!mAntFlag->GetDimensions().Get(1,2)) // No flagging, 0 sized array!
     { mUloc->SetData(const_cast<float*>(&inULoc[0]), inULoc.size());
@@ -306,6 +319,9 @@ bool MatlabBridge::createImage(const std::vector<float> &inReal,
   mwArray duv(1, 1, mxSINGLE_CLASS);
   mwArray nuv(1, 1, mxSINGLE_CLASS);
   mwArray uvsize(1, 1, mxSINGLE_CLASS);
+  mwArray radec (1, 1, mxINT32_CLASS);
+  (*mTime)(1) = inMJDTime; (*mFreq)(1) = inFreq;
+  std::cerr << "fft_imaging: Time/Freq: " <<inFreq<<" "<<inMJDTime << std::endl;
 
   // Parameters to fft_imager_sjw_radec ()
   // duv(1) = 600.0f/256.0f;
@@ -317,12 +333,13 @@ bool MatlabBridge::createImage(const std::vector<float> &inReal,
   duv(1) = 2.5;
   nuv(1) = 500; // 1000;
   uvsize(1) = 512; // 1024;
+  radec(1) = 0;
 
   // fft_imager (2, *mSkyMap, *mVisPad, *mCalVis, uloc, vloc, duv, nuv, uvsize);
-   // fft_imager_sjw_radec (3, *mSkyMapradec, *mSkyMap, *mVisPad, *mCalVis, *mUloc,
+  // fft_imager_sjw_radec (3, *mSkyMapradec, *mSkyMap, *mVisPad, *mCalVis, *mUloc,
    //                       *mVloc, duv, nuv, uvsize, *mTime, *mFreq);
-   fft_imager_sjw_radec (3, *mSkyMapradec, *mSkyMap, *mVisPad, *mCalVis, *mUloc,
-                         *mVloc, duv, nuv, uvsize, *mTime, *mFreq);
+  fft_imager_sjw_radec (3, *mSkyMapradec, *mSkyMap, *mVisPad, *mCalVis, *mUloc,
+                         *mVloc, duv, nuv, uvsize, *mTime, *mFreq, radec);
 
   // Write out image statistics to file, continuing from calibrate function
   mwArray norm;
@@ -330,11 +347,18 @@ bool MatlabBridge::createImage(const std::vector<float> &inReal,
   mSrcPosFile << endl;
   mSrcPosFile.flush ();
 
+  // Generate temporal image difference
+  // mwArray mapdiff;
+  // imgdiff (1, *mSkyMapDiff, *mSkyMap, *mSkyMapPrev, *mTime, *mFreq);
+  // imgdiff (1, mapdiff, *mSkyMap, *mSkyMapPrev, *mTime, *mFreq);
+
+  
   // Write out an all-sky map in RA/DEC coordinates
   int width = mSkyMapradec->GetDimensions().Get(1,1);
   int height = mSkyMapradec->GetDimensions().Get(1,2);
-  outSkymap.resize(width*height);
+  /* outSkymapradec.resize(width*height);
   mSkyMapradec->GetData(&outSkymapradec[0], width*height);
+  */
 
   // Write out an all-sky map in local coordinates
   width = mSkyMap->GetDimensions().Get(1,1);

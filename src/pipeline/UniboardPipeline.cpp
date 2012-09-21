@@ -23,7 +23,7 @@ void UniboardPipeline::init()
 // Defines a single iteration of the pipeline.
 void UniboardPipeline::run(QHash<QString, DataBlob*>& inRemoteData)
 { static int miss = 0;
-  int stride = 5, skiprecs = 10;
+  int stride = 1, skiprecs = 0;
   // Get pointers to the remote data blob(s) from the supplied hash.
   UniboardDataBlob* input_data = 
                          (UniboardDataBlob*) inRemoteData["UniboardDataBlob"];

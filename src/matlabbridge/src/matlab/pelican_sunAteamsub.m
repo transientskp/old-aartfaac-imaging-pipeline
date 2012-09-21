@@ -3,19 +3,26 @@
 % and basically packages aartfaac_demo_stefcal.m to be called from a pelican pipeline.
 % pep/14Apr2012
 
-function [thsrc_cat, phisrc_cat, thsrc_wsf, phisrc_wsf, calvis, gainsol, sigmas, sigman, good] = pelican_sunAteamsub (acc, t_obs, freq, uvflag, flagant, debug)
+function [thsrc_cat, phisrc_cat, thsrc_wsf, phisrc_wsf, suncomps, calvis, gainsol, sigmas, sigman, good] = pelican_sunAteamsub (acc, t_obs, freq, uvflag, flagant, debug, ptSun)
 % function [calvis, gainsol, sigmas, sigman, good] = pelican_sunAteamsub (acc, t_obs, freq, uvflag, debug)
 % Arguments:
 % t_obs : Time in MJD secs, as extracted from a MS
-% acc   : Filled, square ACM of size 288x288 complex numbers
+% acc   : Filled, square ACM of size NantxNant complex numbers, where Nant=total unflagged antennas
 % freq  : The frequency of the observation in Hz.
 % uvflag: Mask for flagged visibilities, which are ignored 
+% flagant: Numerical list of antennas which are flagged, leading to a reshaping of the ACM.
 % debug : Level of debug messages: 
 %         0 ==> Only very important messages
 %         1 ==> More detail
 %         2 ==> Even more detail
+% ptSun : 0 ==> Carry out a Sparse reconstruction of the Solar model.
+%         1 ==> Model the Sun as a point source.
 
 % Return values:
+% thsrc_cat: Elevation (rad) of catalog sources at t_obs, in an Equatorial coord. sys, derived from ITRF coordinates.
+% phisrc_cat: Azimuth (rad) of catalog sources at t_obs.
+% thsrc_wsf: Elevation (rad) of a catalog source, as determined using WSF on the data.
+% azisrc_wsf: Azimuth (rad) of a catalog source, as determined using WSF on the data.
 % calvis : Calibrated visibilities, ready for imaging
 % gainsol: Estimated per-element complex gains
 % sigmas : Estimated flux of model sources
@@ -171,10 +178,17 @@ function [thsrc_cat, phisrc_cat, thsrc_wsf, phisrc_wsf, calvis, gainsol, sigmas,
     % reduce srcsel to source that appear brighter than 1% if Cas A, note that
     % 0 is used to denote the Sun
     % tic
-    visibleAteamsun = srcsel(sel);
-    % construct model visibilities for A-team sources
-    A = exp(-(2 * pi * 1i * freq / C) * (posITRF_fl * srcposhat(visibleAteamsun ~= 0, :).'));
-    RAteam = A * diag(sigmas2(visibleAteamsun ~= 0)) * A';
+    visibleAteamsun = srcsel(sel); % Actual source indices into srclist3CR, don't use directly!
+    % construct model visibilities for A-team sources, choosing Point source model of the Sun, 
+    % if required.
+    if (ptSun == 1)
+       disp ('Carrying out Point source subtraction of the Sun');
+       A = exp(-(2 * pi * 1i * freq / C) * (posITRF_fl * srcposhat.')); % sel holds the indices of all relevant sources
+       RAteam = A * diag(sigmas2) * A';
+    else
+       A = exp(-(2 * pi * 1i * freq / C) * (posITRF_fl * srcposhat(visibleAteamsun ~= 0, :).'));
+       RAteam = A * diag(sigmas2(visibleAteamsun ~= 0)) * A';
+    end 
     % subtract A-team
     accsubAteam = acccal - RAteam;
     accsubSunS = accsubAteam;
@@ -184,63 +198,73 @@ function [thsrc_cat, phisrc_cat, thsrc_wsf, phisrc_wsf, calvis, gainsol, sigmas,
     % toc
 
 
-    %% Sun subtraction
-    % The Sun is modeled using a 3-sparse grid of pixels around the estimated
-    % position of the Sun. High resolution imaging using the MVDR beamformer to
-    % obtain a model of the Sun in the image domain proved unsuccessful.
-    % Finding the 3-sparse solution using an exhaustive search it the most
-    % computationally demanding part of this script. Hopefully Arash can
-    % improve on this using convex optimization.
-    % tic
-    phi0sun = atan2(srcposhat(visibleAteamsun == 0, 2), srcposhat(visibleAteamsun == 0, 1));
-    th0sun = asin(srcposhat(visibleAteamsun == 0, 3));
-    % define grid of pixels
-    delta = 0.01;
-    res = 2 * delta / 8;
-    [phisun, thsun] = meshgrid(phi0sun-delta:res:phi0sun+delta, th0sun-delta:res:th0sun+delta);
-    phith_dist = sqrt((phisun(:) - phi0sun).^2 + (thsun(:) - th0sun).^2);
-    phisun = phisun(phith_dist < delta);
-    thsun = thsun(phith_dist < delta);
-    sunpos = [cos(phisun) .* cos(thsun), sin(phisun) .* cos(thsun), sin(thsun)];
-    
-    % solar component estimation using sparse reconstruction
-    A = exp(-(2 * pi * 1i * freq / C) * (posITRF_fl * sunpos.'));
-    A = double (A);
-    accsubAteam = double (accsubAteam);
-    fluxSun = 1.20 * sigmas2(visibleAteamsun == 0);
-    cvx_begin
-        variable sigmaSun(size(A, 2));
-        minimize norm(accsubAteam(:) - khatrirao(conj(A), A) * sigmaSun, 2);
-        subject to
-        norm(sigmaSun, 1) <= fluxSun;
-    cvx_end
-    
-    % iterate, increasing resolution
-    sigmaSun(sigmaSun < 1e-3) = 0;
-    phi0sun = phisun(sigmaSun ~= 0);
-    th0sun = thsun(sigmaSun ~= 0);
-    res2 = res / 3;
-    [phigrid, thgrid] = meshgrid(-res2:res2:res2);
-    phisun2 = kron(phi0sun, ones(9, 1)) + kron(ones(length(phi0sun), 1), phigrid(:));
-    thsun2 = kron(th0sun, ones(9, 1)) + kron(ones(length(th0sun), 1), thgrid(:));
-    sunpos2 = [cos(phisun2) .* cos(thsun2), sin(phisun2) .* cos(thsun2), sin(thsun2)];
-    A = exp(-(2 * pi * 1i * freq / C) * (posITRF_fl * sunpos2.'));
-    fluxSun = 1.20 * sigmas2(visibleAteamsun == 0);
-    cvx_begin
-        variable sigmaSun(size(A, 2));
-        minimize norm(accsubAteam(:) - khatrirao(conj(A), A) * sigmaSun, 2);
-        subject to
-        norm(sigmaSun, 1) <= fluxSun;
-    cvx_end
-    
-    % try subtraction
-    sigmaSun(sigmaSun < 1e-3) = 0;
-    RSunS = A * diag(sigmaSun) * A';
-    accsubSunS = acccal - RAteam - RSunS;
-    if (debug > 0)
-      disp('Sun subtracted');
-    end
-    %toc
+    if (ptSun == 0)
+      %% Sun subtraction
+      % The Sun is modeled using a 3-sparse grid of pixels around the estimated
+      % position of the Sun. High resolution imaging using the MVDR beamformer to
+      % obtain a model of the Sun in the image domain proved unsuccessful.
+      % Finding the 3-sparse solution using an exhaustive search it the most
+      % computationally demanding part of this script. Hopefully Arash can
+      % improve on this using convex optimization.
+      % tic
+      phi0sun = atan2(srcposhat(visibleAteamsun == 0, 2), srcposhat(visibleAteamsun == 0, 1));
+      th0sun = asin(srcposhat(visibleAteamsun == 0, 3));
+      % define grid of pixels
+      delta = 0.01;
+      res = 2 * delta / 8;
+      [phisun, thsun] = meshgrid(phi0sun-delta:res:phi0sun+delta, th0sun-delta:res:th0sun+delta);
+      phith_dist = sqrt((phisun(:) - phi0sun).^2 + (thsun(:) - th0sun).^2);
+      phisun = phisun(phith_dist < delta);
+      thsun = thsun(phith_dist < delta);
+      sunpos = [cos(phisun) .* cos(thsun), sin(phisun) .* cos(thsun), sin(thsun)];
+      
+      % solar component estimation using sparse reconstruction
+      A = exp(-(2 * pi * 1i * freq / C) * (posITRF_fl * sunpos.'));
+      A = double (A);
+      accsubAteam = double (accsubAteam);
+      fluxSun = 1.20 * sigmas2(visibleAteamsun == 0);
+      cvx_begin
+          variable sigmaSun(size(A, 2));
+          minimize norm(accsubAteam(:) - khatrirao(conj(A), A) * sigmaSun, 2);
+          subject to
+          norm(sigmaSun, 1) <= fluxSun;
+      cvx_end
+      
+      % iterate, increasing resolution
+      sigmaSun(sigmaSun < 1e-3) = 0;
+      phi0sun = phisun(sigmaSun ~= 0);
+      th0sun = thsun(sigmaSun ~= 0);
+      res2 = res / 3;
+      [phigrid, thgrid] = meshgrid(-res2:res2:res2);
+      phisun2 = kron(phi0sun, ones(9, 1)) + kron(ones(length(phi0sun), 1), phigrid(:));
+      thsun2 = kron(th0sun, ones(9, 1)) + kron(ones(length(th0sun), 1), thgrid(:));
+      sunpos2 = [cos(phisun2) .* cos(thsun2), sin(phisun2) .* cos(thsun2), sin(thsun2)];
+      A = exp(-(2 * pi * 1i * freq / C) * (posITRF_fl * sunpos2.'));
+      fluxSun = 1.20 * sigmas2(visibleAteamsun == 0);
+      cvx_begin
+          variable sigmaSun(size(A, 2));
+          minimize norm(accsubAteam(:) - khatrirao(conj(A), A) * sigmaSun, 2);
+          subject to
+          norm(sigmaSun, 1) <= fluxSun;
+      cvx_end
+      
+      % try subtraction
+      sigmaSun(sigmaSun < 1e-3) = 0;
+      RSunS = A * diag(sigmaSun) * A';
+      accsubSunS = acccal - RAteam - RSunS;
+      if (debug > 0)
+        disp('Sun subtracted using Sparse reconstruction.');
+      end
+      %toc
+
+      suncomps = zeros (size (sigmaSun, 1), 3); % Storing both fluxes and positions as az/ele
+      suncomps (:, 1) = sigmaSun;
+      suncomps (:, 2) = atan2 (sunpos2 (:,2), sunpos2 (:, 1));  % Azimuth
+      suncomps (:, 3) = acos (sunpos2 (:,3));
+    else
+      suncomps = zeros (1, 3);  % Placeholder for when a pt. src sun subtraction
+                                % is adequate.
+    end  % if (ptSun == 1) ... 
 
 
     % calvis = accsubAteam;

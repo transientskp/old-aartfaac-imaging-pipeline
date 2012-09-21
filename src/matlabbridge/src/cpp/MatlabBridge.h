@@ -25,6 +25,8 @@ public:
 
   bool createImage(const std::vector<float> &inReal,
                    const std::vector<float> &inImag,
+                 const double inMJDTime,
+                 const double inFreq,
                    const std::vector<float> &inULoc,
                    const std::vector<float> &inVLoc,
                    std::vector<float> &outSkymap,
@@ -48,11 +50,12 @@ private:
   mwArray *mVis, *mCalVis, *mVisPad;
   // Catalog + estimated source positions
   mwArray *mThSrcCat, *mPhiSrcCat, *mThSrcWsf, *mPhiSrcWsf;
-  mwArray *mUVFlag, *mAntFlag, *mDebugLev, *mGoodCal, *mUVMask;
+  mwArray *mUVFlag, *mAntFlag, *mDebugLev, *mptSun, *mGoodCal, *mUVMask;
+  mwArray *mSunComps; // CVX solar model extraction; pep/17Sep12
 
   /*** Imaging related private members */
   // Generate maps in local and RA/DEC coordinates
-  mwArray *mSkyMap, *mSkyMapradec;
+  mwArray *mSkyMap, *mSkyMapradec, *mSkyMapPrev, *mSkyMapDiff;
   mwArray *mUloc, *mVloc, *mDuv, *mNuv, *mUVSize;
 
   std::ofstream mMonFile, mSrcPosFile;
