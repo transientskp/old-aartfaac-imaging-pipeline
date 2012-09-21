@@ -1,77 +1,67 @@
 #include "Logger.h"
 
-#include <cstdlib>
+#include <syslog.h>
+#include <stdlib.h>
+
 #include <iostream>
-#include <QFile>
 #include <QDataStream>
 
-QFile Logger::sFile;
-QString Logger::sFileName;
 bool Logger::sShouldUseColor = shouldUseColor();
-quint8 Logger::sMaxFiles;
-qint64 Logger::sMaxFileSize;
-quint8 Logger::sCurrentFile;
 
-void Logger::setLogFileProperties(const QString &inFileName,
-                                  const quint8 inMaxFiles,
-                                  const qint64 inMaxFileSize)
+void Logger::open(const QString &inName)
 {
-  sMaxFiles = inMaxFiles;
-  sMaxFileSize = inMaxFileSize;
-  sFileName = inFileName;
-  sCurrentFile = 0;
-  sFile.setFileName(QString::number(sCurrentFile) + "-" + sFileName);
-  sFile.open(QIODevice::WriteOnly);
+  openlog(qPrintable(inName), LOG_PID | LOG_NDELAY, LOG_LOCAL0);
+  syslog(LOG_INFO, "Program started by User %d", getuid ());
+}
+
+void Logger::close()
+{
+  closelog();
 }
 
 void Logger::messageHandler(QtMsgType inType, const char *inMsg)
 {
-  QDateTime date_time = QDateTime::currentDateTime();
   QString msg(inMsg);
 
   switch (inType)
   {
-  case QtDebugMsg:
-    sFile.write("[DEBUG] ");
-    if (sShouldUseColor)
-      std::cout << qPrintable(colorize(msg, GREEN)) << std::endl;
-    else
-      std::cout << "[DEBUG] " << inMsg << std::endl;
-    break;
-  case QtWarningMsg:
-    sFile.write("[WARNING] ");
-    if (sShouldUseColor)
-      std::cout << qPrintable(colorize(msg, YELLOW)) << std::endl;
-    else
-      std::cout << "[WARNING] " << inMsg << std::endl;
-    break;
-  case QtCriticalMsg:
-    sFile.write("[CRITICAL] ");
-    if (sShouldUseColor)
-      std::cerr << qPrintable(colorize(msg, RED)) << std::endl;
-    else
-      std::cerr << "[CRITICAL] " << inMsg << std::endl;
-    break;
-  case QtFatalMsg:
-    sFile.write("[FATAL] ");
-    if (sShouldUseColor)
-      std::cerr << qPrintable(colorize(msg, RED)) << std::endl;
-    else
-      std::cerr << "[FATAL] " << inMsg << std::endl;
-    break;
-  }
-
-  sFile.write(date_time.toString("(dd-MM-yy hh:mm:ss) ").toAscii());
-  sFile.write(inMsg);
-  sFile.write("\n");
-  sFile.flush();
-
-  if (sFile.size() > sMaxFileSize)
-  {
-    sFile.close();
-    sCurrentFile = (sCurrentFile + 1) % sMaxFiles;
-    sFile.setFileName(QString::number(sCurrentFile) + "-" + sFileName);
-    sFile.open(QIODevice::WriteOnly);
+    case QtDebugMsg:
+    {
+      syslog(LOG_INFO, "[INFO] %s", inMsg);
+      if (sShouldUseColor)
+        std::cout << qPrintable(colorize(msg, GREEN)) << std::endl;
+      else
+        std::cout << "[INFO] " << inMsg << std::endl;
+      break;
+    }
+    case QtWarningMsg:
+    {
+      syslog(LOG_WARNING, "[WARNING] %s", inMsg);
+      if (sShouldUseColor)
+        std::cout << qPrintable(colorize(msg, YELLOW)) << std::endl;
+      else
+        std::cout << "[WARNING] " << inMsg << std::endl;
+      break;
+    }
+    case QtCriticalMsg:
+    {
+      syslog(LOG_CRIT, "[CRITICAL] %s", inMsg);
+      if (sShouldUseColor)
+        std::cerr << qPrintable(colorize(msg, RED)) << std::endl;
+      else
+        std::cerr << "[CRITICAL] " << inMsg << std::endl;
+      break;
+    }
+    case QtFatalMsg:
+    {
+      syslog(LOG_EMERG, "[FATAL] %s", inMsg);
+      if (sShouldUseColor)
+        std::cerr << qPrintable(colorize(msg, RED)) << std::endl;
+      else
+        std::cerr << "[FATAL] " << inMsg << std::endl;
+      exit(EXIT_FAILURE);
+      break;
+    }
   }
 }
 

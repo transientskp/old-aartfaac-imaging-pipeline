@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
     return EXIT_FAILURE;
   }
 
-  Logger::setLogFileProperties(NAME"-server.log", 10, 1024*1024*10);
+  Logger::open(NAME"-server");
   qInstallMsgHandler(Logger::messageHandler);
 
   QCoreApplication app(argc, argv);
@@ -37,8 +37,7 @@ int main(int argc, char* argv[])
 
     server.addStreamChunker("UniboardChunker");
 
-    pelican::AbstractProtocol *protocol = new pelican::PelicanProtocol();
-    server.addProtocol(protocol, 2000);
+    server.addProtocol(new pelican::PelicanProtocol(), 2000);
 
     server.start();
 

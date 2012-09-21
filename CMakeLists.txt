@@ -12,13 +12,10 @@ if (NOT BUILD_EMULATOR AND NOT BUILD_SERVER AND NOT BUILD_PIPLEINE)
 endif (NOT BUILD_EMULATOR AND NOT BUILD_SERVER AND NOT BUILD_PIPLEINE)
 
 # === Compiler options
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror -Wno-unused-function -fno-strict-aliasing -Wl,--no-as-needed")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-function -fno-strict-aliasing -Wl,--no-as-needed")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DDEBUG")
-
-# === Enable the cmake testing framework.
-enable_testing()
 
 # === Project version
 execute_process(
@@ -59,6 +56,8 @@ include_directories(${QT_QTCORE_INCLUDE_DIR})
 
 find_package(Pelican REQUIRED)
 include_directories(${PELICAN_INCLUDES})
+
+find_package(CppUnit REQUIRED)
 
 if (BUILD_EMULATOR OR BUILD_PIPELINE)
     find_package(Casacore REQUIRED)
@@ -116,6 +115,24 @@ if (BUILD_SERVER)
       ${PELICAN_LIBRARIES}
     )
 endif (BUILD_SERVER)
+
+# === Enable the cmake testing framework.
+enable_testing()
+
+# === Compile and add tests to cmake framework.
+foreach (TEST ${TESTS})
+    add_executable(${TEST} ${${TEST}_SOURCES})
+		target_link_libraries(${TEST} 
+			${CPPUNIT_LIBRARIES}
+      ${QT_QTCORE_LIBRARY}
+      ${QT_QTNETWORK_LIBRARY}
+      ${QT_QTXML_LIBRARY}
+      ${PELICAN_LIBRARIES}
+      ${CASACORE_LIBRARIES}
+      ${LOFAR_LIBRARIES}
+		)
+		add_test(${TEST} ${TEST})
+endforeach (TEST)
 
 # === Doxygen documentation targets.
 # include(UseDoxygen)

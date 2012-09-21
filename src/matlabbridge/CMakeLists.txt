@@ -73,7 +73,7 @@ add_custom_command(
     readme.txt
   DEPENDS ${MM_FILES}
   # COMMAND ${MCC_EXECUTABLE} -a  ${MATLABBRIDGE_SOURCE_DIR}/src/matlab/cvx -B cpplib:libmatlabbridge ${MCC_FLAGS} ${MM_FILES}
-  COMMAND ${MCC_EXECUTABLE} -a  /home/peeyush/Matlab/cvx -B cpplib:libmatlabbridge ${MCC_FLAGS} ${MM_FILES}
+  COMMAND ${MCC_EXECUTABLE} -a  ${MATLABBRIDGE_SOURCE_DIR}/../../build -B cpplib:libmatlabbridge ${MCC_FLAGS} ${MM_FILES}
 )
 
 target_link_libraries(mbridge

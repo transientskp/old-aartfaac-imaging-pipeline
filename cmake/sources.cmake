@@ -32,3 +32,21 @@ set(SERVER_SOURCES
   src/utilities/Utils.cpp
   src/utilities/Logger.cpp
 )
+
+# === Test sources
+set (TESTS emulatortest pipelinetest servertest)
+
+set (emulatortest_SOURCES
+	src/emulator/test/main.cpp
+	src/emulator/test/UniboardEmulatorTest.cpp
+  src/emulator/UniboardEmulator.cpp
+  src/utilities/halfprecision.c
+)
+
+set (pipelinetest_SOURCES
+	src/pipeline/test/main.cpp
+)
+
+set (servertest_SOURCES
+	src/server/test/main.cpp
+)

@@ -18,23 +18,33 @@ struct CleanExit {
 
   static void exitQt(int signal)
   {
+    Logger::close();
     QCoreApplication::exit(signal);
   }
 };
 
 int main(int argc, char* argv[])
 {
-  if (argc != 2)
+  QString host = "127.0.0.1";
+  QString port = "2001";
+
+  CleanExit clean_exit;
+  Logger::open(NAME"-emulator");
+  qInstallMsgHandler(Logger::messageHandler);
+  QCoreApplication app(argc, argv);
+
+  if (argc != 2 && argc != 4)
   {
-    std::cerr << "Usage: aartfaac-emulator <table dir>" << std::endl;
+    std::cerr << "Usage: aartfaac-emulator <table dir> [[host] [port]]" << std::endl;
     exit(EXIT_FAILURE);
   }
 
-  CleanExit clean_exit;
-  Logger::setLogFileProperties(NAME"-emulator.log", 10, 1024*1024*10);
-  qInstallMsgHandler(Logger::messageHandler);
+  if (argc == 4)
+  {
+    host = QCoreApplication::arguments().at(2);
+    port = QCoreApplication::arguments().at(3);
+  }
 
-  QCoreApplication app(argc, argv);
   app.setApplicationName(HUMAN_NAME);
   app.setApplicationVersion(VERSION);
   app.setOrganizationName("Anton Pannekoek Institute");
@@ -42,7 +52,7 @@ int main(int argc, char* argv[])
   qDebug("%s", HUMAN_NAME);
   pelican::ConfigNode xml_node(
         "<UniboardEmulator>"
-        "  <connection host=\"127.0.0.1\" port=\"2001\" />"
+        "  <connection host=\"" + host + "\" port=\"" + port + "\" />"
         "</UniboardEmulator>"
   );
 

@@ -1,16 +1,28 @@
 #!/bin/bash
 
-PIPELINES=8
+set -e
 
-echo "Starting server"
-./aartfaac-server ../src/xml/serverConfig.xml &
+ROOT=`pwd`
+SCONFIG=${ROOT}/../src/xml/serverConfig.xml
+PCONFIG=${ROOT}/../src/xml/pipelineConfig.xml
+PIPELINES=5
 
-for (( i=1; i<=${PIPELINES}; i++ ))
-do
-	echo "Started ${i}th pipeline"
-	./aartfaac-pipeline ../src/xml/pipelineConfig.xml &
-done
+if [ ! -d "$1" ]; then
+	echo "ERROR: '$1' should point to a measurement set." >&2
+	exit 1
+fi
 
-sleep 1
-./aartfaac-emulator $1
+echo "Starting aartfaac-server"
+${ROOT}/aartfaac-server ${SCONFIG} &
+sleep 2
 
+echo "Starting ${PIPELINES} aartfaac pipelines"
+for (( i=0; i<${PIPELINES}; i++ )); do
+	${ROOT}/aartfaac-pipeline ${PCONFIG} &
+done;
+sleep 5
+
+echo "Starting aartfaac emulator"
+${ROOT}/aartfaac-emulator $1 &
+
+exit 0

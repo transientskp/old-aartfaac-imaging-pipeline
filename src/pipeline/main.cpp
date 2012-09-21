@@ -9,7 +9,7 @@
 
 int main(int argc, char* argv[])
 {
-  Logger::setLogFileProperties(NAME"-pipeline.log", 10, 1024*1024*10);
+  Logger::open(NAME"-pipeline");
   qInstallMsgHandler(Logger::messageHandler);
 
   QCoreApplication app(argc, argv);
