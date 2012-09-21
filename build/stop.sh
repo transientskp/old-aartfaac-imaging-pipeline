@@ -1,3 +1,3 @@
 #!/bin/bash
 
-pkill -U ${USER} aartfaac
+pkill -9 -U ${USER} aartfaac
