@@ -18,6 +18,7 @@ struct CleanExit {
 
   static void exitQt(int signal)
   {
+    Logger::close();
     QCoreApplication::exit(signal);
   }
 };
@@ -28,7 +29,7 @@ int main(int argc, char* argv[])
   QString port = "2001";
 
   CleanExit clean_exit;
-  Logger::setLogFileProperties(NAME"-emulator.log", 10, 1024*1024*10);
+  Logger::open(NAME"-emulator");
   qInstallMsgHandler(Logger::messageHandler);
   QCoreApplication app(argc, argv);
 
