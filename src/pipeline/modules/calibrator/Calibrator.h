@@ -6,7 +6,6 @@
 using namespace pelican;
 
 class UniboardDataBlob;
-class MatlabBridge;
 
 class Calibrator : public AbstractModule {
 public:
@@ -17,7 +16,6 @@ public:
 
 private:
   std::vector<int> mUVFlags;
-  MatlabBridge *mBridge;
 };
 
 PELICAN_DECLARE_MODULE(Calibrator)

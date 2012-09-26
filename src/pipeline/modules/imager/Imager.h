@@ -6,7 +6,6 @@
 using namespace pelican;
 
 class UniboardDataBlob;
-class MatlabBridge;
 
 class Imager : public AbstractModule {
 public:
@@ -18,7 +17,6 @@ public:
 private:
   std::vector<float> mULoc;
   std::vector<float> mVLoc;
-  MatlabBridge *mBridge;
 
   void readData(const QString &inFilename, std::vector<float> &outData);
 };

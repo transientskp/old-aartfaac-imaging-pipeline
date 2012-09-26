@@ -1,7 +1,6 @@
 #include "Imager.h"
 
 #include "../../UniboardDataBlob.h"
-#include "../../../matlabbridge/src/cpp/MatlabBridge.h"
 
 #include <pelican/utility/Config.h>
 #include <QtCore>
@@ -15,12 +14,10 @@ Imager::Imager(const ConfigNode &inConfig)
   QString vloc_filename = inConfig.getOption("vloc", "filename");
   readData(uloc_filename, mULoc);
   readData(vloc_filename, mVLoc);
-  mBridge = MatlabBridge::singleton();
 }
 
 Imager::~Imager()
 {
-  //delete mBridge;
 }
 
 void Imager::readData(const QString &inFilename, std::vector<float> &outData)
@@ -51,5 +48,4 @@ void Imager::run(const UniboardDataBlob *input, UniboardDataBlob *output)
   const std::vector<float> *imag = input->getXXImag();
   std::vector<float> &skymap = output->getSkyMap();
   std::vector<float> &vismap = output->getVisMap();
-  mBridge->createImage(*real, *imag, mULoc, mVLoc, skymap, vismap);
 }

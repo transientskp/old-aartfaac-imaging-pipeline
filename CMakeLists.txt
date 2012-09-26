@@ -86,14 +86,10 @@ endif (BUILD_EMULATOR)
 
 # === Create the pipeline binary.
 if (BUILD_PIPELINE)
-    # === Add Matlab bridge.
-    add_subdirectory(${PROJECT_SOURCE_DIR}/src/matlabbridge matlabbridge)
-
     set(PIPELINE ${PROJECT_NAME}-pipeline)
     add_executable(${PIPELINE} ${PIPELINE_SOURCES})
 
     target_link_libraries(${PIPELINE}
-      mbridge
       ${QT_QTCORE_LIBRARY}
       ${QT_QTNETWORK_LIBRARY}
       ${QT_QTXML_LIBRARY}
