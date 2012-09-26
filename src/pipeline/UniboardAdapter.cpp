@@ -12,7 +12,7 @@ UniboardAdapter::UniboardAdapter(const ConfigNode& config)
 {
   mMaxPacketSamples = MAX_CORRELATIONS;
   mAntennae = config.getOption("antennae", "amount").toUInt();
-  mPacketSize = sizeof(UdpPacket);
+  mPacketSize = sizeof(UdpPacketStream);
 }
 
 void UniboardAdapter::deserialise(QIODevice *inDevice)
@@ -21,7 +21,7 @@ void UniboardAdapter::deserialise(QIODevice *inDevice)
   blob->reset();
   quint32 num_packets = chunkSize() / mPacketSize;
 
-  UdpPacket packet;
+  UdpPacketStream packet;
   quint64 bytes_read = 0;
   std::complex<float> polarizations[4];
   bool is_touched = false;
@@ -41,7 +41,7 @@ void UniboardAdapter::deserialise(QIODevice *inDevice)
 
     for (quint32 j = 0; j < packet.mHeader.correlations; j++)
     {
-      UdpPacket::Correlation &correlation = packet.mCorrelations[j];
+      UdpPacketStream::Correlation &correlation = packet.mCorrelations[j];
 
       for (quint32 k = 0; k < 8; k+=2)
       {

@@ -38,8 +38,8 @@ UniboardEmulator::~UniboardEmulator()
 void UniboardEmulator::getPacketData(char *&outData, unsigned long &outSize)
 {
   outData = (char*) &mUdpPacket;
-  outSize = sizeof(UdpPacket);
-  memset(static_cast<void*>(&mUdpPacket), 0, sizeof(UdpPacket));
+  outSize = sizeof(UdpPacketStream);
+  memset(static_cast<void*>(&mUdpPacket), 0, sizeof(UdpPacketStream));
 
   double freq = mMSColumns->spectralWindow().chanFreq()(0).data()[mCurChannelId];
   double cur_time = mMSColumns->time()(mRowIndex);
@@ -54,7 +54,7 @@ void UniboardEmulator::getPacketData(char *&outData, unsigned long &outSize)
   casa::Array<casa::Complex>::iterator cIter;
   for (quint32 i = 0; i < mMaxSamples && mRowIndex < mTotalTableRows; i++)
   {
-    UdpPacket::Correlation &correlation = mUdpPacket.mCorrelations[i];
+    UdpPacketStream::Correlation &correlation = mUdpPacket.mCorrelations[i];
     double time = mMSColumns->time()(mRowIndex);
 
     // time changed within packet, break and send
@@ -109,11 +109,11 @@ int UniboardEmulator::nPackets()
 void UniboardEmulator::emulationFinished()
 {
   float seconds = mTimer.elapsed() / 1000.0f;
-  float mbytes = (sizeof(UdpPacket) * mTotalPackets) / (1024.0f * 1024.0f);
+  float mbytes = (sizeof(UdpPacketStream) * mTotalPackets) / (1024.0f * 1024.0f);
 
-  qDebug("Header     : %ld bytes", sizeof(UdpPacket::Header));
-  qDebug("Correlation: %ld bytes", sizeof(UdpPacket::Correlation));
-  qDebug("Packet     : %ld bytes", sizeof(UdpPacket));
+  qDebug("Header     : %ld bytes", sizeof(UdpPacketStream::Header));
+  qDebug("Correlation: %ld bytes", sizeof(UdpPacketStream::Correlation));
+  qDebug("Packet     : %ld bytes", sizeof(UdpPacketStream));
   qDebug("Channels   : %lld channels", mTotalChannels);
   qDebug("MBytes     : %0.2f sent", mbytes);
   qDebug("MB/sec     : %0.2f sent", mbytes/seconds);

@@ -2,9 +2,12 @@
 
 # === Emulator sources
 set(EMULATOR_SOURCES
-  src/emulator/main.cpp
-  src/emulator/UdpPacket.h
-  src/emulator/UniboardEmulator.cpp
+  src/emulators/service/main.cpp
+  src/emulators/service/ServiceUdpPacket.h
+  src/emulators/service/ServiceEmulator.cpp
+  src/emulators/stream/main.cpp
+  src/emulators/stream/StreamUdpPacket.h
+  src/emulators/stream/StreamEmulator.cpp
   src/utilities/halfprecision.c
   src/utilities/Logger.cpp
 )
@@ -28,7 +31,8 @@ set(PIPELINE_SOURCES
 set(SERVER_SOURCES
   src/server/main.cpp
   src/server/UniboardChunker.cpp
-  src/emulator/UdpPacket.h
+  src/emulators/service/ServiceUdpPacket.h
+  src/emulators/stream/StreamUdpPacket.h
   src/utilities/Utils.cpp
   src/utilities/Logger.cpp
 )
@@ -37,9 +41,10 @@ set(SERVER_SOURCES
 set (TESTS emulatortest pipelinetest servertest)
 
 set (emulatortest_SOURCES
-	src/emulator/test/main.cpp
-	src/emulator/test/UniboardEmulatorTest.cpp
-  src/emulator/UniboardEmulator.cpp
+	src/emulators/test/main.cpp
+	src/emulators/test/UniboardEmulatorTest.cpp
+  src/emulators/service/ServiceEmulator.cpp
+  src/emulators/stream/StreamEmulator.cpp
   src/utilities/halfprecision.c
 )
 

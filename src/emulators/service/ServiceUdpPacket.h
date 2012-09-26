@@ -5,7 +5,7 @@
 
 #define MAX_CORRELATIONS 200
 
-class UdpPacket
+class UdpPacketStream
 {
 public:
   struct Header {

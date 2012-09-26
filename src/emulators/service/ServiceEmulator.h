@@ -32,7 +32,7 @@ private:
   quint64 mTotalRowIndex;
 
   QTime mTimer;
-  UdpPacket mUdpPacket;
+  UdpPacketStream mUdpPacket;
 
   casa::MeasurementSet *mMeasurementSet;
   casa::ROMSColumns *mMSColumns;
