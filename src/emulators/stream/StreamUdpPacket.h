@@ -1,11 +1,11 @@
-#ifndef UDP_PACKET_H
-#define UDP_PACKET_H
+#ifndef UDP_STREAM_PACKET_H
+#define UDP_STREAM_PACKET_H
 
 #include <QtCore>
 
 #define MAX_CORRELATIONS 200
 
-class UdpPacketStream
+class StreamUdpPacket
 {
 public:
   struct Header {
@@ -21,4 +21,4 @@ public:
   } __attribute__((packed)) mCorrelations[MAX_CORRELATIONS];
 };
 
-#endif // UDP_PACKET_H
+#endif // UDP_STREAM_PACKET_H

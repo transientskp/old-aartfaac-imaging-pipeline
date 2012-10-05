@@ -12,6 +12,7 @@ if (NOT BUILD_EMULATOR AND NOT BUILD_SERVER AND NOT BUILD_PIPLEINE)
 endif (NOT BUILD_EMULATOR AND NOT BUILD_SERVER AND NOT BUILD_PIPLEINE)
 
 # === Compiler options
+#set(CMAKE_CXX_FLAGS "-Wall -Wextra -Weffc++ -pedantic -Wno-unused-function -fno-strict-aliasing -Wl,--no-as-needed")
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-function -fno-strict-aliasing -Wl,--no-as-needed")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2")

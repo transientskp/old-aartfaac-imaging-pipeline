@@ -2,9 +2,9 @@
 
 # === Emulator sources
 set(EMULATOR_SOURCES
-  src/emulators/service/main.cpp
-  src/emulators/service/ServiceUdpPacket.h
-  src/emulators/service/ServiceEmulator.cpp
+  #src/emulators/service/main.cpp
+  #src/emulators/service/ServiceUdpPacket.h
+  #src/emulators/service/ServiceEmulator.cpp
   src/emulators/stream/main.cpp
   src/emulators/stream/StreamUdpPacket.h
   src/emulators/stream/StreamEmulator.cpp
@@ -31,7 +31,7 @@ set(PIPELINE_SOURCES
 set(SERVER_SOURCES
   src/server/main.cpp
   src/server/UniboardChunker.cpp
-  src/emulators/service/ServiceUdpPacket.h
+  #src/emulators/service/ServiceUdpPacket.h
   src/emulators/stream/StreamUdpPacket.h
   src/utilities/Utils.cpp
   src/utilities/Logger.cpp
@@ -41,17 +41,17 @@ set(SERVER_SOURCES
 set (TESTS emulatortest pipelinetest servertest)
 
 set (emulatortest_SOURCES
-	src/emulators/test/main.cpp
-	src/emulators/test/UniboardEmulatorTest.cpp
-  src/emulators/service/ServiceEmulator.cpp
+  src/emulators/test/main.cpp
+  src/emulators/test/UniboardEmulatorTest.cpp
+  #src/emulators/service/ServiceEmulator.cpp
   src/emulators/stream/StreamEmulator.cpp
   src/utilities/halfprecision.c
 )
 
 set (pipelinetest_SOURCES
-	src/pipeline/test/main.cpp
+  src/pipeline/test/main.cpp
 )
 
 set (servertest_SOURCES
-	src/server/test/main.cpp
+  src/server/test/main.cpp
 )

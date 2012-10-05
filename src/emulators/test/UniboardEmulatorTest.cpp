@@ -1,5 +1,5 @@
 #include "UniboardEmulatorTest.h"
-#include "../UniboardEmulator.h"
+#include "../stream/StreamEmulator.h"
 
 #include <pelican/emulator/EmulatorDriver.h>
 #include <pelican/utility/ConfigNode.h>
@@ -39,6 +39,6 @@ void UniboardEmulatorTest::emulate()
         "</UniboardEmulator>"
   );
 
-  pelican::EmulatorDriver driver(new UniboardEmulator(xml_node));
-	CPPUNIT_ASSERT(mApp->exec() == 0);
+  pelican::EmulatorDriver driver(new StreamEmulator(xml_node));
+    CPPUNIT_ASSERT(mApp->exec() == 0);
 }

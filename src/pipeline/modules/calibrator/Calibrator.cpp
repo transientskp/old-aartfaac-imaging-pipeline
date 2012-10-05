@@ -25,4 +25,8 @@ void Calibrator::run(const UniboardDataBlob *input, UniboardDataBlob *output)
 
   std::vector<float> *out_real = output->getXXReal();
   std::vector<float> *out_imag = output->getXXImag();
+  Q_UNUSED(inp_real);
+  Q_UNUSED(inp_imag);
+  Q_UNUSED(out_real);
+  Q_UNUSED(out_imag);
 }

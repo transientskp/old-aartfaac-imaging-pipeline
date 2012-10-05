@@ -3,7 +3,6 @@
 #include "UniboardDataBlob.h"
 #include "modules/imager/Imager.h"
 #include "modules/calibrator/Calibrator.h"
-#include "../emulator/UdpPacket.h"
 
 // Initialises the pipeline, creating required modules and data blobs,
 // and requesting remote data.

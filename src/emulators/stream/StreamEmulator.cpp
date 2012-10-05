@@ -1,4 +1,4 @@
-#include "UniboardEmulator.h"
+#include "StreamEmulator.h"
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QStringList>
@@ -6,7 +6,7 @@
 
 extern "C" void singles2halfp(void *target, void *source, int numel);
 
-UniboardEmulator::UniboardEmulator(const pelican::ConfigNode &inConfigNode)
+StreamEmulator::StreamEmulator(const pelican::ConfigNode &inConfigNode)
   : AbstractUdpEmulator(inConfigNode)
 {
   mTotalPackets = 0;
@@ -29,17 +29,17 @@ UniboardEmulator::UniboardEmulator(const pelican::ConfigNode &inConfigNode)
   mTimer.start();
 }
 
-UniboardEmulator::~UniboardEmulator()
+StreamEmulator::~StreamEmulator()
 {
   delete mMeasurementSet;
   delete mMSColumns;
 }
 
-void UniboardEmulator::getPacketData(char *&outData, unsigned long &outSize)
+void StreamEmulator::getPacketData(char *&outData, unsigned long &outSize)
 {
   outData = (char*) &mUdpPacket;
-  outSize = sizeof(UdpPacketStream);
-  memset(static_cast<void*>(&mUdpPacket), 0, sizeof(UdpPacketStream));
+  outSize = sizeof(StreamUdpPacket);
+  memset(static_cast<void*>(&mUdpPacket), 0, sizeof(StreamUdpPacket));
 
   double freq = mMSColumns->spectralWindow().chanFreq()(0).data()[mCurChannelId];
   double cur_time = mMSColumns->time()(mRowIndex);
@@ -54,7 +54,7 @@ void UniboardEmulator::getPacketData(char *&outData, unsigned long &outSize)
   casa::Array<casa::Complex>::iterator cIter;
   for (quint32 i = 0; i < mMaxSamples && mRowIndex < mTotalTableRows; i++)
   {
-    UdpPacketStream::Correlation &correlation = mUdpPacket.mCorrelations[i];
+    StreamUdpPacket::Correlation &correlation = mUdpPacket.mCorrelations[i];
     double time = mMSColumns->time()(mRowIndex);
 
     // time changed within packet, break and send
@@ -96,24 +96,24 @@ void UniboardEmulator::getPacketData(char *&outData, unsigned long &outSize)
   mTotalCorrelations += mUdpPacket.mHeader.correlations;
 }
 
-unsigned long UniboardEmulator::interval()
+unsigned long StreamEmulator::interval()
 {
   return 0;
 }
 
-int UniboardEmulator::nPackets()
+int StreamEmulator::nPackets()
 {
   return (mTotalChannelsAndTableRows / mMaxSamples) + (mTotalChannelsAndTableRows % mMaxSamples);
 }
 
-void UniboardEmulator::emulationFinished()
+void StreamEmulator::emulationFinished()
 {
   float seconds = mTimer.elapsed() / 1000.0f;
-  float mbytes = (sizeof(UdpPacketStream) * mTotalPackets) / (1024.0f * 1024.0f);
+  float mbytes = (sizeof(StreamUdpPacket) * mTotalPackets) / (1024.0f * 1024.0f);
 
-  qDebug("Header     : %ld bytes", sizeof(UdpPacketStream::Header));
-  qDebug("Correlation: %ld bytes", sizeof(UdpPacketStream::Correlation));
-  qDebug("Packet     : %ld bytes", sizeof(UdpPacketStream));
+  qDebug("Header     : %ld bytes", sizeof(StreamUdpPacket::Header));
+  qDebug("Correlation: %ld bytes", sizeof(StreamUdpPacket::Correlation));
+  qDebug("Packet     : %ld bytes", sizeof(StreamUdpPacket));
   qDebug("Channels   : %lld channels", mTotalChannels);
   qDebug("MBytes     : %0.2f sent", mbytes);
   qDebug("MB/sec     : %0.2f sent", mbytes/seconds);

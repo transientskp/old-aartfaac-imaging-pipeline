@@ -1,5 +1,5 @@
-#include "UniboardEmulator.h"
-#include "../utilities/Logger.h"
+#include "StreamEmulator.h"
+#include "../../utilities/Logger.h"
 #include "version.h"
 
 #include <csignal>
@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
   QString port = "2001";
 
   CleanExit clean_exit;
-  Logger::open(NAME"-emulator");
+  Logger::open(NAME"-stream-emulator");
   qInstallMsgHandler(Logger::messageHandler);
   QCoreApplication app(argc, argv);
 
@@ -56,6 +56,6 @@ int main(int argc, char* argv[])
         "</UniboardEmulator>"
   );
 
-  pelican::EmulatorDriver driver(new UniboardEmulator(xml_node));
+  pelican::EmulatorDriver driver(new StreamEmulator(xml_node));
   return app.exec();
 }

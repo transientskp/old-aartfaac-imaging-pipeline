@@ -1,7 +1,7 @@
 #ifndef UNIBOARD_CHUNKER_H
 #define UNIBOARD_CHUNKER_H
 
-#include "../emulator/UdpPacket.h"
+#include "../emulators/stream/StreamUdpPacket.h"
 
 #include <pelican/server/AbstractChunker.h>
 #include <QtCore>
@@ -38,7 +38,7 @@ private:
     quint64 mChunkSize; ///< Size of a chunk in bytes
     qint64 mPacketSize; ///< Size of a udp packet
     int mTimeout; ///< Max time a chunk will wait for data in milliseconds
-    static UdpPacketStream sEmptyPacket; ///< Default empty packet
+    static StreamUdpPacket sEmptyPacket; ///< Default empty packet
 
     QHash<quint64, Chunk*> mDataBuffers;
     quint64 hash(const double inTime, const double inFrequency);

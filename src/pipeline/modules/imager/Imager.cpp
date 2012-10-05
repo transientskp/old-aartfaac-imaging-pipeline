@@ -48,4 +48,9 @@ void Imager::run(const UniboardDataBlob *input, UniboardDataBlob *output)
   const std::vector<float> *imag = input->getXXImag();
   std::vector<float> &skymap = output->getSkyMap();
   std::vector<float> &vismap = output->getVisMap();
+
+  Q_UNUSED(real);
+  Q_UNUSED(imag);
+  Q_UNUSED(skymap);
+  Q_UNUSED(vismap);
 }
