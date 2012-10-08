@@ -67,7 +67,7 @@ void StreamEmulator::getPacketData(char *&outData, unsigned long &outSize)
 
     // Fill sample with complex data polarizations
     int j = 0;
-    for (cIter = data_array.begin(); cIter != data_array.end(); cIter++)
+    for (cIter = data_array.begin(); cIter != data_array.end(); ++cIter)
     {
       singles2halfp(static_cast<quint16*>(&correlation.polarizations[j++]),
                     static_cast<void*>(&(*cIter).real()), 1);

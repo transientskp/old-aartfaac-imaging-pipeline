@@ -7,6 +7,7 @@ class ServiceUdpPacket
 {
 public:
   struct Header {
+    int x;
   } __attribute__((packed)) mHeader;
 };
 

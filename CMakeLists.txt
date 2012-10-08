@@ -71,8 +71,20 @@ endif (BUILD_EMULATOR AND USE_LOFARSTMAN)
 
 # === Create the emulator binary.
 if (BUILD_EMULATOR)
-    set(EMULATOR ${PROJECT_NAME}-emulator)
-    add_executable(${EMULATOR} ${EMULATOR_SOURCES})
+    set(EMULATOR ${PROJECT_NAME}-stream-emulator)
+    add_executable(${EMULATOR} ${STREAM_EMULATOR_SOURCES})
+
+    target_link_libraries(${EMULATOR}
+      ${QT_QTCORE_LIBRARY}
+      ${QT_QTNETWORK_LIBRARY}
+      ${QT_QTXML_LIBRARY}
+      ${PELICAN_LIBRARIES}
+      ${CASACORE_LIBRARIES}
+      ${LOFAR_LIBRARIES}
+    )
+
+    set(EMULATOR ${PROJECT_NAME}-service-emulator)
+    add_executable(${EMULATOR} ${SERVICE_EMULATOR_SOURCES})
 
     target_link_libraries(${EMULATOR}
       ${QT_QTCORE_LIBRARY}
@@ -118,16 +130,16 @@ enable_testing()
 # === Compile and add tests to cmake framework.
 foreach (TEST ${TESTS})
     add_executable(${TEST} ${${TEST}_SOURCES})
-		target_link_libraries(${TEST} 
-			${CPPUNIT_LIBRARIES}
+    target_link_libraries(${TEST}
+      ${CPPUNIT_LIBRARIES}
       ${QT_QTCORE_LIBRARY}
       ${QT_QTNETWORK_LIBRARY}
       ${QT_QTXML_LIBRARY}
       ${PELICAN_LIBRARIES}
       ${CASACORE_LIBRARIES}
       ${LOFAR_LIBRARIES}
-		)
-		add_test(${TEST} ${TEST})
+    )
+    add_test(${TEST} ${TEST})
 endforeach (TEST)
 
 # === Doxygen documentation targets.

@@ -17,7 +17,7 @@ UniboardAdapter::UniboardAdapter(const ConfigNode& config)
 
 void UniboardAdapter::deserialise(QIODevice *inDevice)
 {
-  UniboardDataBlob *blob = (UniboardDataBlob*) dataBlob();
+  UniboardDataBlob *blob = static_cast<UniboardDataBlob*>(dataBlob());
   blob->reset();
   quint32 num_packets = chunkSize() / mPacketSize;
 

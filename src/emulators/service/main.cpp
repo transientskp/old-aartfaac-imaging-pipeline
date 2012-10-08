@@ -1,5 +1,5 @@
-#include "UniboardEmulator.h"
-#include "../utilities/Logger.h"
+#include "ServiceEmulator.h"
+#include "../../utilities/Logger.h"
 #include "version.h"
 
 #include <csignal>
@@ -26,10 +26,10 @@ struct CleanExit {
 int main(int argc, char* argv[])
 {
   QString host = "127.0.0.1";
-  QString port = "2001";
+  QString port = "2002";
 
   CleanExit clean_exit;
-  Logger::open(NAME"-emulator");
+  Logger::open(NAME"-service-emulator");
   qInstallMsgHandler(Logger::messageHandler);
   QCoreApplication app(argc, argv);
 
@@ -56,6 +56,6 @@ int main(int argc, char* argv[])
         "</UniboardEmulator>"
   );
 
-  pelican::EmulatorDriver driver(new UniboardEmulator(xml_node));
+  pelican::EmulatorDriver driver(new ServiceEmulator(xml_node));
   return app.exec();
 }

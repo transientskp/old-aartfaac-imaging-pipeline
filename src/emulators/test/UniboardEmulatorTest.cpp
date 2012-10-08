@@ -9,9 +9,9 @@
 CPPUNIT_TEST_SUITE_REGISTRATION(UniboardEmulatorTest);
 
 UniboardEmulatorTest::UniboardEmulatorTest()
-  : CppUnit::TestFixture()
+  : CppUnit::TestFixture(),
+  mApp(NULL)
 {
-
 }
 
 UniboardEmulatorTest::~UniboardEmulatorTest()
