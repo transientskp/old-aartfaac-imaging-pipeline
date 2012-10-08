@@ -30,7 +30,7 @@ set(PIPELINE_SOURCES
 # === Server sources
 set(SERVER_SOURCES
   src/server/main.cpp
-  src/server/UniboardChunker.cpp
+  src/server/StreamUniboardChunker.cpp
   #src/emulators/service/ServiceUdpPacket.h
   src/emulators/stream/StreamUdpPacket.h
   src/utilities/Utils.cpp
