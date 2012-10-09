@@ -13,7 +13,12 @@ class UniboardPipeline : public AbstractPipeline
 {
 public:
   /// Constructor.
-  UniboardPipeline() : AbstractPipeline() {}
+  UniboardPipeline() : AbstractPipeline(),
+      mOutputData(NULL),
+      mImager(NULL),
+      mCalibrator(NULL),
+      mBlobCount(0)
+  {}
 
   /// Initialises the pipeline.
   void init();

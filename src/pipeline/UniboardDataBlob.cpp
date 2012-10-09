@@ -16,6 +16,7 @@ UniboardDataBlob::UniboardDataBlob()
   mXXImag.resize(288*288, 0.0f);
   mSkyMap.resize(mWidth * mHeight);
   mVisMap.resize(mWidth * mHeight);
+  mFrequency = 0.0;
   reset();
 }
 
