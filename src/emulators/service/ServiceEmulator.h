@@ -22,10 +22,14 @@ private:
   void emulationFinished();
 
   QTime mTimer;
-  ServiceUdpPacket mUdpPacket;
+  ServiceAntennaUdpPacket mUdpPacket;
 
   casa::MeasurementSet *mMeasurementSet;
   casa::ROMSColumns *mMSColumns;
+
+  quint64 mTotalRows;
+  quint64 mMaxRowsPerPacket;
+  quint64 mCurrentRow;
 };
 
 #endif // UNIBOARD_EMULATOR_H
