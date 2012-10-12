@@ -11,12 +11,12 @@
     </buffers>
 
     <chunkers>
-      <UniboardChunker>
+      <StreamUniboardChunker>
         <chunk timeout="1500"/>
         <data type="UniboardDataBlob"/>
         <antennae count="288"/>
         <connection host="127.0.0.1" port="2001"/>
-      </UniboardChunker>
+      </StreamUniboardChunker>
     </chunkers>
   </server>
 
