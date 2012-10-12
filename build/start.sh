@@ -5,7 +5,7 @@ set -e
 ROOT=`pwd`
 SCONFIG=${ROOT}/../src/xml/serverConfig.xml
 PCONFIG=${ROOT}/../src/xml/pipelineConfig.xml
-PIPELINES=5
+PIPELINES=2
 
 if [ ! -d "$1" ]; then
 	echo "ERROR: '$1' should point to a measurement set." >&2
@@ -23,6 +23,6 @@ done;
 sleep 5
 
 echo "Starting aartfaac emulator"
-${ROOT}/aartfaac-emulator $1 &
+${ROOT}/aartfaac-stream-emulator $1 &
 
 exit 0
