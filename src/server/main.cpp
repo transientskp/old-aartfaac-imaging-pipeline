@@ -35,8 +35,9 @@ int main(int argc, char* argv[])
     pelican::PelicanServer server(&config);
 
     server.addStreamChunker("StreamUniboardChunker");
-
     server.addProtocol(new pelican::PelicanProtocol(), 2000);
+    server.addServiceChunker("ServiceUniboardChunker");
+    server.addProtocol(new pelican::PelicanProtocol(), 3000);
 
     server.start();
 

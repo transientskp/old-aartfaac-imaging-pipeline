@@ -8,7 +8,7 @@ PCONFIG=${ROOT}/../src/xml/pipelineConfig.xml
 PIPELINES=2
 
 if [ ! -d "$1" ]; then
-	echo "ERROR: '$1' should point to a measurement set." >&2
+	echo "ERROR: <arg1> should point to a measurement set." >&2
 	exit 1
 fi
 
@@ -22,7 +22,11 @@ for (( i=0; i<${PIPELINES}; i++ )); do
 done;
 sleep 5
 
-echo "Starting aartfaac emulator"
+echo "Starting aartfaac service emulator"
+${ROOT}/aartfaac-service-emulator $1 &
+sleep 5
+
+echo "Starting aartfaac stream emulator"
 ${ROOT}/aartfaac-stream-emulator $1 &
 
 exit 0

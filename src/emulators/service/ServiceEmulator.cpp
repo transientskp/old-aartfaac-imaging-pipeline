@@ -44,7 +44,6 @@ void ServiceEmulator::getPacketData(char *&outData, unsigned long &outSize)
     for (iter = double_array.begin(); iter != double_array.end(); ++iter)
       mUdpPacket.mAntennas[i].pos[j++] = *iter;
 
-    qDebug("Rows: %lld", mCurrentRow);
     mCurrentRow++;
   }
 }

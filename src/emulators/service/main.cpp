@@ -26,7 +26,7 @@ struct CleanExit {
 int main(int argc, char* argv[])
 {
   QString host = "127.0.0.1";
-  QString port = "2002";
+  QString port = "3001";
 
   CleanExit clean_exit;
   Logger::open(NAME"-service-emulator");
