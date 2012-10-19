@@ -12,12 +12,7 @@ if (NOT BUILD_EMULATOR AND NOT BUILD_SERVER AND NOT BUILD_PIPLEINE)
 endif (NOT BUILD_EMULATOR AND NOT BUILD_SERVER AND NOT BUILD_PIPLEINE)
 
 # === Compiler options
-# NOTE: Removed -Wl,--no-as-needed as clang reported:
-# clang: warning: -Wl,--no-as-needed: 'linker' input unused when '-c' is present
-
-set(CMAKE_C_COMPILER "/usr/bin/clang")
-set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -Weffc++")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wl,--no-as-needed")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DDEBUG")
