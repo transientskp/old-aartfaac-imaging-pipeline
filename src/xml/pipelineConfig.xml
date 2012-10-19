@@ -7,6 +7,7 @@
       <PelicanServerClient>
         <server host="127.0.0.1" port="2000"/>
         <data type="UniboardDataBlob" adapter="UniboardAdapter"/>
+				<data type="UniboardServiceBlob" adapter="UniboardServiceAdapter"/>
       </PelicanServerClient>
     </clients>
 
