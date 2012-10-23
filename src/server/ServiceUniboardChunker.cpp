@@ -35,13 +35,28 @@ void ServiceUniboardChunker::next(QIODevice *inDevice)
   ServiceAntennaUdpPacket packet;
 
   while (inDevice->bytesAvailable() < mPacketSize)
-    udp_socket->waitForReadyRead(100);
+    udp_socket->waitForReadyRead(-1);
 
-  if (udp_socket->readDatagram(reinterpret_cast<char*>(&packet), mPacketSize) <= 0)
-    qWarning("Failed receiving UDP packet");
+  WritableData data = getDataStorage(sizeof(double)*3);
+  if (data.isValid())
+  {
+
+    if (udp_socket->readDatagram(reinterpret_cast<char*>(&packet), mPacketSize) <= 0)
+      qWarning("Failed receiving UDP packet");
+    else
+    {
+
+      qDebug("Antenna pos: %g %g %g", packet.mAntennas[0].pos[0],
+                                      packet.mAntennas[0].pos[1],
+                                      packet.mAntennas[0].pos[2]);
+      data.write(static_cast<void*>(&packet.mAntennas[0].pos[0]), sizeof(double)*3);
+    }
+  }
   else
-    qDebug("Antenna pos: %g %g %g", packet.mAntennas[0].pos[0],
-                                    packet.mAntennas[0].pos[1],
-                                    packet.mAntennas[0].pos[2]);
+  {
+    qCritical("Could not allocate datastorage");
+    udp_socket->readDatagram(0,0);
+  }
+
   bytes_received += mPacketSize;
 }

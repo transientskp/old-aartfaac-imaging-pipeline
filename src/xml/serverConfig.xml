@@ -8,6 +8,9 @@
       <UniboardDataBlob>
         <buffer maxSize="50000000000" maxChunkSize="50000000000"/>
       </UniboardDataBlob>
+      <UniboardServiceBlob>
+        <buffer maxSize="50000000000" maxChunkSize="50000000000"/>
+      </UniboardServiceBlob>
     </buffers>
 
     <chunkers>

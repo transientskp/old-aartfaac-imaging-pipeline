@@ -1,6 +1,7 @@
 #include "UniboardPipeline.h"
 
 #include "UniboardDataBlob.h"
+#include "UniboardServiceBlob.h"
 #include "modules/imager/Imager.h"
 #include "modules/calibrator/Calibrator.h"
 
@@ -15,6 +16,7 @@ void UniboardPipeline::init()
 
   // Request remote data.
   requestRemoteData("UniboardDataBlob");
+  requestRemoteData("UniboardServiceBlob");
 
   mBlobCount = 0;
 }

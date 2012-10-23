@@ -17,7 +17,8 @@ public:
     virtual void next(QIODevice *inDevice);
 
 private:
-    qint64 mPacketSize; ///< Size of a udp packet
+    qint64 mPacketSize; ///< Size of a udp packet in bytes
+    qint64 mChunkSize; ///< Size of a chunk in bytes
     static ServiceAntennaUdpPacket sEmptyPacket; ///< Default empty packet
 };
 

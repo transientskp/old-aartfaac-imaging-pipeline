@@ -13,6 +13,7 @@ UniboardAdapter::UniboardAdapter(const ConfigNode& config)
   mMaxPacketSamples = MAX_CORRELATIONS;
   mAntennae = config.getOption("antennae", "amount").toUInt();
   mPacketSize = sizeof(StreamUdpPacket);
+  qDebug("Initialized UniboardAdapter");
 }
 
 void UniboardAdapter::deserialise(QIODevice *inDevice)
