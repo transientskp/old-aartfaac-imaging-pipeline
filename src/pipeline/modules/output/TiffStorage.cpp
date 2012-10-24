@@ -1,5 +1,5 @@
 #include "TiffStorage.h"
-#include "../../UniboardDataBlob.h"
+#include "../../StreamBlob.h"
 
 #include <limits>
 #include <cmath>
@@ -33,7 +33,7 @@ void TiffStorage::sendStream(const QString &inStreamName, const DataBlob *inData
 
   if (blob->type() != "UniboardDataBlob")
   {
-    qWarning("Expected datablob type 'UniboardDataBlob', got '%s' ignoring...", qPrintable(blob->type()));
+    qWarning("Expected datablob type 'StreamBlob', got '%s' ignoring...", qPrintable(blob->type()));
     return;
   }
 

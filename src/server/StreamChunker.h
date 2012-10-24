@@ -1,7 +1,7 @@
-#ifndef STREAM_UNIBOARD_CHUNKER_H
-#define STREAM_UNIBOARD_CHUNKER_H
+#ifndef STREAM_CHUNKER_H
+#define STREAM_CHUNKER_H
 
-#include "../emulators/stream/StreamUdpPacket.h"
+#include "../emulator/stream/StreamUdpPacket.h"
 
 #include <pelican/server/AbstractChunker.h>
 #include <QtCore>
@@ -46,4 +46,4 @@ private:
 
 PELICAN_DECLARE_CHUNKER(StreamChunker)
 
-#endif // STREAM_UNIBOARD_CHUNKER_H
+#endif // STREAM_CHUNKER_H

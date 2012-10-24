@@ -1,8 +1,8 @@
 #include "../utilities/Logger.h"
 #include "version.h"
 #include "UniboardPipeline.h"
-#include "UniboardAdapter.h"
-#include "UniboardServiceAdapter.h"
+#include "StreamAdapter.h"
+#include "ServiceAdapter.h"
 
 #include <pelican/core/PipelineApplication.h>
 #include <QtCore/QCoreApplication>

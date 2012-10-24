@@ -71,20 +71,8 @@ endif (BUILD_EMULATOR AND USE_LOFARSTMAN)
 
 # === Create the emulator binary.
 if (BUILD_EMULATOR)
-    set(EMULATOR ${PROJECT_NAME}-stream-emulator)
-    add_executable(${EMULATOR} ${STREAM_EMULATOR_SOURCES})
-
-    target_link_libraries(${EMULATOR}
-      ${QT_QTCORE_LIBRARY}
-      ${QT_QTNETWORK_LIBRARY}
-      ${QT_QTXML_LIBRARY}
-      ${PELICAN_LIBRARIES}
-      ${CASACORE_LIBRARIES}
-      ${LOFAR_LIBRARIES}
-    )
-
-    set(EMULATOR ${PROJECT_NAME}-service-emulator)
-    add_executable(${EMULATOR} ${SERVICE_EMULATOR_SOURCES})
+    set(EMULATOR ${PROJECT_NAME}-emulator)
+    add_executable(${EMULATOR} ${EMULATOR_SOURCES})
 
     target_link_libraries(${EMULATOR}
       ${QT_QTCORE_LIBRARY}

@@ -1,5 +1,5 @@
-#ifndef UNIBOARD_EMULATOR_H
-#define UNIBOARD_EMULATOR_H
+#ifndef SERVICE_EMULATOR_H
+#define SERVICE_EMULATOR_H
 
 #include "ServiceUdpPacket.h"
 
@@ -32,4 +32,4 @@ private:
   quint64 mCurrentRow;
 };
 
-#endif // UNIBOARD_EMULATOR_H
+#endif // SERVICE_EMULATOR_H

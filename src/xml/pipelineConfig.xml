@@ -6,17 +6,18 @@
     <clients>
       <PelicanServerClient>
         <server host="127.0.0.1" port="2000"/>
-        <data type="UniboardDataBlob" adapter="UniboardAdapter"/>
-				<data type="UniboardServiceBlob" adapter="UniboardServiceAdapter"/>
+        <data type="StreamBlob" adapter="StreamAdapter"/>
+				<data type="ServiceBlob" adapter="ServiceAdapter"/>
       </PelicanServerClient>
     </clients>
 
     <adapters>
-      <UniboardAdapter>
+      <StreamAdapter>
         <antennae amount="288"/>
-      </UniboardAdapter>
-			<UniboardServiceAdapter>
-			</UniboardServiceAdapter>
+      </StreamAdapter>
+			<ServiceAdapter>
+        <!-- No specific settings -->
+			</ServiceAdapter>
     </adapters>
 
     <modules>

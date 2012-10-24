@@ -1,5 +1,5 @@
-#ifndef UNIBOARD_EMULATOR_H
-#define UNIBOARD_EMULATOR_H
+#ifndef STREAM_EMULATOR_H
+#define STREAM_EMULATOR_H
 
 #include "StreamUdpPacket.h"
 
@@ -38,4 +38,4 @@ private:
   casa::ROMSColumns *mMSColumns;
 };
 
-#endif // UNIBOARD_EMULATOR_H
+#endif // STREAM_EMULATOR_H

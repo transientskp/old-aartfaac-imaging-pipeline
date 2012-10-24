@@ -1,7 +1,7 @@
 #include "UniboardPipeline.h"
 
-#include "UniboardDataBlob.h"
-#include "UniboardServiceBlob.h"
+#include "StreamBlob.h"
+#include "ServiceBlob.h"
 #include "modules/imager/Imager.h"
 #include "modules/calibrator/Calibrator.h"
 
@@ -10,13 +10,13 @@
 void UniboardPipeline::init()
 {
   // Create the pipeline modules and any local data blobs.
-  mOutputData = static_cast<StreamBlob*>(createBlob("UniboardDataBlob"));
+  mOutputData = static_cast<StreamBlob*>(createBlob("StreamBlob"));
   mImager = static_cast<Imager*>(createModule("Imager"));
   mCalibrator = static_cast<Calibrator*>(createModule("Calibrator"));
 
   // Request remote data.
-  requestRemoteData("UniboardDataBlob");
-  requestRemoteData("UniboardServiceBlob");
+  requestRemoteData("StreamBlob");
+  requestRemoteData("ServiceBlob");
 
   mBlobCount = 0;
 }
@@ -25,7 +25,7 @@ void UniboardPipeline::init()
 void UniboardPipeline::run(QHash<QString, DataBlob*>& inRemoteData)
 {
   // Get pointers to the remote data blob(s) from the supplied hash.
-  StreamBlob* input_data = static_cast<StreamBlob*>(inRemoteData["UniboardDataBlob"]);
+  StreamBlob* input_data = static_cast<StreamBlob*>(inRemoteData["StreamBlob"]);
 
   // Calibrate correlations
   mCalibrator->run(input_data, mOutputData);

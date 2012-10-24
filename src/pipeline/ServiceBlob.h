@@ -1,5 +1,5 @@
-#ifndef UNIBOARD_SERVICE_BLOB_H
-#define UNIBOARD_SERVICE_BLOB_H
+#ifndef SERVICE_BLOB_H
+#define SERVICE_BLOB_H
 
 #include <pelican/data/DataBlob.h>
 
@@ -13,4 +13,4 @@ public:
 
 PELICAN_DECLARE_DATABLOB(ServiceBlob)
 
-#endif // UNIBOARD_SERVICE_BLOB_H
+#endif // SERVICE_BLOB_H

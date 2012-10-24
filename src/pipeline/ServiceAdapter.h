@@ -1,5 +1,5 @@
-#ifndef UNIBOARD_SERVICE_ADAPTER_H
-#define UNIBOARD_SERVICE_ADAPTER_H
+#ifndef SERVICE_ADAPTER_H
+#define SERVICE_ADAPTER_H
 
 #include <pelican/core/AbstractServiceAdapter.h>
 
@@ -19,4 +19,4 @@ private:
 // Register the adapter
 PELICAN_DECLARE_ADAPTER(ServiceAdapter)
 
-#endif // UNIBOARD_SERVICE_ADAPTER_H
+#endif // SERVICE_ADAPTER_H

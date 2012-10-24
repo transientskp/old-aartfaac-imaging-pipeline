@@ -1,4 +1,4 @@
-#include "UniboardDataBlob.h"
+#include "StreamBlob.h"
 
 #include "../utilities/Utils.h"
 
@@ -8,7 +8,7 @@
 #include <QVector>
 
 StreamBlob::StreamBlob()
-  : DataBlob("UniboardDataBlob")
+  : DataBlob("StreamBlob")
 {
   mWidth = mHeight = 512;
 

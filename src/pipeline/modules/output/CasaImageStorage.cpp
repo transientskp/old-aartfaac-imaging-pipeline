@@ -1,5 +1,5 @@
 #include "CasaImageStorage.h"
-#include "../../UniboardDataBlob.h"
+#include "../../StreamBlob.h"
 
 #include <casacore/images/Images/PagedImage.h>
 #include <casacore/coordinates/Coordinates/CoordinateUtil.h>

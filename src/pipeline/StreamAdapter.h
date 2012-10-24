@@ -1,5 +1,5 @@
-#ifndef UNIBOARD_ADAPTER_H
-#define UNIBOARD_ADAPTER_H
+#ifndef STREAM_ADAPTER_H
+#define STREAM_ADAPTER_H
 
 #include <pelican/core/AbstractStreamAdapter.h>
 
@@ -23,4 +23,4 @@ private:
 // Register the adapter.
 PELICAN_DECLARE_ADAPTER(StreamAdapter)
 
-#endif // UNIBOARD_ADAPTER_H
+#endif // STREAM_ADAPTER_H

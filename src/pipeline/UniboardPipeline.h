@@ -1,5 +1,5 @@
-#ifndef SIGNALPROCESSINGPIPELINE_H
-#define SIGNALPROCESSINGPIPELINE_H
+#ifndef UNIBOARD_PIPELINE_H
+#define UNIBOARD_PIPELINE_H
 
 #include <pelican/core/AbstractPipeline.h>
 
@@ -33,4 +33,4 @@ private:
   quint64 mBlobCount;
 };
 
-#endif // SIGNALPROCESSINGPIPELINE_H
+#endif // UNIBOARD_PIPELINE_H

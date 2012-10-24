@@ -1,6 +1,6 @@
-#include "UniboardAdapter.h"
-#include "UniboardDataBlob.h"
-#include "../emulators/stream/StreamUdpPacket.h"
+#include "StreamAdapter.h"
+#include "StreamBlob.h"
+#include "../emulator/stream/StreamUdpPacket.h"
 
 #include <complex>
 
@@ -13,7 +13,6 @@ StreamAdapter::StreamAdapter(const ConfigNode& config)
   mMaxPacketSamples = MAX_CORRELATIONS;
   mAntennae = config.getOption("antennae", "amount").toUInt();
   mPacketSize = sizeof(StreamUdpPacket);
-  qDebug("Initialized UniboardAdapter");
 }
 
 void StreamAdapter::deserialise(QIODevice *inDevice)

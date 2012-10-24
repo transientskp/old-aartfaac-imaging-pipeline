@@ -1,6 +1,6 @@
 #include "Imager.h"
 
-#include "../../UniboardDataBlob.h"
+#include "../../StreamBlob.h"
 
 #include <pelican/utility/Config.h>
 #include <QtCore>

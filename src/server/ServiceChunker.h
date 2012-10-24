@@ -1,7 +1,7 @@
-#ifndef SERVICE_UNIBOARD_CHUNKER_H
-#define SERVICE_UNIBOARD_CHUNKER_H
+#ifndef SERVICE_CHUNKER_H
+#define SERVICE_CHUNKER_H
 
-#include "../emulators/service/ServiceUdpPacket.h"
+#include "../emulator/service/ServiceUdpPacket.h"
 
 #include <pelican/server/AbstractChunker.h>
 #include <QtCore>
@@ -24,4 +24,4 @@ private:
 
 PELICAN_DECLARE_CHUNKER(ServiceChunker)
 
-#endif // SERVICE_UNIBOARD_CHUNKER_H
+#endif // SERVICE_CHUNKER_H

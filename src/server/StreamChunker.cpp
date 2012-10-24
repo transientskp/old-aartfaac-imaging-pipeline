@@ -1,4 +1,4 @@
-#include "StreamUniboardChunker.h"
+#include "StreamChunker.h"
 
 #include "../utilities/Utils.h"
 

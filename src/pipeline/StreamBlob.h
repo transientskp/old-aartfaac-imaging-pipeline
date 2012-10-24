@@ -1,5 +1,5 @@
-#ifndef UNIBOARD_DATABLOB_H
-#define UNIBOARD_DATABLOB_H
+#ifndef STREAM_BLOB_H
+#define STREAM_BLOB_H
 
 #include <pelican/data/DataBlob.h>
 #include <vector>
@@ -64,4 +64,4 @@ private:
 
 PELICAN_DECLARE_DATABLOB(StreamBlob)
 
-#endif // UNIBOARDDATABLOB_H
+#endif // STREAM_BLOB_H
