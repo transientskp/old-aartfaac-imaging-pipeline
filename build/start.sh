@@ -22,11 +22,7 @@ for (( i=0; i<${PIPELINES}; i++ )); do
 done;
 sleep 5
 
-echo "Starting aartfaac service emulator"
-${ROOT}/aartfaac-service-emulator $1 &
-sleep 5
-
-echo "Starting aartfaac stream emulator"
-${ROOT}/aartfaac-stream-emulator $1 &
+echo "Starting aartfaac emulator"
+${ROOT}/aartfaac-emulator $1 &
 
 exit 0
