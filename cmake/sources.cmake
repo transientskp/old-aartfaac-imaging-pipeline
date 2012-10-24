@@ -21,6 +21,8 @@ set(PIPELINE_SOURCES
   src/pipeline/main.cpp
   src/pipeline/UniboardDataBlob.cpp
   src/pipeline/UniboardAdapter.cpp
+  src/pipeline/UniboardServiceAdapter.cpp
+	src/pipeline/UniboardServiceBlob.cpp
   src/pipeline/UniboardPipeline.cpp
   src/pipeline/modules/output/TiffStorage.cpp
   src/pipeline/modules/output/CasaImageStorage.cpp
@@ -35,6 +37,7 @@ set(PIPELINE_SOURCES
 set(SERVER_SOURCES
   src/server/main.cpp
   src/server/StreamUniboardChunker.cpp
+  src/server/ServiceUniboardChunker.cpp
   src/emulators/service/ServiceUdpPacket.h
   src/emulators/stream/StreamUdpPacket.h
   src/utilities/Utils.cpp

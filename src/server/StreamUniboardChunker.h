@@ -1,5 +1,5 @@
-#ifndef UNIBOARD_CHUNKER_H
-#define UNIBOARD_CHUNKER_H
+#ifndef STREAM_UNIBOARD_CHUNKER_H
+#define STREAM_UNIBOARD_CHUNKER_H
 
 #include "../emulators/stream/StreamUdpPacket.h"
 
@@ -36,7 +36,7 @@ private:
     };
 
     quint64 mChunkSize; ///< Size of a chunk in bytes
-    qint64 mPacketSize; ///< Size of a udp packet
+    qint64 mPacketSize; ///< Size of a udp packet in bytes
     int mTimeout; ///< Max time a chunk will wait for data in milliseconds
     static StreamUdpPacket sEmptyPacket; ///< Default empty packet
 
@@ -46,4 +46,4 @@ private:
 
 PELICAN_DECLARE_CHUNKER(StreamUniboardChunker)
 
-#endif // UNIBOARD_CHUNKER_H
+#endif // STREAM_UNIBOARD_CHUNKER_H

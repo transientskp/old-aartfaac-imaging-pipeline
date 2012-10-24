@@ -45,6 +45,9 @@ void ServiceEmulator::getPacketData(char *&outData, unsigned long &outSize)
       mUdpPacket.mAntennas[i].pos[j++] = *iter;
 
     mCurrentRow++;
+    if (mCurrentRow % (mTotalRows / 100) == 0)
+      qDebug("Sent %3d%% of measurement set",
+        int(floor((mCurrentRow / double(mTotalRows))*100.0)));
   }
 }
 
