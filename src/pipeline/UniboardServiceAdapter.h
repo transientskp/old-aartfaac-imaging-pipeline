@@ -5,10 +5,10 @@
 
 using namespace pelican;
 
-class UniboardServiceAdapter : public AbstractServiceAdapter
+class ServiceAdapter : public AbstractServiceAdapter
 {
 public:
-  UniboardServiceAdapter(const ConfigNode &inConfig);
+  ServiceAdapter(const ConfigNode &inConfig);
 
   void deserialise(QIODevice *inDevice);
 
@@ -17,6 +17,6 @@ private:
 };
 
 // Register the adapter
-PELICAN_DECLARE_ADAPTER(UniboardServiceAdapter)
+PELICAN_DECLARE_ADAPTER(ServiceAdapter)
 
 #endif // UNIBOARD_SERVICE_ADAPTER_H

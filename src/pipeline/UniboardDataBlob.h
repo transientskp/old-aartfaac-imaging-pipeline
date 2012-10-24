@@ -8,10 +8,10 @@
 
 using namespace pelican;
 
-class UniboardDataBlob : public DataBlob
+class StreamBlob : public DataBlob
 {
 public:
-  UniboardDataBlob();
+  StreamBlob();
 
   void reset();
 
@@ -62,6 +62,6 @@ private:
   std::vector<float> mVisMap; ///< raw vismap data from imager (needs normalization)
 };
 
-PELICAN_DECLARE_DATABLOB(UniboardDataBlob)
+PELICAN_DECLARE_DATABLOB(StreamBlob)
 
 #endif // UNIBOARDDATABLOB_H

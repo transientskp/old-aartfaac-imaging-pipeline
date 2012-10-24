@@ -5,14 +5,14 @@
 
 using namespace pelican;
 
-class UniboardDataBlob;
+class StreamBlob;
 
 class Calibrator : public AbstractModule {
 public:
   Calibrator(const ConfigNode &inConfig);
   ~Calibrator();
 
-  void run(const UniboardDataBlob *input, UniboardDataBlob *output);
+  void run(const StreamBlob *input, StreamBlob *output);
 
 private:
   std::vector<int> mUVFlags;

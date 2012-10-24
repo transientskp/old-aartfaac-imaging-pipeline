@@ -1,6 +1,6 @@
 #include "UniboardServiceBlob.h"
 
-UniboardServiceBlob::UniboardServiceBlob()
+ServiceBlob::ServiceBlob()
     : DataBlob("UniboardServiceBlob")
 {
   qDebug("Initialized UniboardServiceBlob()");

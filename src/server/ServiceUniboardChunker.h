@@ -8,10 +8,10 @@
 
 using namespace pelican;
 
-class ServiceUniboardChunker : public AbstractChunker
+class ServiceChunker : public AbstractChunker
 {
 public:
-    ServiceUniboardChunker(const ConfigNode& inConfig);
+    ServiceChunker(const ConfigNode& inConfig);
 
     virtual QIODevice* newDevice();
     virtual void next(QIODevice *inDevice);
@@ -22,6 +22,6 @@ private:
     static ServiceAntennaUdpPacket sEmptyPacket; ///< Default empty packet
 };
 
-PELICAN_DECLARE_CHUNKER(ServiceUniboardChunker)
+PELICAN_DECLARE_CHUNKER(ServiceChunker)
 
 #endif // SERVICE_UNIBOARD_CHUNKER_H

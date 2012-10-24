@@ -7,7 +7,7 @@
 #include <QtGui/QColor>
 #include <QVector>
 
-UniboardDataBlob::UniboardDataBlob()
+StreamBlob::StreamBlob()
   : DataBlob("UniboardDataBlob")
 {
   mWidth = mHeight = 512;
@@ -20,13 +20,13 @@ UniboardDataBlob::UniboardDataBlob()
   reset();
 }
 
-void UniboardDataBlob::reset()
+void StreamBlob::reset()
 {
   mMJDTime = -1.0;
   mChannelId = 0;
 }
 
-void UniboardDataBlob::serialise(QIODevice &out) const
+void StreamBlob::serialise(QIODevice &out) const
 {
   QDataStream stream(&out);
 
@@ -38,7 +38,7 @@ void UniboardDataBlob::serialise(QIODevice &out) const
     stream << mSkyMap[i];
 }
 
-void UniboardDataBlob::deserialise(QIODevice &in, QSysInfo::Endian)
+void StreamBlob::deserialise(QIODevice &in, QSysInfo::Endian)
 {
   QDataStream stream(&in);
 
@@ -52,7 +52,7 @@ void UniboardDataBlob::deserialise(QIODevice &in, QSysInfo::Endian)
     stream >> mSkyMap[i];
 }
 
-void UniboardDataBlob::createImage(const std::vector<unsigned char> &inData, const QString &inType)
+void StreamBlob::createImage(const std::vector<unsigned char> &inData, const QString &inType)
 {
   static QVector<QRgb> colors;
   if (colors.empty())
@@ -73,7 +73,7 @@ void UniboardDataBlob::createImage(const std::vector<unsigned char> &inData, con
   image.save(filename, "TIFF");
 }
 
-void UniboardDataBlob::addSample(const quint16 inA1,
+void StreamBlob::addSample(const quint16 inA1,
                                  const quint16 inA2,
                                  const std::complex<float> &inXX,
                                  const std::complex<float> &inYY,
@@ -91,28 +91,28 @@ void UniboardDataBlob::addSample(const quint16 inA1,
   mXXImag[inA2*288+inA1] = inXX.imag();
 }
 
-std::vector<float>* UniboardDataBlob::getXXReal()
+std::vector<float>* StreamBlob::getXXReal()
 {
   return &mXXReal;
 }
 
-std::vector<float>* UniboardDataBlob::getXXImag()
+std::vector<float>* StreamBlob::getXXImag()
 {
   return &mXXImag;
 }
 
-const std::vector<float>* UniboardDataBlob::getXXReal() const
+const std::vector<float>* StreamBlob::getXXReal() const
 {
   return &mXXReal;
 }
 
-const std::vector<float>* UniboardDataBlob::getXXImag() const
+const std::vector<float>* StreamBlob::getXXImag() const
 {
   return &mXXImag;
 }
 
 
-void UniboardDataBlob::setMJDTime(const double inTime)
+void StreamBlob::setMJDTime(const double inTime)
 {
   mMJDTime = inTime;
   mDateTime = utils::MJD2QDateTime(inTime);

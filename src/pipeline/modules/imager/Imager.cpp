@@ -41,7 +41,7 @@ void Imager::readData(const QString &inFilename, std::vector<float> &outData)
   Q_ASSERT(i == 288*288);
 }
 
-void Imager::run(const UniboardDataBlob *input, UniboardDataBlob *output)
+void Imager::run(const StreamBlob *input, StreamBlob *output)
 {
   output->setMJDTime(input->getMJDTime());
   const std::vector<float> *real = input->getXXReal();

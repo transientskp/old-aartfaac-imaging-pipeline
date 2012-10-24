@@ -5,15 +5,15 @@
 #include <pelican/utility/Config.h>
 #include <QtNetwork/QUdpSocket>
 
-ServiceAntennaUdpPacket ServiceUniboardChunker::sEmptyPacket;
+ServiceAntennaUdpPacket ServiceChunker::sEmptyPacket;
 
-ServiceUniboardChunker::ServiceUniboardChunker(const ConfigNode &inConfig)
+ServiceChunker::ServiceChunker(const ConfigNode &inConfig)
   : AbstractChunker(inConfig)
 {
   mPacketSize = sizeof(sEmptyPacket);
 }
 
-QIODevice* ServiceUniboardChunker::newDevice()
+QIODevice* ServiceChunker::newDevice()
 {
   QUdpSocket *socket = new QUdpSocket();
   if (!socket->bind(QHostAddress(host()), port()))
@@ -23,7 +23,7 @@ QIODevice* ServiceUniboardChunker::newDevice()
   return socket;
 }
 
-void ServiceUniboardChunker::next(QIODevice *inDevice)
+void ServiceChunker::next(QIODevice *inDevice)
 {
   if (!isActive())
     return;

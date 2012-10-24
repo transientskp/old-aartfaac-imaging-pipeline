@@ -8,10 +8,10 @@
 
 using namespace pelican;
 
-class StreamUniboardChunker : public AbstractChunker
+class StreamChunker : public AbstractChunker
 {
 public:
-    StreamUniboardChunker(const ConfigNode& inConfig);
+    StreamChunker(const ConfigNode& inConfig);
 
     virtual QIODevice* newDevice();
     virtual void next(QIODevice *inDevice);
@@ -20,7 +20,7 @@ private:
 
     class Chunk {
     public:
-      Chunk(StreamUniboardChunker *inChunker);
+      Chunk(StreamChunker *inChunker);
 
       bool isTimeUp();
       bool isFilled();
@@ -31,7 +31,7 @@ private:
       WritableData mData;
       QTime mTimer;
       quint64 mBytesRead;
-      StreamUniboardChunker *mChunker;
+      StreamChunker *mChunker;
       char *mPtr;
     };
 
@@ -44,6 +44,6 @@ private:
     quint64 hash(const double inTime, const double inFrequency);
 };
 
-PELICAN_DECLARE_CHUNKER(StreamUniboardChunker)
+PELICAN_DECLARE_CHUNKER(StreamChunker)
 
 #endif // STREAM_UNIBOARD_CHUNKER_H

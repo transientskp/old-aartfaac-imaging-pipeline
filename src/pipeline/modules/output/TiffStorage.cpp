@@ -29,7 +29,7 @@ void TiffStorage::sendStream(const QString &inStreamName, const DataBlob *inData
 {
   Q_UNUSED(inStreamName);
 
-  const UniboardDataBlob *blob = static_cast<const UniboardDataBlob*>(inDataBlob);
+  const StreamBlob *blob = static_cast<const StreamBlob*>(inDataBlob);
 
   if (blob->type() != "UniboardDataBlob")
   {

@@ -1,13 +1,13 @@
 #include "UniboardServiceAdapter.h"
 #include "UniboardServiceBlob.h"
 
-UniboardServiceAdapter::UniboardServiceAdapter(const ConfigNode &inConfig)
+ServiceAdapter::ServiceAdapter(const ConfigNode &inConfig)
     : AbstractServiceAdapter(inConfig)
 {
   qDebug("Initialized UniboardServiceAdapter");
 }
 
-void UniboardServiceAdapter::deserialise(QIODevice *inDevice)
+void ServiceAdapter::deserialise(QIODevice *inDevice)
 {
   qDebug("DESERIALISE!!!!!!!!!!!");
   Q_UNUSED(inDevice);

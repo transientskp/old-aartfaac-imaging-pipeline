@@ -5,12 +5,12 @@
 
 using namespace pelican;
 
-class UniboardServiceBlob : public DataBlob
+class ServiceBlob : public DataBlob
 {
 public:
-    UniboardServiceBlob();
+    ServiceBlob();
 };
 
-PELICAN_DECLARE_DATABLOB(UniboardServiceBlob)
+PELICAN_DECLARE_DATABLOB(ServiceBlob)
 
 #endif // UNIBOARD_SERVICE_BLOB_H

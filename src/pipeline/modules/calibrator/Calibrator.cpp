@@ -15,7 +15,7 @@ Calibrator::~Calibrator()
 {
 }
 
-void Calibrator::run(const UniboardDataBlob *input, UniboardDataBlob *output)
+void Calibrator::run(const StreamBlob *input, StreamBlob *output)
 {
   output->setMJDTime(input->getMJDTime());
   output->setFrequency(input->getFrequency());

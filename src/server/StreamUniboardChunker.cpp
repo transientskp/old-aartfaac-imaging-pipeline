@@ -5,9 +5,9 @@
 #include <pelican/utility/Config.h>
 #include <QtNetwork/QUdpSocket>
 
-StreamUdpPacket StreamUniboardChunker::sEmptyPacket;
+StreamUdpPacket StreamChunker::sEmptyPacket;
 
-StreamUniboardChunker::StreamUniboardChunker(const ConfigNode &inConfig)
+StreamChunker::StreamChunker(const ConfigNode &inConfig)
   : AbstractChunker(inConfig)
 {
   sEmptyPacket.mHeader.freq = -1.0;
@@ -26,7 +26,7 @@ StreamUniboardChunker::StreamUniboardChunker(const ConfigNode &inConfig)
   Q_ASSERT(mChunkSize % mPacketSize == 0);
 }
 
-QIODevice* StreamUniboardChunker::newDevice()
+QIODevice* StreamChunker::newDevice()
 {
   QUdpSocket *socket = new QUdpSocket();
   if (!socket->bind(QHostAddress(host()), port()))
@@ -36,7 +36,7 @@ QIODevice* StreamUniboardChunker::newDevice()
   return socket;
 }
 
-void StreamUniboardChunker::next(QIODevice *inDevice)
+void StreamChunker::next(QIODevice *inDevice)
 {
   if (!isActive())
     return;
@@ -93,12 +93,12 @@ void StreamUniboardChunker::next(QIODevice *inDevice)
   }
 }
 
-quint64 StreamUniboardChunker::hash(const double inTime, const double inFrequency)
+quint64 StreamChunker::hash(const double inTime, const double inFrequency)
 {
   return static_cast<quint64>(inTime*inFrequency);
 }
 
-StreamUniboardChunker::Chunk::Chunk(StreamUniboardChunker *inChunker)
+StreamChunker::Chunk::Chunk(StreamChunker *inChunker)
   : mBytesRead(0),
     mChunker(inChunker)
 {
@@ -109,23 +109,23 @@ StreamUniboardChunker::Chunk::Chunk(StreamUniboardChunker *inChunker)
   mTimer.start();
 }
 
-bool StreamUniboardChunker::Chunk::isTimeUp()
+bool StreamChunker::Chunk::isTimeUp()
 {
   return mTimer.elapsed() >= mChunker->mTimeout;
 }
 
-bool StreamUniboardChunker::Chunk::isFilled()
+bool StreamChunker::Chunk::isFilled()
 {
   return mBytesRead >= mChunker->mChunkSize;
 }
 
-void StreamUniboardChunker::Chunk::addData(const void *inData, const int inLength)
+void StreamChunker::Chunk::addData(const void *inData, const int inLength)
 {
   mData.write(inData, inLength, mBytesRead);
   mBytesRead += inLength;
 }
 
-quint32 StreamUniboardChunker::Chunk::fill()
+quint32 StreamChunker::Chunk::fill()
 {
   quint32 bytes_left = mChunker->mChunkSize - mBytesRead;
   Q_ASSERT(bytes_left % sizeof(StreamUdpPacket) == 0);

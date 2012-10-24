@@ -18,7 +18,7 @@ CasaImageStorage::~CasaImageStorage()
 
 void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *inDataBlob)
 {
-  const UniboardDataBlob *blob = static_cast<const UniboardDataBlob*>(inDataBlob);
+  const StreamBlob *blob = static_cast<const StreamBlob*>(inDataBlob);
 
   if (blob->type() != "UniboardDataBlob")
   {

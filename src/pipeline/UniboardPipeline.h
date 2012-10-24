@@ -5,7 +5,7 @@
 
 using namespace pelican;
 
-class UniboardDataBlob;
+class StreamBlob;
 class Calibrator;
 class Imager;
 
@@ -27,7 +27,7 @@ public:
   void run(QHash<QString, DataBlob*>& remoteData);
 
 private:
-  UniboardDataBlob *mOutputData;
+  StreamBlob *mOutputData;
   Imager *mImager;
   Calibrator *mCalibrator;
   quint64 mBlobCount;

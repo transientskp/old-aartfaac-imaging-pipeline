@@ -7,7 +7,7 @@
 extern "C" void halfp2singles(void *target, void *source, int numel);
 
 // Construct the example adapter.
-UniboardAdapter::UniboardAdapter(const ConfigNode& config)
+StreamAdapter::StreamAdapter(const ConfigNode& config)
     : AbstractStreamAdapter(config)
 {
   mMaxPacketSamples = MAX_CORRELATIONS;
@@ -16,9 +16,9 @@ UniboardAdapter::UniboardAdapter(const ConfigNode& config)
   qDebug("Initialized UniboardAdapter");
 }
 
-void UniboardAdapter::deserialise(QIODevice *inDevice)
+void StreamAdapter::deserialise(QIODevice *inDevice)
 {
-  UniboardDataBlob *blob = static_cast<UniboardDataBlob*>(dataBlob());
+  StreamBlob *blob = static_cast<StreamBlob*>(dataBlob());
   blob->reset();
   quint32 num_packets = chunkSize() / mPacketSize;
 
