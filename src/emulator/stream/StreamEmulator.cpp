@@ -119,5 +119,5 @@ void StreamEmulator::emulationFinished()
   qDebug("MB/sec     : %0.2f sent", mbytes/seconds);
   qDebug("Sent       : %lld samples", mTotalCorrelations);
 
-  QCoreApplication::exit(EXIT_SUCCESS);
+  qDebug("Stream Emulator finished");
 }

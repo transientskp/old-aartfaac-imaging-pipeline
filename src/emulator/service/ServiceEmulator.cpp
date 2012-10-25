@@ -63,5 +63,5 @@ int ServiceEmulator::nPackets()
 
 void ServiceEmulator::emulationFinished()
 {
-  QCoreApplication::exit(EXIT_SUCCESS);
+  qDebug("Service Emulator finished");
 }
