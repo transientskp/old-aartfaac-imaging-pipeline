@@ -9,7 +9,7 @@ class StreamAdapter : public AbstractStreamAdapter
 {
 public:
   /// Constructs the uniboard adapter.
-  StreamAdapter(const ConfigNode& inConfig);
+  StreamAdapter(const ConfigNode &inConfig);
 
   /// Method to deserialise chunks of memory provided by the I/O device.
   void deserialise(QIODevice *inDevice);

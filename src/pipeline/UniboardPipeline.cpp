@@ -10,9 +10,9 @@
 void UniboardPipeline::init()
 {
   // Create the pipeline modules and any local data blobs.
-  mOutputData = static_cast<StreamBlob*>(createBlob("StreamBlob"));
-  mImager = static_cast<Imager*>(createModule("Imager"));
-  mCalibrator = static_cast<Calibrator*>(createModule("Calibrator"));
+  mOutputData = static_cast<StreamBlob *>(createBlob("StreamBlob"));
+  mImager = static_cast<Imager *>(createModule("Imager"));
+  mCalibrator = static_cast<Calibrator *>(createModule("Calibrator"));
 
   // Request remote data.
   requestRemoteData("StreamBlob");
@@ -22,10 +22,10 @@ void UniboardPipeline::init()
 }
 
 // Defines a single iteration of the pipeline.
-void UniboardPipeline::run(QHash<QString, DataBlob*>& inRemoteData)
+void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
 {
   // Get pointers to the remote data blob(s) from the supplied hash.
-  StreamBlob* input_data = static_cast<StreamBlob*>(inRemoteData["StreamBlob"]);
+  StreamBlob *input_data = static_cast<StreamBlob *>(inRemoteData["StreamBlob"]);
 
   // Calibrate correlations
   mCalibrator->run(input_data, mOutputData);

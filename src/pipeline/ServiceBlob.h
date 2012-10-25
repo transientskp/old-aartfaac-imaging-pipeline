@@ -8,7 +8,7 @@ using namespace pelican;
 class ServiceBlob : public DataBlob
 {
 public:
-    ServiceBlob();
+  ServiceBlob();
 };
 
 PELICAN_DECLARE_DATABLOB(ServiceBlob)

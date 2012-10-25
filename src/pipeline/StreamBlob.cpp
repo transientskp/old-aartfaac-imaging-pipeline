@@ -12,8 +12,8 @@ StreamBlob::StreamBlob()
 {
   mWidth = mHeight = 512;
 
-  mXXReal.resize(288*288, 0.0f);
-  mXXImag.resize(288*288, 0.0f);
+  mXXReal.resize(288 * 288, 0.0f);
+  mXXImag.resize(288 * 288, 0.0f);
   mSkyMap.resize(mWidth * mHeight);
   mVisMap.resize(mWidth * mHeight);
   mFrequency = 0.0;
@@ -48,21 +48,23 @@ void StreamBlob::deserialise(QIODevice &in, QSysInfo::Endian)
 
   mSkyMap.resize(mWidth * mHeight);
 
-  for (int i = 0, n = mWidth*mHeight; i < n; i++)
+  for (int i = 0, n = mWidth * mHeight; i < n; i++)
     stream >> mSkyMap[i];
 }
 
 void StreamBlob::createImage(const std::vector<unsigned char> &inData, const QString &inType)
 {
   static QVector<QRgb> colors;
+
   if (colors.empty())
   {
     QColor color;
+
     for (int i = 0; i < 256; i++)
     {
-//      int h = (int) round((i/256.0)*360.0);
-//      color.setHsv(h, 100, 100);
-      color.setRgb(i,i,i);
+      //      int h = (int) round((i/256.0)*360.0);
+      //      color.setHsv(h, 100, 100);
+      color.setRgb(i, i, i);
       colors.append(color.rgb());
     }
   }
@@ -74,21 +76,21 @@ void StreamBlob::createImage(const std::vector<unsigned char> &inData, const QSt
 }
 
 void StreamBlob::addSample(const quint16 inA1,
-                                 const quint16 inA2,
-                                 const std::complex<float> &inXX,
-                                 const std::complex<float> &inYY,
-                                 const std::complex<float> &inXY,
-                                 const std::complex<float> &inYX)
+                           const quint16 inA2,
+                           const std::complex<float> &inXX,
+                           const std::complex<float> &inYY,
+                           const std::complex<float> &inXY,
+                           const std::complex<float> &inYX)
 {
   Q_UNUSED(inYY);
   Q_UNUSED(inXY);
   Q_UNUSED(inYX);
 
   std::complex<float> xx_conj = std::conj<float>(inXX);
-  mXXReal[inA1*288+inA2] = xx_conj.real();
-  mXXReal[inA2*288+inA1] = inXX.real();
-  mXXImag[inA1*288+inA2] = xx_conj.imag();
-  mXXImag[inA2*288+inA1] = inXX.imag();
+  mXXReal[inA1 * 288 + inA2] = xx_conj.real();
+  mXXReal[inA2 * 288 + inA1] = inXX.real();
+  mXXImag[inA1 * 288 + inA2] = xx_conj.imag();
+  mXXImag[inA2 * 288 + inA1] = inXX.imag();
 }
 
 std::vector<float>* StreamBlob::getXXReal()

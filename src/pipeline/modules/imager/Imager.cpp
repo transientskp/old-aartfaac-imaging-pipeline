@@ -8,8 +8,8 @@
 Imager::Imager(const ConfigNode &inConfig)
   : AbstractModule(inConfig)
 {
-  mULoc.resize(288*288);
-  mVLoc.resize(288*288);
+  mULoc.resize(288 * 288);
+  mVLoc.resize(288 * 288);
   QString uloc_filename = inConfig.getOption("uloc", "filename");
   QString vloc_filename = inConfig.getOption("vloc", "filename");
   readData(uloc_filename, mULoc);
@@ -32,13 +32,16 @@ void Imager::readData(const QString &inFilename, std::vector<float> &outData)
 
   quint32 i = 0;
   QTextStream txt(&file);
-  while (!txt.atEnd()) {
+
+  while (!txt.atEnd())
+  {
     QString line = txt.readLine();
     outData[i] = line.toFloat();
     i++;
   }
+
   qDebug("parsed %s", qPrintable(inFilename));
-  Q_ASSERT(i == 288*288);
+  Q_ASSERT(i == 288 * 288);
 }
 
 void Imager::run(const StreamBlob *input, StreamBlob *output)

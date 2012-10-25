@@ -8,11 +8,13 @@
 class ServiceAntennaUdpPacket
 {
 public:
-  struct Header {
+  struct Header
+  {
     quint32 rows; ///< number of actual rows within a packet
   } __attribute__((packed)) mHeader;
 
-  struct Antenna {
+  struct Antenna
+  {
     double offset[3];
     double pos[3];
     char antenna_type[16];

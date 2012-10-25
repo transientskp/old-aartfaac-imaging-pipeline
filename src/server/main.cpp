@@ -8,7 +8,7 @@
 #include <iostream>
 #include <QtCore>
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
   if (argc != 2)
   {
@@ -30,6 +30,7 @@ int main(int argc, char* argv[])
   pelican::Config config(config_file);
 
   qDebug("%s", HUMAN_NAME);
+
   try
   {
     pelican::PelicanServer server(&config);
@@ -41,11 +42,12 @@ int main(int argc, char* argv[])
 
     server.start();
 
-    while (!server.isReady()) {}
+    while (!server.isReady())
+      {}
 
     return app.exec();
   }
-  catch (const QString& error)
+  catch (const QString &error)
   {
     qFatal("%s", qPrintable(error));
   }

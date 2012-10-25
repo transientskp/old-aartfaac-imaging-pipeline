@@ -8,7 +8,7 @@
 #include <QtCore/QCoreApplication>
 #include <QtCore/QString>
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
   Logger::open(NAME"-pipeline");
   qInstallMsgHandler(Logger::messageHandler);
@@ -20,6 +20,7 @@ int main(int argc, char* argv[])
   app.setOrganizationName("Anton Pannekoek Institute");
   app.setOrganizationDomain("http://www.aartfaac.org");
   qDebug("%s", HUMAN_NAME);
+
   try
   {
     pelican::PipelineApplication p_app(argc, argv);

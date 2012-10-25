@@ -2,7 +2,7 @@
 #include "ServiceBlob.h"
 
 ServiceAdapter::ServiceAdapter(const ConfigNode &inConfig)
-    : AbstractServiceAdapter(inConfig)
+  : AbstractServiceAdapter(inConfig)
 {
 }
 

@@ -191,215 +191,348 @@ void halfp2doubles(void *target, void *source, mwSize numel);
 
 void singles2halfp(void *target, void *source, mwSize numel)
 {
-    UINT16_TYPE *hp = (UINT16_TYPE *) target; // Type pun output as an unsigned 16-bit int
-    UINT32_TYPE *xp = (UINT32_TYPE *) source; // Type pun input as an unsigned 32-bit int
-    UINT16_TYPE    hs, he, hm;
-    UINT32_TYPE x, xs, xe, xm;
-    int hes;
+  UINT16_TYPE *hp = (UINT16_TYPE *) target; // Type pun output as an unsigned 16-bit int
+  UINT32_TYPE *xp = (UINT32_TYPE *) source; // Type pun input as an unsigned 32-bit int
+  UINT16_TYPE    hs, he, hm;
+  UINT32_TYPE x, xs, xe, xm;
+  int hes;
 
-    if( source == NULL || target == NULL ) { // Nothing to convert (e.g., imag part of pure real)
-        return;
+  if ( source == NULL || target == NULL )
+    // Nothing to convert (e.g., imag part of pure real)
+  {
+    return;
+  }
+
+  while ( numel-- )
+  {
+    x = *xp++;
+
+    if ( (x & 0x7FFFFFFFu) == 0 )
+      // Signed zero
+    {
+      *hp++ = (UINT16_TYPE) (x >> 16);  // Return the signed zero
     }
-    while( numel-- ) {
-        x = *xp++;
-        if( (x & 0x7FFFFFFFu) == 0 ) {  // Signed zero
-            *hp++ = (UINT16_TYPE) (x >> 16);  // Return the signed zero
-        } else { // Not zero
-            xs = x & 0x80000000u;  // Pick off sign bit
-            xe = x & 0x7F800000u;  // Pick off exponent bits
-            xm = x & 0x007FFFFFu;  // Pick off mantissa bits
-            if( xe == 0 ) {  // Denormal will underflow, return a signed zero
-                *hp++ = (UINT16_TYPE) (xs >> 16);
-            } else if( xe == 0x7F800000u ) {  // Inf or NaN (all the exponent bits are set)
-                if( xm == 0 ) { // If mantissa is zero ...
-                    *hp++ = (UINT16_TYPE) ((xs >> 16) | 0x7C00u); // Signed Inf
-                } else {
-                    *hp++ = (UINT16_TYPE) 0xFE00u; // NaN, only 1st mantissa bit set
-                }
-            } else { // Normalized number
-                hs = (UINT16_TYPE) (xs >> 16); // Sign bit
-                hes = ((int)(xe >> 23)) - 127 + 15; // Exponent unbias the single, then bias the halfp
-                if( hes >= 0x1F ) {  // Overflow
-                    *hp++ = (UINT16_TYPE) ((xs >> 16) | 0x7C00u); // Signed Inf
-                } else if( hes <= 0 ) {  // Underflow
-                    if( (14 - hes) > 24 ) {  // Mantissa shifted all the way off & no rounding possibility
-                        hm = (UINT16_TYPE) 0u;  // Set mantissa to zero
-                    } else {
-                        xm |= 0x00800000u;  // Add the hidden leading bit
-                        hm = (UINT16_TYPE) (xm >> (14 - hes)); // Mantissa
-                        if( (xm >> (13 - hes)) & 0x00000001u ) // Check for rounding
-                            hm += (UINT16_TYPE) 1u; // Round, might overflow into exp bit, but this is OK
-                    }
-                    *hp++ = (hs | hm); // Combine sign bit and mantissa bits, biased exponent is zero
-                } else {
-                    he = (UINT16_TYPE) (hes << 10); // Exponent
-                    hm = (UINT16_TYPE) (xm >> 13); // Mantissa
-                    if( xm & 0x00001000u ) // Check for rounding
-                        *hp++ = (hs | he | hm) + (UINT16_TYPE) 1u; // Round, might overflow to inf, this is OK
-                    else
-                        *hp++ = (hs | he | hm);  // No rounding
-                }
+    else
+      // Not zero
+    {
+      xs = x & 0x80000000u;  // Pick off sign bit
+      xe = x & 0x7F800000u;  // Pick off exponent bits
+      xm = x & 0x007FFFFFu;  // Pick off mantissa bits
+
+      if ( xe == 0 )
+        // Denormal will underflow, return a signed zero
+      {
+        *hp++ = (UINT16_TYPE) (xs >> 16);
+      }
+      else
+        if ( xe == 0x7F800000u )
+          // Inf or NaN (all the exponent bits are set)
+        {
+          if ( xm == 0 )
+            // If mantissa is zero ...
+          {
+            *hp++ = (UINT16_TYPE) ((xs >> 16) | 0x7C00u); // Signed Inf
+          }
+          else
+          {
+            *hp++ = (UINT16_TYPE) 0xFE00u; // NaN, only 1st mantissa bit set
+          }
+        }
+        else
+          // Normalized number
+        {
+          hs = (UINT16_TYPE) (xs >> 16); // Sign bit
+          hes = ((int)(xe >> 23)) - 127 + 15; // Exponent unbias the single, then bias the halfp
+
+          if ( hes >= 0x1F )
+            // Overflow
+          {
+            *hp++ = (UINT16_TYPE) ((xs >> 16) | 0x7C00u); // Signed Inf
+          }
+          else
+            if ( hes <= 0 )
+              // Underflow
+            {
+              if ( (14 - hes) > 24 )
+                // Mantissa shifted all the way off & no rounding possibility
+              {
+                hm = (UINT16_TYPE) 0u;  // Set mantissa to zero
+              }
+              else
+              {
+                xm |= 0x00800000u;  // Add the hidden leading bit
+                hm = (UINT16_TYPE) (xm >> (14 - hes)); // Mantissa
+
+                if ( (xm >> (13 - hes)) & 0x00000001u ) // Check for rounding
+                  hm += (UINT16_TYPE) 1u; // Round, might overflow into exp bit, but this is OK
+              }
+
+              *hp++ = (hs | hm); // Combine sign bit and mantissa bits, biased exponent is zero
+            }
+            else
+            {
+              he = (UINT16_TYPE) (hes << 10); // Exponent
+              hm = (UINT16_TYPE) (xm >> 13); // Mantissa
+
+              if ( xm & 0x00001000u ) // Check for rounding
+                *hp++ = (hs | he | hm) + (UINT16_TYPE) 1u; // Round, might overflow to inf, this is OK
+              else
+                *hp++ = (hs | he | hm);  // No rounding
             }
         }
     }
+  }
 }
 
 //-----------------------------------------------------------------------------
 
 void doubles2halfp(void *target, void *source, mwSize numel)
 {
-    UINT16_TYPE *hp = (UINT16_TYPE *) target; // Type pun output as an unsigned 16-bit int
-    UINT32_TYPE *xp = (UINT32_TYPE *) source; // Type pun input as an unsigned 32-bit int
-    UINT16_TYPE    hs, he, hm;
-    UINT32_TYPE x, xs, xe, xm;
-    int hes;
+  UINT16_TYPE *hp = (UINT16_TYPE *) target; // Type pun output as an unsigned 16-bit int
+  UINT32_TYPE *xp = (UINT32_TYPE *) source; // Type pun input as an unsigned 32-bit int
+  UINT16_TYPE    hs, he, hm;
+  UINT32_TYPE x, xs, xe, xm;
+  int hes;
 
-    xp += next;  // Little Endian adjustment if necessary
+  xp += next;  // Little Endian adjustment if necessary
 
-    if( source == NULL || target == NULL ) { // Nothing to convert (e.g., imag part of pure real)
-        return;
+  if ( source == NULL || target == NULL )
+    // Nothing to convert (e.g., imag part of pure real)
+  {
+    return;
+  }
+
+  while ( numel-- )
+  {
+    x = *xp++;
+    xp++; // The extra xp++ is to skip over the remaining 32 bits of the mantissa
+
+    if ( (x & 0x7FFFFFFFu) == 0 )
+      // Signed zero
+    {
+      *hp++ = (UINT16_TYPE) (x >> 16);  // Return the signed zero
     }
-    while( numel-- ) {
-        x = *xp++; xp++; // The extra xp++ is to skip over the remaining 32 bits of the mantissa
-        if( (x & 0x7FFFFFFFu) == 0 ) {  // Signed zero
-            *hp++ = (UINT16_TYPE) (x >> 16);  // Return the signed zero
-        } else { // Not zero
-            xs = x & 0x80000000u;  // Pick off sign bit
-            xe = x & 0x7FF00000u;  // Pick off exponent bits
-            xm = x & 0x000FFFFFu;  // Pick off mantissa bits
-            if( xe == 0 ) {  // Denormal will underflow, return a signed zero
-                *hp++ = (UINT16_TYPE) (xs >> 16);
-            } else if( xe == 0x7FF00000u ) {  // Inf or NaN (all the exponent bits are set)
-                if( xm == 0 ) { // If mantissa is zero ...
-                    *hp++ = (UINT16_TYPE) ((xs >> 16) | 0x7C00u); // Signed Inf
-                } else {
-                    *hp++ = (UINT16_TYPE) 0xFE00u; // NaN, only 1st mantissa bit set
-                }
-            } else { // Normalized number
-                hs = (UINT16_TYPE) (xs >> 16); // Sign bit
-                hes = ((int)(xe >> 20)) - 1023 + 15; // Exponent unbias the double, then bias the halfp
-                if( hes >= 0x1F ) {  // Overflow
-                    *hp++ = (UINT16_TYPE) ((xs >> 16) | 0x7C00u); // Signed Inf
-                } else if( hes <= 0 ) {  // Underflow
-                    if( (10 - hes) > 21 ) {  // Mantissa shifted all the way off & no rounding possibility
-                        hm = (UINT16_TYPE) 0u;  // Set mantissa to zero
-                    } else {
-                        xm |= 0x00100000u;  // Add the hidden leading bit
-                        hm = (UINT16_TYPE) (xm >> (11 - hes)); // Mantissa
-                        if( (xm >> (10 - hes)) & 0x00000001u ) // Check for rounding
-                            hm += (UINT16_TYPE) 1u; // Round, might overflow into exp bit, but this is OK
-                    }
-                    *hp++ = (hs | hm); // Combine sign bit and mantissa bits, biased exponent is zero
-                } else {
-                    he = (UINT16_TYPE) (hes << 10); // Exponent
-                    hm = (UINT16_TYPE) (xm >> 10); // Mantissa
-                    if( xm & 0x00000200u ) // Check for rounding
-                        *hp++ = (hs | he | hm) + (UINT16_TYPE) 1u; // Round, might overflow to inf, this is OK
-                    else
-                        *hp++ = (hs | he | hm);  // No rounding
-                }
+    else
+      // Not zero
+    {
+      xs = x & 0x80000000u;  // Pick off sign bit
+      xe = x & 0x7FF00000u;  // Pick off exponent bits
+      xm = x & 0x000FFFFFu;  // Pick off mantissa bits
+
+      if ( xe == 0 )
+        // Denormal will underflow, return a signed zero
+      {
+        *hp++ = (UINT16_TYPE) (xs >> 16);
+      }
+      else
+        if ( xe == 0x7FF00000u )
+          // Inf or NaN (all the exponent bits are set)
+        {
+          if ( xm == 0 )
+            // If mantissa is zero ...
+          {
+            *hp++ = (UINT16_TYPE) ((xs >> 16) | 0x7C00u); // Signed Inf
+          }
+          else
+          {
+            *hp++ = (UINT16_TYPE) 0xFE00u; // NaN, only 1st mantissa bit set
+          }
+        }
+        else
+          // Normalized number
+        {
+          hs = (UINT16_TYPE) (xs >> 16); // Sign bit
+          hes = ((int)(xe >> 20)) - 1023 + 15; // Exponent unbias the double, then bias the halfp
+
+          if ( hes >= 0x1F )
+            // Overflow
+          {
+            *hp++ = (UINT16_TYPE) ((xs >> 16) | 0x7C00u); // Signed Inf
+          }
+          else
+            if ( hes <= 0 )
+              // Underflow
+            {
+              if ( (10 - hes) > 21 )
+                // Mantissa shifted all the way off & no rounding possibility
+              {
+                hm = (UINT16_TYPE) 0u;  // Set mantissa to zero
+              }
+              else
+              {
+                xm |= 0x00100000u;  // Add the hidden leading bit
+                hm = (UINT16_TYPE) (xm >> (11 - hes)); // Mantissa
+
+                if ( (xm >> (10 - hes)) & 0x00000001u ) // Check for rounding
+                  hm += (UINT16_TYPE) 1u; // Round, might overflow into exp bit, but this is OK
+              }
+
+              *hp++ = (hs | hm); // Combine sign bit and mantissa bits, biased exponent is zero
+            }
+            else
+            {
+              he = (UINT16_TYPE) (hes << 10); // Exponent
+              hm = (UINT16_TYPE) (xm >> 10); // Mantissa
+
+              if ( xm & 0x00000200u ) // Check for rounding
+                *hp++ = (hs | he | hm) + (UINT16_TYPE) 1u; // Round, might overflow to inf, this is OK
+              else
+                *hp++ = (hs | he | hm);  // No rounding
             }
         }
     }
+  }
 }
 
 //-----------------------------------------------------------------------------
 
 void halfp2singles(void *target, void *source, mwSize numel)
 {
-    UINT16_TYPE *hp = (UINT16_TYPE *) source; // Type pun input as an unsigned 16-bit int
-    UINT32_TYPE *xp = (UINT32_TYPE *) target; // Type pun output as an unsigned 32-bit int
-    UINT16_TYPE h, hs, he, hm;
-    UINT32_TYPE xs, xe, xm;
-    INT32_TYPE xes;
-    int e;
+  UINT16_TYPE *hp = (UINT16_TYPE *) source; // Type pun input as an unsigned 16-bit int
+  UINT32_TYPE *xp = (UINT32_TYPE *) target; // Type pun output as an unsigned 32-bit int
+  UINT16_TYPE h, hs, he, hm;
+  UINT32_TYPE xs, xe, xm;
+  INT32_TYPE xes;
+  int e;
 
-    if( source == NULL || target == NULL ) // Nothing to convert (e.g., imag part of pure real)
-        return;
-    while( numel-- ) {
-        h = *hp++;
-        if( (h & 0x7FFFu) == 0 ) {  // Signed zero
-            *xp++ = ((UINT32_TYPE) h) << 16;  // Return the signed zero
-        } else { // Not zero
-            hs = h & 0x8000u;  // Pick off sign bit
-            he = h & 0x7C00u;  // Pick off exponent bits
-            hm = h & 0x03FFu;  // Pick off mantissa bits
-            if( he == 0 ) {  // Denormal will convert to normalized
-                e = -1; // The following loop figures out how much extra to adjust the exponent
-                do {
-                    e++;
-                    hm <<= 1;
-                } while( (hm & 0x0400u) == 0 ); // Shift until leading bit overflows into exponent bit
-                xs = ((UINT32_TYPE) hs) << 16; // Sign bit
-                xes = ((INT32_TYPE) (he >> 10)) - 15 + 127 - e; // Exponent unbias the halfp, then bias the single
-                xe = (UINT32_TYPE) (xes << 23); // Exponent
-                xm = ((UINT32_TYPE) (hm & 0x03FFu)) << 13; // Mantissa
-                *xp++ = (xs | xe | xm); // Combine sign bit, exponent bits, and mantissa bits
-            } else if( he == 0x7C00u ) {  // Inf or NaN (all the exponent bits are set)
-                if( hm == 0 ) { // If mantissa is zero ...
-                    *xp++ = (((UINT32_TYPE) hs) << 16) | ((UINT32_TYPE) 0x7F800000u); // Signed Inf
-                } else {
-                    *xp++ = (UINT32_TYPE) 0xFFC00000u; // NaN, only 1st mantissa bit set
-                }
-            } else { // Normalized number
-                xs = ((UINT32_TYPE) hs) << 16; // Sign bit
-                xes = ((INT32_TYPE) (he >> 10)) - 15 + 127; // Exponent unbias the halfp, then bias the single
-                xe = (UINT32_TYPE) (xes << 23); // Exponent
-                xm = ((UINT32_TYPE) hm) << 13; // Mantissa
-                *xp++ = (xs | xe | xm); // Combine sign bit, exponent bits, and mantissa bits
-            }
+  if ( source == NULL || target == NULL ) // Nothing to convert (e.g., imag part of pure real)
+    return;
+
+  while ( numel-- )
+  {
+    h = *hp++;
+
+    if ( (h & 0x7FFFu) == 0 )
+      // Signed zero
+    {
+      *xp++ = ((UINT32_TYPE) h) << 16;  // Return the signed zero
+    }
+    else
+      // Not zero
+    {
+      hs = h & 0x8000u;  // Pick off sign bit
+      he = h & 0x7C00u;  // Pick off exponent bits
+      hm = h & 0x03FFu;  // Pick off mantissa bits
+
+      if ( he == 0 )
+        // Denormal will convert to normalized
+      {
+        e = -1; // The following loop figures out how much extra to adjust the exponent
+
+        do
+        {
+          e++;
+          hm <<= 1;
+        }
+        while ( (hm & 0x0400u) == 0 );  // Shift until leading bit overflows into exponent bit
+
+        xs = ((UINT32_TYPE) hs) << 16; // Sign bit
+        xes = ((INT32_TYPE) (he >> 10)) - 15 + 127 - e; // Exponent unbias the halfp, then bias the single
+        xe = (UINT32_TYPE) (xes << 23); // Exponent
+        xm = ((UINT32_TYPE) (hm & 0x03FFu)) << 13; // Mantissa
+        *xp++ = (xs | xe | xm); // Combine sign bit, exponent bits, and mantissa bits
+      }
+      else
+        if ( he == 0x7C00u )
+          // Inf or NaN (all the exponent bits are set)
+        {
+          if ( hm == 0 )
+            // If mantissa is zero ...
+          {
+            *xp++ = (((UINT32_TYPE) hs) << 16) | ((UINT32_TYPE) 0x7F800000u); // Signed Inf
+          }
+          else
+          {
+            *xp++ = (UINT32_TYPE) 0xFFC00000u; // NaN, only 1st mantissa bit set
+          }
+        }
+        else
+          // Normalized number
+        {
+          xs = ((UINT32_TYPE) hs) << 16; // Sign bit
+          xes = ((INT32_TYPE) (he >> 10)) - 15 + 127; // Exponent unbias the halfp, then bias the single
+          xe = (UINT32_TYPE) (xes << 23); // Exponent
+          xm = ((UINT32_TYPE) hm) << 13; // Mantissa
+          *xp++ = (xs | xe | xm); // Combine sign bit, exponent bits, and mantissa bits
         }
     }
+  }
 }
 
 //-----------------------------------------------------------------------------
 
 void halfp2doubles(void *target, void *source, mwSize numel)
 {
-    UINT16_TYPE *hp = (UINT16_TYPE *) source; // Type pun input as an unsigned 16-bit int
-    UINT32_TYPE *xp = (UINT32_TYPE *) target; // Type pun output as an unsigned 32-bit int
-    UINT16_TYPE h, hs, he, hm;
-    UINT32_TYPE xs, xe, xm;
-    INT32_TYPE xes;
-    int e;
+  UINT16_TYPE *hp = (UINT16_TYPE *) source; // Type pun input as an unsigned 16-bit int
+  UINT32_TYPE *xp = (UINT32_TYPE *) target; // Type pun output as an unsigned 32-bit int
+  UINT16_TYPE h, hs, he, hm;
+  UINT32_TYPE xs, xe, xm;
+  INT32_TYPE xes;
+  int e;
 
-    xp += next;  // Little Endian adjustment if necessary
+  xp += next;  // Little Endian adjustment if necessary
 
-    if( source == NULL || target == NULL ) // Nothing to convert (e.g., imag part of pure real)
-        return;
-    while( numel-- ) {
-        h = *hp++;
-        if( (h & 0x7FFFu) == 0 ) {  // Signed zero
-            *xp++ = ((UINT32_TYPE) h) << 16;  // Return the signed zero
-        } else { // Not zero
-            hs = h & 0x8000u;  // Pick off sign bit
-            he = h & 0x7C00u;  // Pick off exponent bits
-            hm = h & 0x03FFu;  // Pick off mantissa bits
-            if( he == 0 ) {  // Denormal will convert to normalized
-                e = -1; // The following loop figures out how much extra to adjust the exponent
-                do {
-                    e++;
-                    hm <<= 1;
-                } while( (hm & 0x0400u) == 0 ); // Shift until leading bit overflows into exponent bit
-                xs = ((UINT32_TYPE) hs) << 16; // Sign bit
-                xes = ((INT32_TYPE) (he >> 10)) - 15 + 1023 - e; // Exponent unbias the halfp, then bias the double
-                xe = (UINT32_TYPE) (xes << 20); // Exponent
-                xm = ((UINT32_TYPE) (hm & 0x03FFu)) << 10; // Mantissa
-                *xp++ = (xs | xe | xm); // Combine sign bit, exponent bits, and mantissa bits
-            } else if( he == 0x7C00u ) {  // Inf or NaN (all the exponent bits are set)
-                if( hm == 0 ) { // If mantissa is zero ...
-                    *xp++ = (((UINT32_TYPE) hs) << 16) | ((UINT32_TYPE) 0x7FF00000u); // Signed Inf
-                } else {
-                    *xp++ = (UINT32_TYPE) 0xFFF80000u; // NaN, only the 1st mantissa bit set
-                }
-            } else {
-                xs = ((UINT32_TYPE) hs) << 16; // Sign bit
-                xes = ((INT32_TYPE) (he >> 10)) - 15 + 1023; // Exponent unbias the halfp, then bias the double
-                xe = (UINT32_TYPE) (xes << 20); // Exponent
-                xm = ((UINT32_TYPE) hm) << 10; // Mantissa
-                *xp++ = (xs | xe | xm); // Combine sign bit, exponent bits, and mantissa bits
-            }
-        }
-        xp++; // Skip over the remaining 32 bits of the mantissa
+  if ( source == NULL || target == NULL ) // Nothing to convert (e.g., imag part of pure real)
+    return;
+
+  while ( numel-- )
+  {
+    h = *hp++;
+
+    if ( (h & 0x7FFFu) == 0 )
+      // Signed zero
+    {
+      *xp++ = ((UINT32_TYPE) h) << 16;  // Return the signed zero
     }
+    else
+      // Not zero
+    {
+      hs = h & 0x8000u;  // Pick off sign bit
+      he = h & 0x7C00u;  // Pick off exponent bits
+      hm = h & 0x03FFu;  // Pick off mantissa bits
+
+      if ( he == 0 )
+        // Denormal will convert to normalized
+      {
+        e = -1; // The following loop figures out how much extra to adjust the exponent
+
+        do
+        {
+          e++;
+          hm <<= 1;
+        }
+        while ( (hm & 0x0400u) == 0 );  // Shift until leading bit overflows into exponent bit
+
+        xs = ((UINT32_TYPE) hs) << 16; // Sign bit
+        xes = ((INT32_TYPE) (he >> 10)) - 15 + 1023 - e; // Exponent unbias the halfp, then bias the double
+        xe = (UINT32_TYPE) (xes << 20); // Exponent
+        xm = ((UINT32_TYPE) (hm & 0x03FFu)) << 10; // Mantissa
+        *xp++ = (xs | xe | xm); // Combine sign bit, exponent bits, and mantissa bits
+      }
+      else
+        if ( he == 0x7C00u )
+          // Inf or NaN (all the exponent bits are set)
+        {
+          if ( hm == 0 )
+            // If mantissa is zero ...
+          {
+            *xp++ = (((UINT32_TYPE) hs) << 16) | ((UINT32_TYPE) 0x7FF00000u); // Signed Inf
+          }
+          else
+          {
+            *xp++ = (UINT32_TYPE) 0xFFF80000u; // NaN, only the 1st mantissa bit set
+          }
+        }
+        else
+        {
+          xs = ((UINT32_TYPE) hs) << 16; // Sign bit
+          xes = ((INT32_TYPE) (he >> 10)) - 15 + 1023; // Exponent unbias the halfp, then bias the double
+          xe = (UINT32_TYPE) (xes << 20); // Exponent
+          xm = ((UINT32_TYPE) hm) << 10; // Mantissa
+          *xp++ = (xs | xe | xm); // Combine sign bit, exponent bits, and mantissa bits
+        }
+    }
+
+    xp++; // Skip over the remaining 32 bits of the mantissa
+  }
 }

@@ -13,7 +13,7 @@ class TiffStorage : public AbstractOutputStream
 {
 public:
   /// Constructor
-  TiffStorage(const ConfigNode& inConfigNode);
+  TiffStorage(const ConfigNode &inConfigNode);
 
   /// Destructor
   ~TiffStorage();

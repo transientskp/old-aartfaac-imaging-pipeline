@@ -8,7 +8,7 @@
 Calibrator::Calibrator(const ConfigNode &inConfig)
   : AbstractModule(inConfig)
 {
-  mUVFlags.resize(288*288, 0);
+  mUVFlags.resize(288 * 288, 0);
 }
 
 Calibrator::~Calibrator()

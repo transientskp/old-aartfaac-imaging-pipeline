@@ -7,7 +7,8 @@ using namespace pelican;
 
 class StreamBlob;
 
-class Imager : public AbstractModule {
+class Imager : public AbstractModule
+{
 public:
   Imager(const ConfigNode &inConfig);
   ~Imager();

@@ -11,37 +11,38 @@ using namespace pelican;
 class StreamChunker : public AbstractChunker
 {
 public:
-    StreamChunker(const ConfigNode& inConfig);
+  StreamChunker(const ConfigNode &inConfig);
 
-    virtual QIODevice* newDevice();
-    virtual void next(QIODevice *inDevice);
+  virtual QIODevice *newDevice();
+  virtual void next(QIODevice *inDevice);
 
 private:
 
-    class Chunk {
-    public:
-      Chunk(StreamChunker *inChunker);
+  class Chunk
+  {
+  public:
+    Chunk(StreamChunker *inChunker);
 
-      bool isTimeUp();
-      bool isFilled();
-      void addData(const void *inData, const int inLength);
-      quint32 fill();
+    bool isTimeUp();
+    bool isFilled();
+    void addData(const void *inData, const int inLength);
+    quint32 fill();
 
-    private:
-      WritableData mData;
-      QTime mTimer;
-      quint64 mBytesRead;
-      StreamChunker *mChunker;
-      char *mPtr;
-    };
+  private:
+    WritableData mData;
+    QTime mTimer;
+    quint64 mBytesRead;
+    StreamChunker *mChunker;
+    char *mPtr;
+  };
 
-    quint64 mChunkSize; ///< Size of a chunk in bytes
-    qint64 mPacketSize; ///< Size of a udp packet in bytes
-    int mTimeout; ///< Max time a chunk will wait for data in milliseconds
-    static StreamUdpPacket sEmptyPacket; ///< Default empty packet
+  quint64 mChunkSize; ///< Size of a chunk in bytes
+  qint64 mPacketSize; ///< Size of a udp packet in bytes
+  int mTimeout; ///< Max time a chunk will wait for data in milliseconds
+  static StreamUdpPacket sEmptyPacket; ///< Default empty packet
 
-    QHash<quint64, Chunk*> mDataBuffers;
-    quint64 hash(const double inTime, const double inFrequency);
+  QHash<quint64, Chunk *> mDataBuffers;
+  quint64 hash(const double inTime, const double inFrequency);
 };
 
 PELICAN_DECLARE_CHUNKER(StreamChunker)

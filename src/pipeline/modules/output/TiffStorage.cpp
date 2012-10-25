@@ -12,9 +12,10 @@ TiffStorage::TiffStorage(const ConfigNode &inConfigNode)
   mPath = inConfigNode.getOption("file", "path", "./");
 
   QColor color;
+
   for (int i = 0; i < 256; i++)
   {
-    int hue = (int) round(240.0 - (i/255.0*240.0));
+    int hue = (int) round(240.0 - (i / 255.0 * 240.0));
     color.setHsv(hue, 255, 255);
     mColors.append(color.rgb());
   }
@@ -29,7 +30,7 @@ void TiffStorage::sendStream(const QString &inStreamName, const DataBlob *inData
 {
   Q_UNUSED(inStreamName);
 
-  const StreamBlob *blob = static_cast<const StreamBlob*>(inDataBlob);
+  const StreamBlob *blob = static_cast<const StreamBlob *>(inDataBlob);
 
   if (blob->type() != "UniboardDataBlob")
   {
@@ -41,7 +42,9 @@ void TiffStorage::sendStream(const QString &inStreamName, const DataBlob *inData
 
   // Obtain min and max value
   float min = std::numeric_limits<float>::max();
+
   float max = std::numeric_limits<float>::min();
+
   for (int i = 0, n = skymap.size(); i < n; i++)
   {
     min = std::min<float>(min, skymap[i]);
@@ -51,12 +54,14 @@ void TiffStorage::sendStream(const QString &inStreamName, const DataBlob *inData
   // Normalize between 0..1 and find gamma
   std::vector<float> normalized(skymap.size());
   float gamma = 0.75f;
+
   for (int i = 0, n = skymap.size(); i < n; i++)
     normalized[i] = (skymap[i] - min) / (max - min);
 
   // Apply gamma correction and put into bitmap
   // See http://en.wikipedia.org/wiki/Gamma_correction
   std::vector<unsigned char> bitmap(skymap.size());
+
   for (int i = 0, n = skymap.size(); i < n; i++)
     bitmap[i] = (unsigned char) round(std::pow<float>(normalized[i], gamma) * 255.0f);
 

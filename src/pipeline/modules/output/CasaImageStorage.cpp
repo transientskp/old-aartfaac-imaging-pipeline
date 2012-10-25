@@ -18,7 +18,7 @@ CasaImageStorage::~CasaImageStorage()
 
 void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *inDataBlob)
 {
-  const StreamBlob *blob = static_cast<const StreamBlob*>(inDataBlob);
+  const StreamBlob *blob = static_cast<const StreamBlob *>(inDataBlob);
 
   if (blob->type() != "UniboardDataBlob")
   {
@@ -28,14 +28,17 @@ void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *i
   }
 
   const std::vector<float> &skymap = blob->getSkyMap();
+
   QString filename = mPath + "/" +
-      QString::number(blob->getFrequency(), 'f', 6) +
-      "_" + blob->getDateTime().toString("dd-MM-yyyy_hh:mm:ss") + ".image";
+                     QString::number(blob->getFrequency(), 'f', 6) +
+                     "_" + blob->getDateTime().toString("dd-MM-yyyy_hh:mm:ss") + ".image";
 
   static casa::TiledShape map_shape(casa::IPosition(2, 512, 512));
+
   static casa::CoordinateSystem coordinate_info = casa::CoordinateUtil::defaultCoords2D();
 
   casa::PagedImage<casa::Float> image(map_shape, coordinate_info, qPrintable(filename));
+
   for (int i = 0, x, y, n = skymap.size(); i < n; i++)
   {
     x = i % 512;

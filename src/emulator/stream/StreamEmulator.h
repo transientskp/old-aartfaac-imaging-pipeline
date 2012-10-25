@@ -11,7 +11,7 @@
 class StreamEmulator : public pelican::AbstractUdpEmulator
 {
 public:
-   StreamEmulator(const pelican::ConfigNode &inConfigNode);
+  StreamEmulator(const pelican::ConfigNode &inConfigNode);
   ~StreamEmulator();
 
   void getPacketData(char *&outData, unsigned long &outSize);

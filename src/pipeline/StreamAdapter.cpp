@@ -7,8 +7,8 @@
 extern "C" void halfp2singles(void *target, void *source, int numel);
 
 // Construct the example adapter.
-StreamAdapter::StreamAdapter(const ConfigNode& config)
-    : AbstractStreamAdapter(config)
+StreamAdapter::StreamAdapter(const ConfigNode &config)
+  : AbstractStreamAdapter(config)
 {
   mMaxPacketSamples = MAX_CORRELATIONS;
   mAntennae = config.getOption("antennae", "amount").toUInt();
@@ -17,7 +17,7 @@ StreamAdapter::StreamAdapter(const ConfigNode& config)
 
 void StreamAdapter::deserialise(QIODevice *inDevice)
 {
-  StreamBlob *blob = static_cast<StreamBlob*>(dataBlob());
+  StreamBlob *blob = static_cast<StreamBlob *>(dataBlob());
   blob->reset();
   quint32 num_packets = chunkSize() / mPacketSize;
 
@@ -25,12 +25,13 @@ void StreamAdapter::deserialise(QIODevice *inDevice)
   quint64 bytes_read = 0;
   std::complex<float> polarizations[4];
   bool is_touched = false;
+
   for (quint32 i = 0; i < num_packets; i++)
   {
     while (inDevice->bytesAvailable() < mPacketSize)
       inDevice->waitForReadyRead(100);
 
-    bytes_read += inDevice->read(reinterpret_cast<char*>(&packet), mPacketSize);
+    bytes_read += inDevice->read(reinterpret_cast<char *>(&packet), mPacketSize);
 
     if (!is_touched)
     {
@@ -43,12 +44,12 @@ void StreamAdapter::deserialise(QIODevice *inDevice)
     {
       StreamUdpPacket::Correlation &correlation = packet.mCorrelations[j];
 
-      for (quint32 k = 0; k < 8; k+=2)
+      for (quint32 k = 0; k < 8; k += 2)
       {
-        halfp2singles(static_cast<float*>(&polarizations[k/2].real()),
-                      static_cast<void*>(&correlation.polarizations[k]), 1);
-        halfp2singles(static_cast<float*>(&polarizations[k/2].imag()),
-                      static_cast<void*>(&correlation.polarizations[k+1]), 1);
+        halfp2singles(static_cast<float *>(&polarizations[k / 2].real()),
+                      static_cast<void *>(&correlation.polarizations[k]), 1);
+        halfp2singles(static_cast<float *>(&polarizations[k / 2].imag()),
+                      static_cast<void *>(&correlation.polarizations[k + 1]), 1);
       }
 
       blob->addSample(correlation.a1, correlation.a2,

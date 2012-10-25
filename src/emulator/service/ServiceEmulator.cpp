@@ -6,7 +6,7 @@
 
 ServiceEmulator::ServiceEmulator(const pelican::ConfigNode &inConfigNode)
   : AbstractUdpEmulator(inConfigNode),
-  mCurrentRow(0)
+    mCurrentRow(0)
 {
   QString table_name = QCoreApplication::arguments().at(1);
   casa::Table table(qPrintable(table_name));
@@ -25,29 +25,33 @@ ServiceEmulator::~ServiceEmulator()
 
 void ServiceEmulator::getPacketData(char *&outData, unsigned long &outSize)
 {
-  outData = (char*) (&mUdpPacket);
+  outData = (char *) (&mUdpPacket);
   outSize = sizeof(mUdpPacket);
-  memset(static_cast<void*>(&mUdpPacket), 0, outSize);
+  memset(static_cast<void *>(&mUdpPacket), 0, outSize);
 
   casa::Array<casa::Double> double_array;
   casa::Array<casa::Double>::iterator iter;
   int j = 0;
+
   for (quint32 i = 0; i < mMaxRowsPerPacket; i++)
   {
     double_array = mMSColumns->antenna().offset()(mCurrentRow);
     j = 0;
+
     for (iter = double_array.begin(); iter != double_array.end(); ++iter)
       mUdpPacket.mAntennas[i].offset[j++] = *iter;
 
     double_array = mMSColumns->antenna().position()(mCurrentRow);
     j = 0;
+
     for (iter = double_array.begin(); iter != double_array.end(); ++iter)
       mUdpPacket.mAntennas[i].pos[j++] = *iter;
 
     mCurrentRow++;
+
     if (mCurrentRow % (mTotalRows / 100) == 0)
       qDebug("Sent %3d%% of measurement set",
-        int(floor((mCurrentRow / double(mTotalRows))*100.0)));
+             int(floor((mCurrentRow / double(mTotalRows)) * 100.0)));
   }
 }
 

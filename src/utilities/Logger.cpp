@@ -25,40 +25,48 @@ void Logger::messageHandler(QtMsgType inType, const char *inMsg)
 
   switch (inType)
   {
-    case QtDebugMsg:
+  case QtDebugMsg:
     {
       syslog(LOG_INFO, "[INFO] %s", inMsg);
+
       if (sShouldUseColor)
         std::cout << qPrintable(colorize(msg, GREEN)) << std::endl;
       else
         std::cout << "[INFO] " << inMsg << std::endl;
+
       break;
     }
-    case QtWarningMsg:
+  case QtWarningMsg:
     {
       syslog(LOG_WARNING, "[WARNING] %s", inMsg);
+
       if (sShouldUseColor)
         std::cout << qPrintable(colorize(msg, YELLOW)) << std::endl;
       else
         std::cout << "[WARNING] " << inMsg << std::endl;
+
       break;
     }
-    case QtCriticalMsg:
+  case QtCriticalMsg:
     {
       syslog(LOG_CRIT, "[CRITICAL] %s", inMsg);
+
       if (sShouldUseColor)
         std::cerr << qPrintable(colorize(msg, RED)) << std::endl;
       else
         std::cerr << "[CRITICAL] " << inMsg << std::endl;
+
       break;
     }
-    case QtFatalMsg:
+  case QtFatalMsg:
     {
       syslog(LOG_EMERG, "[FATAL] %s", inMsg);
+
       if (sShouldUseColor)
         std::cerr << qPrintable(colorize(msg, RED)) << std::endl;
       else
         std::cerr << "[FATAL] " << inMsg << std::endl;
+
       exit(EXIT_FAILURE);
       break;
     }
@@ -79,7 +87,7 @@ bool Logger::shouldUseColor()
   return true;
 #else
   // On non-Windows platforms, we rely on the TERM variable.
-  const char* term = getenv("TERM");
+  const char *term = getenv("TERM");
 
   if (term == NULL)
     return false;

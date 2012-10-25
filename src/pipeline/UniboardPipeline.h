@@ -14,17 +14,17 @@ class UniboardPipeline : public AbstractPipeline
 public:
   /// Constructor.
   UniboardPipeline() : AbstractPipeline(),
-      mOutputData(NULL),
-      mImager(NULL),
-      mCalibrator(NULL),
-      mBlobCount(0)
+    mOutputData(NULL),
+    mImager(NULL),
+    mCalibrator(NULL),
+    mBlobCount(0)
   {}
 
   /// Initialises the pipeline.
   void init();
 
   /// Defines one iteration of the pipeline.
-  void run(QHash<QString, DataBlob*>& remoteData);
+  void run(QHash<QString, DataBlob *>& remoteData);
 
 private:
   StreamBlob *mOutputData;

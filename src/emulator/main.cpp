@@ -9,7 +9,8 @@
 #include <QtCore/QCoreApplication>
 #include <QtCore/QString>
 
-struct CleanExit {
+struct CleanExit
+{
   CleanExit()
   {
     signal(SIGINT, &CleanExit::exitQt);
@@ -24,7 +25,7 @@ struct CleanExit {
   }
 };
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
   QString host = "127.0.0.1";
 
@@ -53,16 +54,16 @@ int main(int argc, char* argv[])
   qDebug("%s", HUMAN_NAME);
 
   pelican::ConfigNode stream_config(
-        "<StreamEmulator>"
-        "  <connection host=\"" + host + "\" port=\"2001\" />"
-        "</StreamEmulator>"
+    "<StreamEmulator>"
+    "  <connection host=\"" + host + "\" port=\"2001\" />"
+    "</StreamEmulator>"
   );
   pelican::EmulatorDriver driver1(new StreamEmulator(stream_config));
 
   pelican::ConfigNode service_config(
-        "<ServiceEmulator>"
-        "  <connection host=\"" + host + "\" port=\"2002\" />"
-        "</ServiceEmulator>"
+    "<ServiceEmulator>"
+    "  <connection host=\"" + host + "\" port=\"2002\" />"
+    "</ServiceEmulator>"
   );
   pelican::EmulatorDriver driver2(new ServiceEmulator(service_config));
 

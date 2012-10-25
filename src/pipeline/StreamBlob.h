@@ -36,16 +36,46 @@ public:
 
   std::vector<float>* getXXImag();
 
-  void setFrequency(const double inFrequency)  { mFrequency = inFrequency; }
-  quint32 getFrequency() const                 { return mFrequency; }
-  double getMJDTime() const                    { return mMJDTime; }
-  QDateTime getDateTime() const                { return mDateTime; }
-  quint32 getWidth() const                     { return mWidth; }
-  quint32 getHeight() const                    { return mHeight; }
-  std::vector<float>& getSkyMap()              { return mSkyMap; }
-  std::vector<float>& getVisMap()              { return mVisMap; }
-  const std::vector<float>& getSkyMap() const  { return mSkyMap; }
-  const std::vector<float>& getVisMap() const  { return mVisMap; }
+  void setFrequency(const double inFrequency)
+  {
+    mFrequency = inFrequency;
+  }
+  quint32 getFrequency() const
+  {
+    return mFrequency;
+  }
+  double getMJDTime() const
+  {
+    return mMJDTime;
+  }
+  QDateTime getDateTime() const
+  {
+    return mDateTime;
+  }
+  quint32 getWidth() const
+  {
+    return mWidth;
+  }
+  quint32 getHeight() const
+  {
+    return mHeight;
+  }
+  std::vector<float>& getSkyMap()
+  {
+    return mSkyMap;
+  }
+  std::vector<float>& getVisMap()
+  {
+    return mVisMap;
+  }
+  const std::vector<float>& getSkyMap() const
+  {
+    return mSkyMap;
+  }
+  const std::vector<float>& getVisMap() const
+  {
+    return mVisMap;
+  }
   void createImage(const std::vector<unsigned char> &inData, const QString &inType);
 
 private:

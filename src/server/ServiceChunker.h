@@ -11,15 +11,15 @@ using namespace pelican;
 class ServiceChunker : public AbstractChunker
 {
 public:
-    ServiceChunker(const ConfigNode& inConfig);
+  ServiceChunker(const ConfigNode &inConfig);
 
-    virtual QIODevice* newDevice();
-    virtual void next(QIODevice *inDevice);
+  virtual QIODevice *newDevice();
+  virtual void next(QIODevice *inDevice);
 
 private:
-    qint64 mPacketSize; ///< Size of a udp packet in bytes
-    qint64 mChunkSize; ///< Size of a chunk in bytes
-    static ServiceAntennaUdpPacket sEmptyPacket; ///< Default empty packet
+  qint64 mPacketSize; ///< Size of a udp packet in bytes
+  qint64 mChunkSize; ///< Size of a chunk in bytes
+  static ServiceAntennaUdpPacket sEmptyPacket; ///< Default empty packet
 };
 
 PELICAN_DECLARE_CHUNKER(ServiceChunker)

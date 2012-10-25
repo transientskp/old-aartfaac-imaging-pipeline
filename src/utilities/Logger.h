@@ -3,7 +3,8 @@
 
 #include <QtCore>
 
-class Logger {
+class Logger
+{
 public:
   static void messageHandler(QtMsgType inType, const char *inMsg);
   static bool shouldUseColor();
@@ -11,7 +12,8 @@ public:
   static void close();
 
 private:
-  enum Color {
+  enum Color
+  {
     BLACK   = 30,
     RED     = 31,
     GREEN   = 32,

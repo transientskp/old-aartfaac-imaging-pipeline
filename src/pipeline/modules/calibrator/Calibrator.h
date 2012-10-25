@@ -7,7 +7,8 @@ using namespace pelican;
 
 class StreamBlob;
 
-class Calibrator : public AbstractModule {
+class Calibrator : public AbstractModule
+{
 public:
   Calibrator(const ConfigNode &inConfig);
   ~Calibrator();

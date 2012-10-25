@@ -24,8 +24,10 @@ StreamEmulator::StreamEmulator(const pelican::ConfigNode &inConfigNode)
   mTotalChannels = mMSColumns->spectralWindow().numChan()(0);
   mTotalChannelsAndTableRows = mTotalTableRows * mTotalChannels;
   mCurChannelId = 0;
+
   if (mMSColumns->spectralWindow().numChan().nrow() != 1)
     qFatal("Varying channels in single MS not supported");
+
   mTimer.start();
 }
 
@@ -37,9 +39,9 @@ StreamEmulator::~StreamEmulator()
 
 void StreamEmulator::getPacketData(char *&outData, unsigned long &outSize)
 {
-  outData = (char*) &mUdpPacket;
+  outData = (char *) &mUdpPacket;
   outSize = sizeof(StreamUdpPacket);
-  memset(static_cast<void*>(&mUdpPacket), 0, sizeof(StreamUdpPacket));
+  memset(static_cast<void *>(&mUdpPacket), 0, sizeof(StreamUdpPacket));
 
   double freq = mMSColumns->spectralWindow().chanFreq()(0).data()[mCurChannelId];
   double cur_time = mMSColumns->time()(mRowIndex);
@@ -52,6 +54,7 @@ void StreamEmulator::getPacketData(char *&outData, unsigned long &outSize)
   // Set the udp packet data
   casa::Array<casa::Complex> data_array;
   casa::Array<casa::Complex>::iterator cIter;
+
   for (quint32 i = 0; i < mMaxSamples && mRowIndex < mTotalTableRows; i++)
   {
     StreamUdpPacket::Correlation &correlation = mUdpPacket.mCorrelations[i];
@@ -67,13 +70,14 @@ void StreamEmulator::getPacketData(char *&outData, unsigned long &outSize)
 
     // Fill sample with complex data polarizations
     int j = 0;
+
     for (cIter = data_array.begin(); cIter != data_array.end(); ++cIter)
     {
-      singles2halfp(static_cast<quint16*>(&correlation.polarizations[j++]),
-                    static_cast<void*>(&(*cIter).real()), 1);
+      singles2halfp(static_cast<quint16 *>(&correlation.polarizations[j++]),
+                    static_cast<void *>(&(*cIter).real()), 1);
 
-      singles2halfp(static_cast<quint16*>(&correlation.polarizations[j++]),
-                    static_cast<void*>(&(*cIter).imag()), 1);
+      singles2halfp(static_cast<quint16 *>(&correlation.polarizations[j++]),
+                    static_cast<void *>(&(*cIter).imag()), 1);
     }
 
     mUdpPacket.mHeader.correlations++;
@@ -82,7 +86,7 @@ void StreamEmulator::getPacketData(char *&outData, unsigned long &outSize)
 
     if (mTotalRowIndex % (mTotalChannelsAndTableRows / 100) == 0)
       qDebug("Sent %3d%% of measurement set",
-             int(ceil((mTotalRowIndex / double(mTotalChannelsAndTableRows))*100)));
+             int(ceil((mTotalRowIndex / double(mTotalChannelsAndTableRows)) * 100)));
   }
 
   if (mRowIndex >= mTotalTableRows)
@@ -116,7 +120,7 @@ void StreamEmulator::emulationFinished()
   qDebug("Packet     : %ld bytes", sizeof(StreamUdpPacket));
   qDebug("Channels   : %lld channels", mTotalChannels);
   qDebug("MBytes     : %0.2f sent", mbytes);
-  qDebug("MB/sec     : %0.2f sent", mbytes/seconds);
+  qDebug("MB/sec     : %0.2f sent", mbytes / seconds);
   qDebug("Sent       : %lld samples", mTotalCorrelations);
 
   qDebug("Stream Emulator finished");
