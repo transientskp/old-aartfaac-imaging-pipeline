@@ -28,13 +28,12 @@ TiffStorage::~TiffStorage()
 
 void TiffStorage::sendStream(const QString &inStreamName, const DataBlob *inDataBlob)
 {
-  Q_UNUSED(inStreamName);
-
   const StreamBlob *blob = static_cast<const StreamBlob *>(inDataBlob);
 
-  if (blob->type() != "UniboardDataBlob")
+  if (blob->type() != "StreamBlob")
   {
-    qWarning("Expected datablob type 'StreamBlob', got '%s' ignoring...", qPrintable(blob->type()));
+    qWarning("Expected 'StreamBlob', got '%s' on stream '%s', ignoring...",
+             qPrintable(blob->type()), qPrintable(inStreamName));
     return;
   }
 

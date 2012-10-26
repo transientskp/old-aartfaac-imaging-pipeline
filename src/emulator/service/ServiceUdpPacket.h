@@ -3,28 +3,22 @@
 
 #include <QtCore>
 
-#define MAX_ANTENNAS 8
+#define MAX_ANTENNAS 83
+#define MAX_NAME_SIZE 16
 
-class ServiceAntennaUdpPacket
+class ServiceUdpPacket
 {
 public:
   struct Header
   {
-    quint32 rows; ///< number of actual rows within a packet
+    quint16 rows; ///< number of actual rows within a packet
+    quint16 antennae; ///< number of total antennas
   } __attribute__((packed)) mHeader;
 
   struct Antenna
   {
-    double offset[3];
-    double pos[3];
-    char antenna_type[16];
-    double dish_diameter;
-    bool flag_row;
-    char mount[16];
-    char name[16];
-    char station[16];
-    quint32 station_id;
-    double phase_ref[3];
+    quint16 id;
+    char name[MAX_NAME_SIZE];
   } __attribute__((packed)) mAntennas[MAX_ANTENNAS];
 };
 

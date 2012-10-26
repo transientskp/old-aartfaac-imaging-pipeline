@@ -29,10 +29,10 @@
 
     <output>
       <streamers>
-				<TiffStorage active="true">
+				<TiffStorage active="false">
 					<file path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
 				</TiffStorage>
-				<CasaImageStorage active="true">
+				<CasaImageStorage active="false">
 					<file path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
 				</CasaImageStorage>
       </streamers>

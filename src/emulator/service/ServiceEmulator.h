@@ -22,7 +22,7 @@ private:
   void emulationFinished();
 
   QTime mTimer;
-  ServiceAntennaUdpPacket mUdpPacket;
+  ServiceUdpPacket mUdpPacket;
 
   casa::MeasurementSet *mMeasurementSet;
   casa::ROMSColumns *mMSColumns;
@@ -30,6 +30,7 @@ private:
   quint64 mTotalRows;
   quint64 mMaxRowsPerPacket;
   quint64 mCurrentRow;
+  quint64 mTotalPackets;
 };
 
 #endif // SERVICE_EMULATOR_H

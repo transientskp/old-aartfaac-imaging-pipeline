@@ -5,12 +5,15 @@
 #include <pelican/utility/Config.h>
 #include <QtNetwork/QUdpSocket>
 
-ServiceAntennaUdpPacket ServiceChunker::sEmptyPacket;
-
 ServiceChunker::ServiceChunker(const ConfigNode &inConfig)
-  : AbstractChunker(inConfig)
+  : AbstractChunker(inConfig),
+  mBytesReceived(0),
+  mRowsReceived(0)
 {
-  mPacketSize = sizeof(sEmptyPacket);
+  mPacketSize = sizeof(ServiceUdpPacket);
+  mAntennas = inConfig.getOption("antennae", "count").toInt();
+  mChunkSize = ceil(mAntennas / double(MAX_ANTENNAS)) * mPacketSize;
+  Q_ASSERT(mChunkSize % mPacketSize == 0);
 }
 
 QIODevice *ServiceChunker::newDevice()
@@ -23,6 +26,9 @@ QIODevice *ServiceChunker::newDevice()
   while (socket->state() != QUdpSocket::BoundState)
     {}
 
+  mChunk = new WritableData();
+  *mChunk = getDataStorage(mChunkSize);
+  Q_ASSERT(mChunk->isValid());
   return socket;
 }
 
@@ -31,36 +37,31 @@ void ServiceChunker::next(QIODevice *inDevice)
   if (!isActive())
     return;
 
-  quint64 bytes_received = 0;
-
   QUdpSocket *udp_socket = static_cast<QUdpSocket *>(inDevice);
 
-  ServiceAntennaUdpPacket packet;
+  ServiceUdpPacket packet;
 
   while (inDevice->bytesAvailable() < mPacketSize)
     udp_socket->waitForReadyRead(-1);
 
-  WritableData data = getDataStorage(sizeof(double) * 3);
-
-  if (data.isValid())
-  {
-
-    if (udp_socket->readDatagram(reinterpret_cast<char *>(&packet), mPacketSize) <= 0)
-      qWarning("Failed receiving UDP packet");
-    else
-    {
-
-      qDebug("Antenna pos: %g %g %g", packet.mAntennas[0].pos[0],
-             packet.mAntennas[0].pos[1],
-             packet.mAntennas[0].pos[2]);
-      data.write(static_cast<void *>(&packet.mAntennas[0].pos[0]), sizeof(double) * 3);
-    }
-  }
+  if (udp_socket->readDatagram(reinterpret_cast<char *>(&packet), mPacketSize) <= 0)
+    qWarning("Failed receiving UDP packet");
   else
   {
-    qCritical("Could not allocate datastorage");
-    udp_socket->readDatagram(0, 0);
+    for (int i = 0; i < packet.mHeader.rows; i++)
+    {
+      qDebug("Antenna[%d]: %s", packet.mAntennas[i].id, packet.mAntennas[i].name);
+      int bytes = sizeof(packet.mAntennas[i]);
+      mChunk->write(static_cast<void *>(&packet.mAntennas[i]), bytes, mBytesReceived);
+      mBytesReceived += bytes;
+      mRowsReceived++;
+    }
   }
 
-  bytes_received += mPacketSize;
+  if (mRowsReceived == mAntennas)
+  {
+    delete mChunk;
+    mBytesReceived = 0;
+    mRowsReceived = 0;
+  }
 }

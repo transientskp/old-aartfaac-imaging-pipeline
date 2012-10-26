@@ -19,7 +19,10 @@ public:
 private:
   qint64 mPacketSize; ///< Size of a udp packet in bytes
   qint64 mChunkSize; ///< Size of a chunk in bytes
-  static ServiceAntennaUdpPacket sEmptyPacket; ///< Default empty packet
+  qint64 mBytesReceived; ///< Number of bytes received
+  qint64 mRowsReceived; ///< Number of rows (antennas) received
+  qint64 mAntennas; ///< Number of antennas
+  WritableData *mChunk; ///< Chunk
 };
 
 PELICAN_DECLARE_CHUNKER(ServiceChunker)

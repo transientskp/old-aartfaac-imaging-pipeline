@@ -6,7 +6,8 @@
 
 ServiceEmulator::ServiceEmulator(const pelican::ConfigNode &inConfigNode)
   : AbstractUdpEmulator(inConfigNode),
-    mCurrentRow(0)
+    mCurrentRow(0),
+    mTotalPackets(0)
 {
   QString table_name = QCoreApplication::arguments().at(1);
   casa::Table table(qPrintable(table_name));
@@ -29,23 +30,14 @@ void ServiceEmulator::getPacketData(char *&outData, unsigned long &outSize)
   outSize = sizeof(mUdpPacket);
   memset(static_cast<void *>(&mUdpPacket), 0, outSize);
 
-  casa::Array<casa::Double> double_array;
-  casa::Array<casa::Double>::iterator iter;
-  int j = 0;
+  mUdpPacket.mHeader.antennae = mTotalRows;
 
-  for (quint32 i = 0; i < mMaxRowsPerPacket; i++)
+  quint32 i;
+  for (i = 0; i < mMaxRowsPerPacket && mCurrentRow < mTotalRows; i++)
   {
-    double_array = mMSColumns->antenna().offset()(mCurrentRow);
-    j = 0;
-
-    for (iter = double_array.begin(); iter != double_array.end(); ++iter)
-      mUdpPacket.mAntennas[i].offset[j++] = *iter;
-
-    double_array = mMSColumns->antenna().position()(mCurrentRow);
-    j = 0;
-
-    for (iter = double_array.begin(); iter != double_array.end(); ++iter)
-      mUdpPacket.mAntennas[i].pos[j++] = *iter;
+    mUdpPacket.mAntennas[i].id = mCurrentRow;
+    casa::String name = mMSColumns->antenna().name()(mCurrentRow);
+    strcpy(mUdpPacket.mAntennas[i].name, name.c_str());
 
     mCurrentRow++;
 
@@ -53,6 +45,9 @@ void ServiceEmulator::getPacketData(char *&outData, unsigned long &outSize)
       qDebug("Sent %3d%% of measurement set",
              int(floor((mCurrentRow / double(mTotalRows)) * 100.0)));
   }
+
+  mUdpPacket.mHeader.rows = i;
+  mTotalPackets++;
 }
 
 unsigned long ServiceEmulator::interval()
@@ -67,5 +62,14 @@ int ServiceEmulator::nPackets()
 
 void ServiceEmulator::emulationFinished()
 {
+  float seconds = mTimer.elapsed() / 1000.0f;
+  float mbytes = (sizeof(ServiceUdpPacket) * mTotalPackets) / (1024.0f * 1024.0f);
+
+  qDebug("Header     : %ld bytes", sizeof(ServiceUdpPacket::Header));
+  qDebug("Correlation: %ld bytes", sizeof(ServiceUdpPacket::Antenna));
+  qDebug("Packet     : %ld bytes", sizeof(ServiceUdpPacket));
+  qDebug("MBytes     : %0.2f sent", mbytes);
+  qDebug("MB/sec     : %0.2f sent", mbytes / seconds);
+  qDebug("Sent       : %lld samples", mCurrentRow);
   qDebug("Service Emulator finished");
 }

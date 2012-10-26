@@ -20,9 +20,9 @@ void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *i
 {
   const StreamBlob *blob = static_cast<const StreamBlob *>(inDataBlob);
 
-  if (blob->type() != "UniboardDataBlob")
+  if (blob->type() != "StreamBlob")
   {
-    qWarning("Expected 'UniboardDataBlob', got '%s' on stream '%s', ignoring...",
+    qWarning("Expected 'StreamBlob', got '%s' on stream '%s', ignoring...",
              qPrintable(blob->type()), qPrintable(inStreamName));
     return;
   }

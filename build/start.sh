@@ -7,6 +7,12 @@ SCONFIG=${ROOT}/../src/xml/serverConfig.xml
 PCONFIG=${ROOT}/../src/xml/pipelineConfig.xml
 PIPELINES=2
 
+if [ -z "$2" ]; then
+  PIPELINES=2
+else
+  PIPELINES=$2
+fi
+
 if [ ! -d "$1" ]; then
 	echo "ERROR: <arg1> should point to a measurement set." >&2
 	exit 1
