@@ -13,7 +13,7 @@ public:
   void deserialise(QIODevice *inDevice);
 
 private:
-
+  quint32 mPacketSize;
 };
 
 // Register the adapter

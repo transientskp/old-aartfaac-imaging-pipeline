@@ -7,7 +7,7 @@
       <PelicanServerClient>
         <server host="127.0.0.1" port="2000"/>
         <data type="StreamBlob" adapter="StreamAdapter"/>
-				<data type="ServiceBlob" adapter="ServiceAdapter"/>
+        <data type="ServiceBlob" adapter="ServiceAdapter"/>
       </PelicanServerClient>
     </clients>
 
@@ -15,9 +15,9 @@
       <StreamAdapter>
         <antennae amount="288"/>
       </StreamAdapter>
-			<ServiceAdapter>
+      <ServiceAdapter>
         <!-- No specific settings -->
-			</ServiceAdapter>
+      </ServiceAdapter>
     </adapters>
 
     <modules>
@@ -29,12 +29,12 @@
 
     <output>
       <streamers>
-				<TiffStorage active="false">
-					<file path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
-				</TiffStorage>
-				<CasaImageStorage active="false">
-					<file path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
-				</CasaImageStorage>
+        <TiffStorage active="false">
+          <file path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
+        </TiffStorage>
+        <CasaImageStorage active="false">
+          <file path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
+        </CasaImageStorage>
       </streamers>
       <dataStreams>
         <stream name="post" listeners="TiffStorage"/>

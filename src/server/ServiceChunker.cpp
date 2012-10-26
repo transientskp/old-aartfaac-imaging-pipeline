@@ -7,8 +7,7 @@
 
 ServiceChunker::ServiceChunker(const ConfigNode &inConfig)
   : AbstractChunker(inConfig),
-  mBytesReceived(0),
-  mRowsReceived(0)
+  mBytesReceived(0)
 {
   mPacketSize = sizeof(ServiceUdpPacket);
   mAntennas = inConfig.getOption("antennae", "count").toInt();
@@ -26,9 +25,6 @@ QIODevice *ServiceChunker::newDevice()
   while (socket->state() != QUdpSocket::BoundState)
     {}
 
-  mChunk = new WritableData();
-  *mChunk = getDataStorage(mChunkSize);
-  Q_ASSERT(mChunk->isValid());
   return socket;
 }
 
@@ -36,6 +32,13 @@ void ServiceChunker::next(QIODevice *inDevice)
 {
   if (!isActive())
     return;
+
+  if (mBytesReceived == 0)
+  {
+    mChunk = new WritableData();
+    *mChunk = getDataStorage(mChunkSize);
+    Q_ASSERT(mChunk->isValid());
+  }
 
   QUdpSocket *udp_socket = static_cast<QUdpSocket *>(inDevice);
 
@@ -48,20 +51,17 @@ void ServiceChunker::next(QIODevice *inDevice)
     qWarning("Failed receiving UDP packet");
   else
   {
-    for (int i = 0; i < packet.mHeader.rows; i++)
-    {
-      qDebug("Antenna[%d]: %s", packet.mAntennas[i].id, packet.mAntennas[i].name);
-      int bytes = sizeof(packet.mAntennas[i]);
-      mChunk->write(static_cast<void *>(&packet.mAntennas[i]), bytes, mBytesReceived);
-      mBytesReceived += bytes;
-      mRowsReceived++;
-    }
+    Q_ASSERT(mChunk != NULL);
+    mChunk->write(static_cast<void *>(&packet), mPacketSize, mBytesReceived);
+    mBytesReceived += mPacketSize;
+    qWarning("BYTES: %lld", mBytesReceived);
   }
 
-  if (mRowsReceived == mAntennas)
+  if (mBytesReceived == mChunkSize)
   {
+    qCritical("DELETING!");
     delete mChunk;
+    mChunk = NULL;
     mBytesReceived = 0;
-    mRowsReceived = 0;
   }
 }
