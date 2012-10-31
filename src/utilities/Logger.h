@@ -25,6 +25,7 @@ private:
   };
 
   static QString colorize(const QString &inMsg, Color inColor);
+  static QString sName;
   static bool sShouldUseColor;
 };
 

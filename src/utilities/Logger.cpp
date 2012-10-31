@@ -5,11 +5,14 @@
 
 #include <iostream>
 #include <QDataStream>
+#include <QtCore>
 
 bool Logger::sShouldUseColor = shouldUseColor();
+QString Logger::sName;
 
 void Logger::open(const QString &inName)
 {
+  sName = inName;
   openlog(qPrintable(inName), LOG_PID | LOG_NDELAY, LOG_LOCAL0);
   syslog(LOG_INFO, "Program started by User %d", getuid ());
 }
@@ -22,6 +25,7 @@ void Logger::close()
 void Logger::messageHandler(QtMsgType inType, const char *inMsg)
 {
   QString msg(inMsg);
+  msg = "[" + sName + "] " + msg;
 
   switch (inType)
   {
