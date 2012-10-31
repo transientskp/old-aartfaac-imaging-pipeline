@@ -21,7 +21,6 @@ private:
   qint64 mChunkSize; ///< Size of a chunk in bytes
   qint64 mBytesReceived; ///< Number of bytes received
   qint64 mAntennas; ///< Number of antennas
-  WritableData *mChunk; ///< Chunk
 };
 
 PELICAN_DECLARE_CHUNKER(ServiceChunker)

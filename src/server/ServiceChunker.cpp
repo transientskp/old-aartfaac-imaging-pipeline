@@ -33,35 +33,36 @@ void ServiceChunker::next(QIODevice *inDevice)
   if (!isActive())
     return;
 
-  if (mBytesReceived == 0)
+  WritableData chunk = getDataStorage(mChunkSize);
+
+  if (chunk.isValid())
   {
-    mChunk = new WritableData();
-    *mChunk = getDataStorage(mChunkSize);
-    Q_ASSERT(mChunk->isValid());
+    int bytes_read = 0;
+    QUdpSocket *socket = static_cast<QUdpSocket *>(inDevice);
+
+    // Get pointer to start of chunk memory.
+    char *ptr = (char *)chunk.ptr();
+
+    // Read datagrams for chunk from the socket.
+    while (isActive() && bytes_read < mChunkSize)
+    {
+      // Read the datagram, but avoid using pendingDatagramSize()
+      if (!socket->hasPendingDatagrams())
+      {
+        // MUST wait for the next datagram
+        socket->waitForReadyRead(100);
+        continue;
+      }
+
+      qint64 max_length = mChunkSize - bytes_read;
+      qint64 length = socket->readDatagram(ptr + bytes_read, max_length);
+      if (length > 0)
+      {
+        bytes_read += length;
+        qDebug("Bytes read: %d", bytes_read);
+      }
+    }
   }
-
-  QUdpSocket *udp_socket = static_cast<QUdpSocket *>(inDevice);
-
-  ServiceUdpPacket packet;
-
-  while (inDevice->bytesAvailable() < mPacketSize)
-    udp_socket->waitForReadyRead(-1);
-
-  if (udp_socket->readDatagram(reinterpret_cast<char *>(&packet), mPacketSize) <= 0)
-    qWarning("Failed receiving UDP packet");
   else
-  {
-    Q_ASSERT(mChunk != NULL);
-    mChunk->write(static_cast<void *>(&packet), mPacketSize, mBytesReceived);
-    mBytesReceived += mPacketSize;
-    qWarning("BYTES: %lld", mBytesReceived);
-  }
-
-  if (mBytesReceived == mChunkSize)
-  {
-    qCritical("DELETING!");
-    delete mChunk;
-    mChunk = NULL;
-    mBytesReceived = 0;
-  }
+    qFatal("Unable to allocate memory!");
 }
