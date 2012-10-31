@@ -59,7 +59,7 @@ void ServiceChunker::next(QIODevice *inDevice)
       if (length > 0)
       {
         bytes_read += length;
-        qDebug("Bytes read: %d", bytes_read);
+        qDebug("Bytes read: %d/%lld", bytes_read, mChunkSize);
       }
     }
   }
