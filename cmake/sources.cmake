@@ -1,5 +1,12 @@
 # === All *.{cpp,h} files
 
+# === Metadata sources
+set(METADATA_SOURCES
+  src/metadata/main.cpp
+  src/metadata/MetaData.cpp
+  src/utilities/Logger.cpp
+)
+
 # === Emulator sources
 set(EMULATOR_SOURCES
   src/emulator/main.cpp
