@@ -26,6 +26,13 @@ ServiceEmulator::~ServiceEmulator()
 
 void ServiceEmulator::getPacketData(char *&outData, unsigned long &outSize)
 {
+  if (mCurrentRow >= mTotalRows)
+  {
+    outData = 0;
+    outSize = 0;
+    return;
+  }
+
   outData = (char *) (&mUdpPacket);
   outSize = sizeof(mUdpPacket);
   memset(static_cast<void *>(&mUdpPacket), 0, outSize);
