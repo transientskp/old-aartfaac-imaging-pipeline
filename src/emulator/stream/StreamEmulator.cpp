@@ -107,7 +107,7 @@ unsigned long StreamEmulator::interval()
 
 int StreamEmulator::nPackets()
 {
-  return (mTotalChannelsAndTableRows / mMaxSamples) + (mTotalChannelsAndTableRows % mMaxSamples);
+  return int(ceil(double(mTotalChannelsAndTableRows) / mMaxSamples));
 }
 
 void StreamEmulator::emulationFinished()
@@ -123,5 +123,5 @@ void StreamEmulator::emulationFinished()
   qDebug("MB/sec     : %0.2f sent", mbytes / seconds);
   qDebug("Sent       : %lld samples", mTotalCorrelations);
 
-  qDebug("Stream Emulator finished");
+  QCoreApplication::quit();
 }
