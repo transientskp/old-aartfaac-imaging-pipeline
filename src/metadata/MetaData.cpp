@@ -18,15 +18,20 @@ MetaData::~MetaData()
 
 void MetaData::start()
 {
-  //casa::Array<casa::Double> data_array;
-  //casa::Array<casa::Double>::iterator iter;
+  casa::Array<casa::Double> data_array;
+  casa::Array<casa::Double>::iterator iter;
 
   // ANTENNA table
   int rows = mMSColumns->antenna().nrow();
   for (int i = 0; i < rows; i++)
   {
-    cout << i << " ";
+    // name
     cout << mMSColumns->antenna().name()(i).c_str();
+
+    // position
+    data_array = mMSColumns->antenna().position()(i);
+    for (iter = data_array.begin(); iter != data_array.end(); ++iter)
+      cout << " " << *iter;
     cout << endl;
   }
 }

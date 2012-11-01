@@ -26,15 +26,6 @@ ServiceEmulator::~ServiceEmulator()
 
 void ServiceEmulator::getPacketData(char *&outData, unsigned long &outSize)
 {
-  /*
-  if (mCurrentRow >= mTotalRows)
-  {
-    outData = 0;
-    outSize = 0;
-    return;
-  }
-  */
-
   outData = (char *) (&mUdpPacket);
   outSize = sizeof(mUdpPacket);
   memset(static_cast<void *>(&mUdpPacket), 0, outSize);
@@ -74,11 +65,11 @@ void ServiceEmulator::emulationFinished()
   float seconds = mTimer.elapsed() / 1000.0f;
   float mbytes = (sizeof(ServiceUdpPacket) * mTotalPackets) / (1024.0f * 1024.0f);
 
-  qDebug("Header     : %ld bytes", sizeof(ServiceUdpPacket::Header));
-  qDebug("Correlation: %ld bytes", sizeof(ServiceUdpPacket::Antenna));
-  qDebug("Packet     : %ld bytes", sizeof(ServiceUdpPacket));
-  qDebug("MBytes     : %0.2f sent", mbytes);
-  qDebug("MB/sec     : %0.2f sent", mbytes / seconds);
-  qDebug("Sent       : %lld samples", mCurrentRow);
+  qDebug("Header : %ld bytes", sizeof(ServiceUdpPacket::Header));
+  qDebug("Antenna: %ld bytes", sizeof(ServiceUdpPacket::Antenna));
+  qDebug("Packet : %ld bytes", sizeof(ServiceUdpPacket));
+  qDebug("MBytes : %0.2f sent", mbytes);
+  qDebug("MB/sec : %0.2f sent", mbytes / seconds);
+  qDebug("Sent   : %lld samples", mCurrentRow);
   qDebug("Service Emulator finished");
 }
