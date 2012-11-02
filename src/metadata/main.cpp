@@ -10,9 +10,9 @@ int main(int argc, char *argv[])
   qInstallMsgHandler(Logger::messageHandler);
   QCoreApplication app(argc, argv);
 
-  if (argc != 2)
+  if (argc != 3)
   {
-    std::cerr << "Usage: aartfaac-metadata <MeasurementSet>" << std::endl;
+    std::cerr << "Usage: aartfaac-metadata <in.MS> <out.MS>" << std::endl;
     exit(EXIT_FAILURE);
   }
 

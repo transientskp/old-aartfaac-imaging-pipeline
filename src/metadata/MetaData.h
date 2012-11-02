@@ -1,8 +1,10 @@
 #ifndef META_DATA_H
 #define META_DATA_H
 
-#include <casacore/ms/MeasurementSets.h>
+#include "casacore/tables/Tables/TableParse.h"
 #include <QtCore>
+
+using namespace casa;
 
 class MetaData
 {
@@ -13,8 +15,8 @@ public:
   void start();
 
 private:
-  casa::MeasurementSet *mMeasurementSet;
-  casa::ROMSColumns *mMSColumns;
+   String mTableName;
+   String mOutName;
 };
 
 #endif // META_DATA_H
