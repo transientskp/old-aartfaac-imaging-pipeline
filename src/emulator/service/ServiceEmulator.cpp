@@ -3,6 +3,7 @@
 #include <QtCore/QCoreApplication>
 #include <QtCore/QStringList>
 #include <pelican/utility/ConfigNode.h>
+#include <casacore/ms/MeasurementSets.h>
 
 ServiceEmulator::ServiceEmulator(const pelican::ConfigNode &inConfigNode)
   : AbstractUdpEmulator(inConfigNode),

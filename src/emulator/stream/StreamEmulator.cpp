@@ -3,6 +3,7 @@
 #include <QtCore/QCoreApplication>
 #include <QtCore/QStringList>
 #include <pelican/utility/ConfigNode.h>
+#include <casacore/ms/MeasurementSets.h>
 
 extern "C" void singles2halfp(void *target, void *source, int numel);
 

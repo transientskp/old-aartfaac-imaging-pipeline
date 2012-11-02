@@ -4,9 +4,14 @@
 #include "StreamUdpPacket.h"
 
 #include <pelican/emulator/AbstractUdpEmulator.h>
-#include <casacore/ms/MeasurementSets.h>
 #include <QtCore/QByteArray>
 #include <QTime>
+
+namespace casa
+{
+  class MeasurementSet;
+  class ROMSColumns;
+}
 
 class StreamEmulator : public pelican::AbstractUdpEmulator
 {

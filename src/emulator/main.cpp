@@ -3,6 +3,7 @@
 #include "../utilities/Logger.h"
 #include "version.h"
 
+#include <iostream>
 #include <csignal>
 #include <pelican/emulator/EmulatorDriver.h>
 #include <pelican/utility/ConfigNode.h>
