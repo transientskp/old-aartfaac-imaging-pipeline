@@ -67,7 +67,7 @@ void TiffStorage::sendStream(const QString &inStreamName, const DataBlob *inData
   // Create image
   QImage image(&bitmap[0], blob->getWidth(), blob->getHeight(), QImage::Format_Indexed8);
   image.setColorTable(mColors);
-  QString filename = QString::number(blob->getFrequency(), 'f', 6) + "_" + blob->getDateTime().toString("dd-MM-yyyy_hh:mm:ss") + ".tiff";
+  QString filename = QString::number(blob->getFrequency()) + "_" + blob->getDateTime().toString("dd-MM-yyyy_hh:mm:ss") + ".tiff";
   image.save(mPath + "/" + filename, "TIFF");
 }
 

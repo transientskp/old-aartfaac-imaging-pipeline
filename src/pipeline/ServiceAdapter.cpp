@@ -21,11 +21,6 @@ void ServiceAdapter::deserialise(QIODevice *inDevice)
       inDevice->waitForReadyRead(100);
 
     inDevice->read(reinterpret_cast<char *>(&packet), mPacketSize);
-
-    for (quint32 j = 0; j < packet.mHeader.rows; j++)
-    {
-      qDebug("Antenna[%d]: %s", packet.mAntennas[j].id, packet.mAntennas[j].name);
-    }
   }
 }
 

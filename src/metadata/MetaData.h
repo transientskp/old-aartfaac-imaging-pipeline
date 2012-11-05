@@ -1,7 +1,7 @@
 #ifndef META_DATA_H
 #define META_DATA_H
 
-#include "casacore/tables/Tables/TableParse.h"
+#include <casacore/tables/Tables/TableParse.h>
 #include <QtCore>
 
 using namespace casa;

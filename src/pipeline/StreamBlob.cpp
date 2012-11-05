@@ -14,6 +14,13 @@ StreamBlob::StreamBlob()
 
   mXXReal.resize(288 * 288, 0.0f);
   mXXImag.resize(288 * 288, 0.0f);
+  mYYReal.resize(288 * 288, 0.0f);
+  mYYImag.resize(288 * 288, 0.0f);
+  mXYReal.resize(288 * 288, 0.0f);
+  mXYImag.resize(288 * 288, 0.0f);
+  mYXReal.resize(288 * 288, 0.0f);
+  mYXImag.resize(288 * 288, 0.0f);
+
   mSkyMap.resize(mWidth * mHeight);
   mVisMap.resize(mWidth * mHeight);
   mFrequency = 0.0;
@@ -82,15 +89,28 @@ void StreamBlob::addSample(const quint16 inA1,
                            const std::complex<float> &inXY,
                            const std::complex<float> &inYX)
 {
-  Q_UNUSED(inYY);
-  Q_UNUSED(inXY);
-  Q_UNUSED(inYX);
+  std::complex<float> conj;
 
-  std::complex<float> xx_conj = std::conj<float>(inXX);
-  mXXReal[inA1 * 288 + inA2] = xx_conj.real();
+  conj = std::conj<float>(inXX);
+  mXXReal[inA1 * 288 + inA2] = conj.real();
   mXXReal[inA2 * 288 + inA1] = inXX.real();
-  mXXImag[inA1 * 288 + inA2] = xx_conj.imag();
+  mXXImag[inA1 * 288 + inA2] = conj.imag();
   mXXImag[inA2 * 288 + inA1] = inXX.imag();
+  conj = std::conj<float>(inYY);
+  mYYReal[inA1 * 288 + inA2] = conj.real();
+  mYYReal[inA2 * 288 + inA1] = inYY.real();
+  mYYImag[inA1 * 288 + inA2] = conj.imag();
+  mYYImag[inA2 * 288 + inA1] = inYY.imag();
+  conj = std::conj<float>(inXY);
+  mXYReal[inA1 * 288 + inA2] = conj.real();
+  mXYReal[inA2 * 288 + inA1] = inXY.real();
+  mXYImag[inA1 * 288 + inA2] = conj.imag();
+  mXYImag[inA2 * 288 + inA1] = inXY.imag();
+  conj = std::conj<float>(inYX);
+  mYXReal[inA1 * 288 + inA2] = conj.real();
+  mYXReal[inA2 * 288 + inA1] = inYX.real();
+  mYXImag[inA1 * 288 + inA2] = conj.imag();
+  mYXImag[inA2 * 288 + inA1] = inYX.imag();
 }
 
 std::vector<float>* StreamBlob::getXXReal()

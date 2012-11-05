@@ -29,6 +29,9 @@
 
     <output>
       <streamers>
+        <Visibilities active="true">
+          <file path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
+        </Visibilities>
         <TiffStorage active="false">
           <file path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
         </TiffStorage>
@@ -37,6 +40,7 @@
         </CasaImageStorage>
       </streamers>
       <dataStreams>
+        <stream name="calibrated" listeners="Visibilities"/>
         <stream name="post" listeners="TiffStorage"/>
         <stream name="post" listeners="CasaImageStorage"/>
       </dataStreams>

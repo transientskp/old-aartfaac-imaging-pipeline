@@ -13,6 +13,15 @@ class StreamBlob : public DataBlob
 public:
   StreamBlob();
 
+  std::vector<float> mXXReal; ///< xx polarized real part of the complex numbers
+  std::vector<float> mXXImag; ///< xx polarized imaginary part of the complex numbers
+  std::vector<float> mYYReal; ///< yy polarized real part of the complex numbers
+  std::vector<float> mYYImag; ///< yy polarized imaginary part of the complex numbers
+  std::vector<float> mXYReal; ///< xy polarized real part of the complex numbers
+  std::vector<float> mXYImag; ///< xy polarized imaginary part of the complex numbers
+  std::vector<float> mYXReal; ///< yx polarized real part of the complex numbers
+  std::vector<float> mYXImag; ///< yx polarized imaginary part of the complex numbers
+
   void reset();
 
   void addSample(const quint16 inA1,
@@ -86,8 +95,6 @@ private:
   quint32 mWidth;
   quint32 mHeight;
 
-  std::vector<float> mXXReal; ///< xx polarized real part of the complex numbers
-  std::vector<float> mXXImag; ///< xx polarized imaginary part of the complex numbers
   std::vector<float> mSkyMap; ///< raw skymap data from imager (needs normalization)
   std::vector<float> mVisMap; ///< raw vismap data from imager (needs normalization)
 };

@@ -19,6 +19,7 @@ void StreamAdapter::deserialise(QIODevice *inDevice)
 {
   StreamBlob *blob = static_cast<StreamBlob *>(dataBlob());
   blob->reset();
+  Q_ASSERT(chunkSize() % mPacketSize == 0);
   quint32 num_packets = chunkSize() / mPacketSize;
 
   StreamUdpPacket packet;
