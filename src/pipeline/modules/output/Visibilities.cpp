@@ -8,11 +8,13 @@ std::vector<Array<Double> > Visibilities::sUVWCoordinates;
 Array<Float> Visibilities::sWeightSpectrum;
 double Visibilities::sExposure;
 
+extern char *gTableName;
+
 Visibilities::Visibilities(const ConfigNode &inConfigNode)
   : AbstractOutputStream(inConfigNode)
 {
   mPath = inConfigNode.getOption("file", "path", "./");
-  mTableName = "../../data/TEST.MS";
+  mTableName = gTableName;
 
   if (sUpperTriangleIndices.empty())
   {

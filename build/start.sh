@@ -24,7 +24,7 @@ sleep 2
 
 echo "Starting ${PIPELINES} aartfaac pipelines"
 for (( i=0; i<${PIPELINES}; i++ )); do
-	${ROOT}/aartfaac-pipeline ${PCONFIG} &
+	${ROOT}/aartfaac-pipeline ${PCONFIG} $1 &
 done;
 sleep 5
 
