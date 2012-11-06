@@ -30,46 +30,46 @@ Visibilities::Visibilities(const ConfigNode &inConfigNode)
       0.0000330000,  0.6030780000, 0.7976820000
     };
 
-    for (int a1 = 0; a1 < 288; a1++)
+    int a2 = 0;
+    while (a2 < 288)
     {
-      for (int a2 = 0; a2 < 288; a2++)
+      for (int a1 = 0; a1 < (a2 + 1); a1++)
       {
-        if (a1 <= a2)
-        {
-          sUpperTriangleIndices.push_back(a1 * 288 + a2);
+        sUpperTriangleIndices.push_back(a1 * 288 + a2);
 
-          Array<Double> pos1 = msc.antenna().position()(a1);
-          Array<Double> pos2 = msc.antenna().position()(a2);
-          Array<Double> uvw(IPosition(1, 3));
+        Array<Double> pos1 = msc.antenna().position()(a1);
+        Array<Double> pos2 = msc.antenna().position()(a2);
+        Array<Double> uvw(IPosition(1, 3));
 
-          uvw(IPosition(0,0)) = (pos2(IPosition(0,0)) * rot_m[0] +
-                                 pos2(IPosition(0,1)) * rot_m[1] +
-                                 pos2(IPosition(0,2)) * rot_m[2])
-                                -
-                                (pos1(IPosition(0,0)) * rot_m[0] +
-                                 pos1(IPosition(0,1)) * rot_m[1] +
-                                 pos1(IPosition(0,2)) * rot_m[2]);
+        uvw(IPosition(0,0)) = (pos2(IPosition(0,0)) * rot_m[0] +
+                               pos2(IPosition(0,1)) * rot_m[1] +
+                               pos2(IPosition(0,2)) * rot_m[2])
+                              -
+                              (pos1(IPosition(0,0)) * rot_m[0] +
+                               pos1(IPosition(0,1)) * rot_m[1] +
+                               pos1(IPosition(0,2)) * rot_m[2]);
 
-          uvw(IPosition(0,1)) = (pos2(IPosition(0,0)) * rot_m[3] +
-                                 pos2(IPosition(0,1)) * rot_m[4] +
-                                 pos2(IPosition(0,2)) * rot_m[5])
-                                -
-                                (pos1(IPosition(0,0)) * rot_m[3] +
-                                 pos1(IPosition(0,1)) * rot_m[4] +
-                                 pos1(IPosition(0,2)) * rot_m[5]);
+        uvw(IPosition(0,1)) = (pos2(IPosition(0,0)) * rot_m[3] +
+                               pos2(IPosition(0,1)) * rot_m[4] +
+                               pos2(IPosition(0,2)) * rot_m[5])
+                              -
+                              (pos1(IPosition(0,0)) * rot_m[3] +
+                               pos1(IPosition(0,1)) * rot_m[4] +
+                               pos1(IPosition(0,2)) * rot_m[5]);
 
-          uvw(IPosition(0,2)) = (pos2(IPosition(0,0)) * rot_m[6] +
-                                 pos2(IPosition(0,1)) * rot_m[7] +
-                                 pos2(IPosition(0,2)) * rot_m[8])
-                                -
-                                (pos1(IPosition(0,0)) * rot_m[6] +
-                                 pos1(IPosition(0,1)) * rot_m[7] +
-                                 pos1(IPosition(0,2)) * rot_m[8]);
+        uvw(IPosition(0,2)) = (pos2(IPosition(0,0)) * rot_m[6] +
+                               pos2(IPosition(0,1)) * rot_m[7] +
+                               pos2(IPosition(0,2)) * rot_m[8])
+                              -
+                              (pos1(IPosition(0,0)) * rot_m[6] +
+                               pos1(IPosition(0,1)) * rot_m[7] +
+                               pos1(IPosition(0,2)) * rot_m[8]);
 
 
-          sUVWCoordinates.push_back(uvw);
-        }
+        sUVWCoordinates.push_back(uvw);
       }
+
+      a2++;
     }
   }
 
