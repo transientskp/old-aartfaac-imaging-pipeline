@@ -108,7 +108,12 @@ unsigned long StreamEmulator::interval()
 
 int StreamEmulator::nPackets()
 {
-  return int(ceil(double(mTotalChannelsAndTableRows) / mMaxSamples));
+  const int baselines = 288*289/2;
+  const int packets_per_image = ceil(baselines/double(mMaxSamples));
+  const int num_images = mTotalChannelsAndTableRows / baselines;
+
+  Q_ASSERT(mTotalChannelsAndTableRows % baselines == 0);
+  return packets_per_image * num_images;
 }
 
 void StreamEmulator::emulationFinished()
