@@ -5,10 +5,10 @@ set -e
 ROOT=`pwd`
 SCONFIG=${ROOT}/../src/xml/serverConfig.xml
 PCONFIG=${ROOT}/../src/xml/pipelineConfig.xml
-PIPELINES=2
+PIPELINES=1
 
 if [ -z "$2" ]; then
-  PIPELINES=2
+  PIPELINES=1
 else
   PIPELINES=$2
 fi

@@ -54,19 +54,21 @@ int main(int argc, char *argv[])
   app.setOrganizationDomain("http://www.aartfaac.org");
   qDebug("%s", HUMAN_NAME);
 
-  pelican::ConfigNode stream_config(
-    "<StreamEmulator>"
-    "  <connection host=\"" + host + "\" port=\"2001\" />"
-    "</StreamEmulator>"
-  );
-  pelican::EmulatorDriver driver1(new StreamEmulator(stream_config));
-
   pelican::ConfigNode service_config(
     "<ServiceEmulator>"
     "  <connection host=\"" + host + "\" port=\"2002\" />"
     "</ServiceEmulator>"
   );
-  pelican::EmulatorDriver driver2(new ServiceEmulator(service_config));
+  pelican::EmulatorDriver driver1(new ServiceEmulator(service_config));
+
+  sleep(1);
+
+  pelican::ConfigNode stream_config(
+    "<StreamEmulator>"
+    "  <connection host=\"" + host + "\" port=\"2001\" />"
+    "</StreamEmulator>"
+  );
+  pelican::EmulatorDriver driver2(new StreamEmulator(stream_config));
 
   return app.exec();
 }
