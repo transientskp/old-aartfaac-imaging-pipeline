@@ -61,6 +61,8 @@ int main(int argc, char *argv[])
   );
   pelican::EmulatorDriver driver1(new ServiceEmulator(service_config));
 
+  sleep(1);
+
   pelican::ConfigNode stream_config(
     "<StreamEmulator>"
     "  <connection host=\"" + host + "\" port=\"2001\" />"
