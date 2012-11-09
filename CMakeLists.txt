@@ -2,17 +2,8 @@
 project(aartfaac CXX C Fortran)
 cmake_minimum_required(VERSION 2.6)
 
-# === Components to build
-set(BUILD_EMULATOR ON CACHE "Build emulator" BOOL)
-set(BUILD_SERVER ON CACHE "Build server" BOOL)
-set(BUILD_PIPELINE ON CACHE "Build pipeline" BOOL)
-
-if (NOT BUILD_EMULATOR AND NOT BUILD_SERVER AND NOT BUILD_PIPLEINE)
-    message(FATAL_ERROR "Nothing to build")
-endif (NOT BUILD_EMULATOR AND NOT BUILD_SERVER AND NOT BUILD_PIPLEINE)
-
 # === Compiler options
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-function -fno-strict-aliasing -Wl,--no-as-needed")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DDEBUG")
@@ -59,62 +50,52 @@ include_directories(${PELICAN_INCLUDES})
 
 find_package(CppUnit REQUIRED)
 
-if (BUILD_EMULATOR OR BUILD_PIPELINE)
-    find_package(Casacore REQUIRED)
-    include_directories(${CASACORE_INCLUDES})
-endif (BUILD_EMULATOR OR BUILD_PIPELINE)
+find_package(Casacore REQUIRED)
+include_directories(${CASACORE_INCLUDES})
 
-if (BUILD_EMULATOR AND USE_LOFARSTMAN)
-    find_package(Lofar REQUIRED)
-    include_directories(${LOFAR_INCLUDES})
-endif (BUILD_EMULATOR AND USE_LOFARSTMAN)
+find_package(Lofar REQUIRED)
+include_directories(${LOFAR_INCLUDES})
 
 # === Create the emulator binary.
-if (BUILD_EMULATOR)
-    set(EMULATOR ${PROJECT_NAME}-emulator)
-    add_executable(${EMULATOR} ${EMULATOR_SOURCES})
+set(EMULATOR ${PROJECT_NAME}-emulator)
+add_executable(${EMULATOR} ${EMULATOR_SOURCES})
 
-    target_link_libraries(${EMULATOR}
-      ${QT_QTCORE_LIBRARY}
-      ${QT_QTNETWORK_LIBRARY}
-      ${QT_QTXML_LIBRARY}
-      ${PELICAN_LIBRARIES}
-      ${CASACORE_LIBRARIES}
-      ${LOFAR_LIBRARIES}
-    )
-endif (BUILD_EMULATOR)
+target_link_libraries(${EMULATOR}
+  ${QT_QTCORE_LIBRARY}
+  ${QT_QTNETWORK_LIBRARY}
+  ${QT_QTXML_LIBRARY}
+  ${PELICAN_LIBRARIES}
+  ${CASACORE_LIBRARIES}
+  ${LOFAR_LIBRARIES}
+)
 
 # === Create the pipeline binary.
-if (BUILD_PIPELINE)
-    # === Add Matlab bridge.
-    add_subdirectory(${PROJECT_SOURCE_DIR}/src/matlabbridge matlabbridge)
+# === Add Matlab bridge.
+add_subdirectory(${PROJECT_SOURCE_DIR}/src/matlabbridge matlabbridge)
 
-    set(PIPELINE ${PROJECT_NAME}-pipeline)
-    add_executable(${PIPELINE} ${PIPELINE_SOURCES})
+set(PIPELINE ${PROJECT_NAME}-pipeline)
+add_executable(${PIPELINE} ${PIPELINE_SOURCES})
 
-    target_link_libraries(${PIPELINE}
-      mbridge
-      ${QT_QTCORE_LIBRARY}
-      ${QT_QTNETWORK_LIBRARY}
-      ${QT_QTXML_LIBRARY}
-      ${QT_QTGUI_LIBRARY}
-      ${CASACORE_LIBRARIES}
-      ${PELICAN_LIBRARIES}
-    )
-endif (BUILD_PIPELINE)
+target_link_libraries(${PIPELINE}
+  mbridge
+  ${QT_QTCORE_LIBRARY}
+  ${QT_QTNETWORK_LIBRARY}
+  ${QT_QTXML_LIBRARY}
+  ${QT_QTGUI_LIBRARY}
+  ${CASACORE_LIBRARIES}
+  ${PELICAN_LIBRARIES}
+)
 
 # === Create the server binary.
-if (BUILD_SERVER)
-    set(SERVER ${PROJECT_NAME}-server)
-    add_executable(${SERVER} ${SERVER_SOURCES})
+set(SERVER ${PROJECT_NAME}-server)
+add_executable(${SERVER} ${SERVER_SOURCES})
 
-    target_link_libraries(${SERVER}
-      ${QT_QTCORE_LIBRARY}
-      ${QT_QTNETWORK_LIBRARY}
-      ${QT_QTXML_LIBRARY}
-      ${PELICAN_LIBRARIES}
-    )
-endif (BUILD_SERVER)
+target_link_libraries(${SERVER}
+  ${QT_QTCORE_LIBRARY}
+  ${QT_QTNETWORK_LIBRARY}
+  ${QT_QTXML_LIBRARY}
+  ${PELICAN_LIBRARIES}
+)
 
 # === Enable the cmake testing framework.
 enable_testing()
@@ -122,16 +103,16 @@ enable_testing()
 # === Compile and add tests to cmake framework.
 foreach (TEST ${TESTS})
     add_executable(${TEST} ${${TEST}_SOURCES})
-		target_link_libraries(${TEST} 
-			${CPPUNIT_LIBRARIES}
+    target_link_libraries(${TEST}
+      ${CPPUNIT_LIBRARIES}
       ${QT_QTCORE_LIBRARY}
       ${QT_QTNETWORK_LIBRARY}
       ${QT_QTXML_LIBRARY}
       ${PELICAN_LIBRARIES}
       ${CASACORE_LIBRARIES}
       ${LOFAR_LIBRARIES}
-		)
-		add_test(${TEST} ${TEST})
+    )
+    add_test(${TEST} ${TEST})
 endforeach (TEST)
 
 # === Doxygen documentation targets.
