@@ -1,13 +1,13 @@
-#include "UniboardChunker.h"
+#include "StreamChunker.h"
 
 #include "../utilities/Utils.h"
 
 #include <pelican/utility/Config.h>
 #include <QtNetwork/QUdpSocket>
 
-UdpPacket UniboardChunker::sEmptyPacket;
+StreamUdpPacket StreamChunker::sEmptyPacket;
 
-UniboardChunker::UniboardChunker(const ConfigNode &inConfig)
+StreamChunker::StreamChunker(const ConfigNode &inConfig)
   : AbstractChunker(inConfig)
 {
   sEmptyPacket.mHeader.freq = -1.0;
@@ -18,42 +18,46 @@ UniboardChunker::UniboardChunker(const ConfigNode &inConfig)
   // chunksize = ceil(baselines/samples in packet) * packet size
   int antennae_count = inConfig.getOption("antennae", "count").toInt();
   int packet_correlations = MAX_CORRELATIONS;
-  int baselines = (antennae_count*(antennae_count+1)) / 2;
-  mChunkSize = ceil(baselines/double(packet_correlations)) * sizeof(UdpPacket);
+  int baselines = (antennae_count * (antennae_count + 1)) / 2;
+  mChunkSize = ceil(baselines / double(packet_correlations)) * sizeof(StreamUdpPacket);
   mTimeout = inConfig.getOption("chunk", "timeout").toInt();
-  mPacketSize = sizeof(UdpPacket);
+  mPacketSize = sizeof(StreamUdpPacket);
 
   Q_ASSERT(mChunkSize % mPacketSize == 0);
 }
 
-QIODevice* UniboardChunker::newDevice()
+QIODevice *StreamChunker::newDevice()
 {
   QUdpSocket *socket = new QUdpSocket();
+
   if (!socket->bind(QHostAddress(host()), port()))
     qFatal("Failed to connect to %s:%u", qPrintable(host()), port());
 
-  while (socket->state() != QUdpSocket::BoundState) {}
+  while (socket->state() != QUdpSocket::BoundState)
+    {}
+
   return socket;
 }
 
-void UniboardChunker::next(QIODevice *inDevice)
+void StreamChunker::next(QIODevice *inDevice)
 {
   if (!isActive())
     return;
 
   quint64 bytes_received = 0;
 
-  QUdpSocket *udp_socket = static_cast<QUdpSocket*>(inDevice);
+  QUdpSocket *udp_socket = static_cast<QUdpSocket *>(inDevice);
 
   quint32 packets = mChunkSize / mPacketSize;
-  UdpPacket packet;
+  StreamUdpPacket packet;
   quint64 key;
+
   for (quint32 i = 0; i < packets; i++)
   {
     while (inDevice->bytesAvailable() < mPacketSize)
       udp_socket->waitForReadyRead(100);
 
-    if (udp_socket->readDatagram(reinterpret_cast<char*>(&packet), mPacketSize) <= 0)
+    if (udp_socket->readDatagram(reinterpret_cast<char *>(&packet), mPacketSize) <= 0)
     {
       qWarning("Failed receiving UDP packet %u/%u", i, packets);
       i--;
@@ -61,79 +65,84 @@ void UniboardChunker::next(QIODevice *inDevice)
     }
 
     key = hash(packet.mHeader.time, packet.mHeader.freq);
+
     if (!mDataBuffers.contains(key))
       mDataBuffers[key] = new Chunk(this);
 
-    mDataBuffers[key]->addData(static_cast<void*>(&packet), mPacketSize);
+    mDataBuffers[key]->addData(static_cast<void *>(&packet), mPacketSize);
     bytes_received += mPacketSize;
   }
 
-  QHash<quint64, Chunk*>::iterator i = mDataBuffers.begin();
+  QHash<quint64, Chunk *>::iterator i = mDataBuffers.begin();
   Chunk *chunk;
+
   while (i != mDataBuffers.end())
   {
     chunk = i.value();
+
     if (chunk->isFilled())
     {
       delete chunk;
       i = mDataBuffers.erase(i);
     }
     else
-    if (chunk->isTimeUp())
-    {
-      quint32 missing_bytes = chunk->fill();
-      qWarning("Chunk incomplete, missing %u/%lld bytes", missing_bytes, mChunkSize);
-      delete chunk;
-      i = mDataBuffers.erase(i);
-    }
-    else
-    {
-      ++i;
-    }
+      if (chunk->isTimeUp())
+      {
+        quint32 missing_bytes = chunk->fill();
+        qWarning("Chunk incomplete, missing %u/%lld bytes", missing_bytes, mChunkSize);
+        delete chunk;
+        i = mDataBuffers.erase(i);
+      }
+      else
+      {
+        ++i;
+      }
   }
 }
 
-quint64 UniboardChunker::hash(const double inTime, const double inFrequency)
+quint64 StreamChunker::hash(const double inTime, const double inFrequency)
 {
-  return static_cast<quint64>(inTime*inFrequency);
+  return static_cast<quint64>(inTime * inFrequency);
 }
 
-UniboardChunker::Chunk::Chunk(UniboardChunker *inChunker)
+StreamChunker::Chunk::Chunk(StreamChunker *inChunker)
   : mBytesRead(0),
     mChunker(inChunker)
 {
   mData = mChunker->getDataStorage(mChunker->mChunkSize);
+
   if (!mData.isValid())
     qCritical("Unable to allocate chunk memory, is the buffer large enough?");
-  mPtr = (char*) mData.ptr();
+
+  mPtr = (char *) mData.ptr();
   mTimer.start();
 }
 
-bool UniboardChunker::Chunk::isTimeUp()
+bool StreamChunker::Chunk::isTimeUp()
 {
   return mTimer.elapsed() >= mChunker->mTimeout;
 }
 
-bool UniboardChunker::Chunk::isFilled()
+bool StreamChunker::Chunk::isFilled()
 {
   return mBytesRead >= mChunker->mChunkSize;
 }
 
-void UniboardChunker::Chunk::addData(const void *inData, const int inLength)
+void StreamChunker::Chunk::addData(const void *inData, const int inLength)
 {
   mData.write(inData, inLength, mBytesRead);
   mBytesRead += inLength;
 }
 
-quint32 UniboardChunker::Chunk::fill()
+quint32 StreamChunker::Chunk::fill()
 {
   quint32 bytes_left = mChunker->mChunkSize - mBytesRead;
-  Q_ASSERT(bytes_left % sizeof(UdpPacket) == 0);
+  Q_ASSERT(bytes_left % sizeof(StreamUdpPacket) == 0);
 
-  for (quint32 i = 0, n = bytes_left / sizeof(UdpPacket); i < n; i++)
+  for (quint32 i = 0, n = bytes_left / sizeof(StreamUdpPacket); i < n; i++)
   {
-    mData.write(static_cast<void*>(&sEmptyPacket), sizeof(UdpPacket), mBytesRead);
-    mBytesRead += sizeof(UdpPacket);
+    mData.write(static_cast<void *>(&sEmptyPacket), sizeof(StreamUdpPacket), mBytesRead);
+    mBytesRead += sizeof(StreamUdpPacket);
   }
 
   return bytes_left;

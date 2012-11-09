@@ -1,6 +1,6 @@
 #include "Imager.h"
 
-#include "../../UniboardDataBlob.h"
+#include "../../StreamBlob.h"
 #include "../../../matlabbridge/src/cpp/MatlabBridge.h"
 
 #include <pelican/utility/Config.h>
@@ -9,8 +9,8 @@
 Imager::Imager(const ConfigNode &inConfig)
   : AbstractModule(inConfig)
 {
-  mULoc.resize(288*288);
-  mVLoc.resize(288*288);
+  mULoc.resize(288 * 288);
+  mVLoc.resize(288 * 288);
   QString uloc_filename = inConfig.getOption("uloc", "filename");
   QString vloc_filename = inConfig.getOption("vloc", "filename");
   readData(uloc_filename, mULoc);
@@ -44,7 +44,7 @@ void Imager::readData(const QString &inFilename, std::vector<float> &outData)
   Q_ASSERT(i == 288*288);
 }
 
-void Imager::run(const UniboardDataBlob *input, UniboardDataBlob *output)
+void Imager::run(const StreamBlob *input, StreamBlob *output)
 {
   output->setMJDTime(input->getMJDTime());
   const std::vector<float> *real = input->getXXReal();

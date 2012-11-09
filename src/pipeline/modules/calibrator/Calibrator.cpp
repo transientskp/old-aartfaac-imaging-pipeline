@@ -1,6 +1,6 @@
 #include "Calibrator.h"
 
-#include "../../UniboardDataBlob.h"
+#include "../../StreamBlob.h"
 #include "../../../matlabbridge/src/cpp/MatlabBridge.h"
 
 #include <pelican/utility/Config.h>
@@ -18,7 +18,7 @@ Calibrator::~Calibrator()
   //delete mBridge;
 }
 
-void Calibrator::run(const UniboardDataBlob *input, UniboardDataBlob *output)
+void Calibrator::run(const StreamBlob *input, StreamBlob *output)
 {
   output->setMJDTime(input->getMJDTime());
   output->setFrequency(input->getFrequency());

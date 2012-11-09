@@ -1,18 +1,23 @@
-#ifndef UNIBOARD_EMULATOR_H
-#define UNIBOARD_EMULATOR_H
+#ifndef STREAM_EMULATOR_H
+#define STREAM_EMULATOR_H
 
-#include "UdpPacket.h"
+#include "StreamUdpPacket.h"
 
 #include <pelican/emulator/AbstractUdpEmulator.h>
-#include <casacore/ms/MeasurementSets.h>
 #include <QtCore/QByteArray>
 #include <QTime>
 
-class UniboardEmulator : public pelican::AbstractUdpEmulator
+namespace casa
+{
+  class MeasurementSet;
+  class ROMSColumns;
+}
+
+class StreamEmulator : public pelican::AbstractUdpEmulator
 {
 public:
-  UniboardEmulator(const pelican::ConfigNode &inConfigNode);
-  ~UniboardEmulator();
+  StreamEmulator(const pelican::ConfigNode &inConfigNode);
+  ~StreamEmulator();
 
   void getPacketData(char *&outData, unsigned long &outSize);
   unsigned long interval();
@@ -32,10 +37,10 @@ private:
   quint64 mTotalRowIndex;
 
   QTime mTimer;
-  UdpPacket mUdpPacket;
+  StreamUdpPacket mUdpPacket;
 
   casa::MeasurementSet *mMeasurementSet;
   casa::ROMSColumns *mMSColumns;
 };
 
-#endif // UNIBOARD_EMULATOR_H
+#endif // STREAM_EMULATOR_H

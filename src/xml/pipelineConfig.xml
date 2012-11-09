@@ -6,14 +6,18 @@
     <clients>
       <PelicanServerClient>
         <server host="127.0.0.1" port="2000"/>
-        <data type="UniboardDataBlob" adapter="UniboardAdapter"/>
+        <data type="StreamBlob" adapter="StreamAdapter"/>
+        <data type="ServiceBlob" adapter="ServiceAdapter"/>
       </PelicanServerClient>
     </clients>
 
     <adapters>
-      <UniboardAdapter>
+      <StreamAdapter>
         <antennae amount="288"/>
-      </UniboardAdapter>
+      </StreamAdapter>
+      <ServiceAdapter>
+        <!-- No specific settings -->
+      </ServiceAdapter>
     </adapters>
 
     <modules>
@@ -25,14 +29,18 @@
 
     <output>
       <streamers>
-				<TiffStorage active="true">
-					<file path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
-				</TiffStorage>
-				<CasaImageStorage active="true">
-					<file path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
-				</CasaImageStorage>
+        <Visibilities active="true">
+          <file path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
+        </Visibilities>
+        <TiffStorage active="false">
+          <file path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
+        </TiffStorage>
+        <CasaImageStorage active="true">
+          <file path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
+        </CasaImageStorage>
       </streamers>
       <dataStreams>
+        <stream name="calibrated" listeners="Visibilities"/>
         <stream name="post" listeners="TiffStorage"/>
         <stream name="post" listeners="CasaImageStorage"/>
       </dataStreams>

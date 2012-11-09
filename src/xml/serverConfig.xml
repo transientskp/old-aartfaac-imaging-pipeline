@@ -5,18 +5,26 @@
 
   <server>
     <buffers>
-      <UniboardDataBlob>
+      <StreamBlob>
         <buffer maxSize="50000000000" maxChunkSize="50000000000"/>
-      </UniboardDataBlob>
+      </StreamBlob>
+      <ServiceBlob>
+        <buffer maxSize="50000000000" maxChunkSize="50000000000"/>
+      </ServiceBlob>
     </buffers>
 
     <chunkers>
-      <UniboardChunker>
+      <StreamChunker>
         <chunk timeout="1500"/>
-        <data type="UniboardDataBlob"/>
+        <data type="StreamBlob"/>
         <antennae count="288"/>
         <connection host="127.0.0.1" port="2001"/>
-      </UniboardChunker>
+      </StreamChunker>
+      <ServiceChunker>
+        <data type="ServiceBlob"/>
+        <antennae count="288"/>
+        <connection host="127.0.0.1" port="2002"/>
+      </ServiceChunker>
     </chunkers>
   </server>
 

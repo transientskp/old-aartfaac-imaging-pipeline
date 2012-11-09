@@ -5,7 +5,7 @@
 
 using namespace pelican;
 
-class UniboardDataBlob;
+class StreamBlob;
 class MatlabBridge;
 
 class Imager : public AbstractModule {
@@ -13,7 +13,7 @@ public:
   Imager(const ConfigNode &inConfig);
   ~Imager();
 
-  void run(const UniboardDataBlob *input, UniboardDataBlob *output);
+  void run(const StreamBlob *input, StreamBlob *output);
 
 private:
   std::vector<float> mULoc;

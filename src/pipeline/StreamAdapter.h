@@ -1,15 +1,15 @@
-#ifndef UNIBOARD_ADAPTER_H
-#define UNIBOARD_ADAPTER_H
+#ifndef STREAM_ADAPTER_H
+#define STREAM_ADAPTER_H
 
 #include <pelican/core/AbstractStreamAdapter.h>
 
 using namespace pelican;
 
-class UniboardAdapter : public AbstractStreamAdapter
+class StreamAdapter : public AbstractStreamAdapter
 {
 public:
   /// Constructs the uniboard adapter.
-  UniboardAdapter(const ConfigNode& inConfig);
+  StreamAdapter(const ConfigNode &inConfig);
 
   /// Method to deserialise chunks of memory provided by the I/O device.
   void deserialise(QIODevice *inDevice);
@@ -21,6 +21,6 @@ private:
 };
 
 // Register the adapter.
-PELICAN_DECLARE_ADAPTER(UniboardAdapter)
+PELICAN_DECLARE_ADAPTER(StreamAdapter)
 
-#endif // UNIBOARD_ADAPTER_H
+#endif // STREAM_ADAPTER_H

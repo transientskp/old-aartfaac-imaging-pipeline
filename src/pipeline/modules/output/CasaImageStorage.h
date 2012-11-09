@@ -10,7 +10,7 @@ class CasaImageStorage : public AbstractOutputStream
 {
 public:
   /// Constructor
-  CasaImageStorage(const ConfigNode& inConfigNode);
+  CasaImageStorage(const ConfigNode &inConfigNode);
 
   /// Destructor
   ~CasaImageStorage();

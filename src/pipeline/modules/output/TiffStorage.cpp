@@ -1,5 +1,5 @@
 #include "TiffStorage.h"
-#include "../../UniboardDataBlob.h"
+#include "../../StreamBlob.h"
 
 #include <limits>
 #include <cmath>
@@ -31,16 +31,14 @@ TiffStorage::~TiffStorage()
 
 void TiffStorage::sendStream(const QString &inStreamName, const DataBlob *inDataBlob)
 {
-  Q_UNUSED(inStreamName);
+  const StreamBlob *blob = static_cast<const StreamBlob *>(inDataBlob);
   static int first = 1;
   static float caxis_min = 0, caxis_max = 0;
 
-  const UniboardDataBlob *blob = static_cast<const UniboardDataBlob*>(inDataBlob);
-
-  if (blob->type() != "UniboardDataBlob")
+  if (blob->type() != "StreamBlob")
   {
-    qWarning("Expected datablob type 'UniboardDataBlob', got '%s' ignoring...",
-             qPrintable(blob->type()));
+    qWarning("Expected 'StreamBlob', got '%s' on stream '%s', ignoring...",
+             qPrintable(blob->type()), qPrintable(inStreamName));
     return;
   }
 

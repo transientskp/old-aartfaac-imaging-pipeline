@@ -1,36 +1,38 @@
-#include "UniboardAdapter.h"
-#include "UniboardDataBlob.h"
-#include "../emulator/UdpPacket.h"
+#include "StreamAdapter.h"
+#include "StreamBlob.h"
+#include "../emulator/stream/StreamUdpPacket.h"
 
 #include <complex>
 
 extern "C" void halfp2singles(void *target, void *source, int numel);
 
 // Construct the example adapter.
-UniboardAdapter::UniboardAdapter(const ConfigNode& config)
-    : AbstractStreamAdapter(config)
+StreamAdapter::StreamAdapter(const ConfigNode &config)
+  : AbstractStreamAdapter(config)
 {
   mMaxPacketSamples = MAX_CORRELATIONS;
   mAntennae = config.getOption("antennae", "amount").toUInt();
-  mPacketSize = sizeof(UdpPacket);
+  mPacketSize = sizeof(StreamUdpPacket);
 }
 
-void UniboardAdapter::deserialise(QIODevice *inDevice)
+void StreamAdapter::deserialise(QIODevice *inDevice)
 {
-  UniboardDataBlob *blob = (UniboardDataBlob*) dataBlob();
+  StreamBlob *blob = static_cast<StreamBlob *>(dataBlob());
   blob->reset();
+  Q_ASSERT(chunkSize() % mPacketSize == 0);
   quint32 num_packets = chunkSize() / mPacketSize;
 
-  UdpPacket packet;
+  StreamUdpPacket packet;
   quint64 bytes_read = 0;
   std::complex<float> polarizations[4];
   bool is_touched = false;
+
   for (quint32 i = 0; i < num_packets; i++)
   {
     while (inDevice->bytesAvailable() < mPacketSize)
       inDevice->waitForReadyRead(100);
 
-    bytes_read += inDevice->read(reinterpret_cast<char*>(&packet), mPacketSize);
+    bytes_read += inDevice->read(reinterpret_cast<char *>(&packet), mPacketSize);
 
     if (!is_touched)
     {
@@ -41,18 +43,14 @@ void UniboardAdapter::deserialise(QIODevice *inDevice)
 
     for (quint32 j = 0; j < packet.mHeader.correlations; j++)
     {
-      UdpPacket::Correlation &correlation = packet.mCorrelations[j];
+      StreamUdpPacket::Correlation &correlation = packet.mCorrelations[j];
 
-      for (quint32 k = 0; k < 8; k+=2)
+      for (quint32 k = 0; k < 8; k += 2)
       {
-	polarizations[k/2].real() = correlation.polarizations[k];
-	polarizations[k/2].imag() = correlation.polarizations[k+1];
-	/*
-        halfp2singles(static_cast<float*>(&polarizations[k/2].real()),
-                      static_cast<void*>(&correlation.polarizations[k]), 1);
-        halfp2singles(static_cast<float*>(&polarizations[k/2].imag()),
-                      static_cast<void*>(&correlation.polarizations[k+1]), 1);
-	*/
+        halfp2singles(static_cast<float *>(&polarizations[k / 2].real()),
+                      static_cast<void *>(&correlation.polarizations[k]), 1);
+        halfp2singles(static_cast<float *>(&polarizations[k / 2].imag()),
+                      static_cast<void *>(&correlation.polarizations[k + 1]), 1);
       }
 
       blob->addSample(correlation.a1, correlation.a2,

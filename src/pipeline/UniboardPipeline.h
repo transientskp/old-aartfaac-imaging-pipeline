@@ -1,33 +1,36 @@
-#ifndef SIGNALPROCESSINGPIPELINE_H
-#define SIGNALPROCESSINGPIPELINE_H
+#ifndef UNIBOARD_PIPELINE_H
+#define UNIBOARD_PIPELINE_H
 
 #include <pelican/core/AbstractPipeline.h>
 
 using namespace pelican;
 
-class UniboardDataBlob;
+class StreamBlob;
 class Calibrator;
 class Imager;
-class UniboardMonData;
 
 class UniboardPipeline : public AbstractPipeline
 {
 public:
   /// Constructor.
-  UniboardPipeline() : AbstractPipeline() {}
+  UniboardPipeline() : AbstractPipeline(),
+    mOutputData(NULL),
+    mImager(NULL),
+    mCalibrator(NULL),
+    mBlobCount(0)
+  {}
 
   /// Initialises the pipeline.
   void init();
 
   /// Defines one iteration of the pipeline.
-  void run(QHash<QString, DataBlob*>& remoteData);
+  void run(QHash<QString, DataBlob *>& remoteData);
 
 private:
-  UniboardDataBlob *mOutputData;
+  StreamBlob *mOutputData;
   Imager *mImager;
   Calibrator *mCalibrator;
-  UniboardMonData *mMonData;
   quint64 mBlobCount;
 };
 
-#endif // SIGNALPROCESSINGPIPELINE_H
+#endif // UNIBOARD_PIPELINE_H
