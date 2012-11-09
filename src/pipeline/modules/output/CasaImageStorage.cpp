@@ -30,7 +30,7 @@ void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *i
   const std::vector<float> &skymap = blob->getSkyMap();
   QString filename = mPath + "/" +
                      QString::number(blob->getFrequency()) +
-                     "_" + blob->getDateTime().toString("dd-MM-yyyy_hh:mm:ss") + ".image";
+                     "_" + blob->getDateTime().toString("dd-MM-yyyy_hh-mm-ss") + ".image";
 
   static casa::TiledShape map_shape(casa::IPosition(2, 512, 512));
 
