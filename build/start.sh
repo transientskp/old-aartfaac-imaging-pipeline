@@ -22,7 +22,7 @@ PCONFIG=$ROOT/../src/xml/pipelineConfig.xml
 PIPELINES=1
 MS=
 
-while getopts "hm:p" OPTION
+while getopts "hm:p:" OPTION
 do
   case $OPTION in
     h)
