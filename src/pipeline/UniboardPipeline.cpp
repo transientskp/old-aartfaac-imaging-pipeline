@@ -31,7 +31,7 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
   mCalibrator->run(input_data, mOutputData);
 
   // Output calibrated visibilities
-  dataOutput(input_data, "calibrated");
+  dataOutput(mOutputData, "calibrated");
 
   // Create image
   mImager->run(mOutputData, mOutputData);

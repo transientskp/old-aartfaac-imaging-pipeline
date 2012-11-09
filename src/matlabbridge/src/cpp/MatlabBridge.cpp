@@ -224,14 +224,12 @@ bool MatlabBridge::calibrate(const std::vector<float> &inReal,
   }
 
   mwArray re, im;
-/*// NOTE: Not using outReal etc. to communicate across objects
-  int width = mCalVis->GetDimensions().Get(1,1);
-  int height = mCalVis->GetDimensions().Get(1,2);
-  outReal.resize(width*height);
-  outImag.resize(width*height);
-  mCalVis->Real().GetData(&outReal[0], width*height);
-  mCalVis->Imag().GetData(&outImag[0], width*height);
-*/
+  int w = mCalVis->GetDimensions().Get(1,1);
+  int h = mCalVis->GetDimensions().Get(1,2);
+  outReal.resize(w*h);
+  outImag.resize(w*h);
+  mCalVis->Real().GetData(&outReal[0], w*h);
+  mCalVis->Imag().GetData(&outImag[0], w*h);
 
   // Write out generated solutions
   int width = mGain->GetDimensions ().Get(1,1); 
