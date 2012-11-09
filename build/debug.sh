@@ -3,12 +3,15 @@
 MAX_SLEEP_TIME=8
 DBG_FILE=dbgoutput.txt
 
-if [ ! -d "$1" ]; then
+
+if [ ! -d "$1" ]
+then
 	echo "ERROR: <arg1> should point to a measurement set." >&2
 	exit 1
 fi
 
 rm -vf $DBG_FILE
+echo "r\nbt" > gdbfile
 
 iterations=0
 
