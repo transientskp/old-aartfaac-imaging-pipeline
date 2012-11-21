@@ -26,6 +26,7 @@ set (PIPELINE_SOURCES
   src/pipeline/modules/imager/Imager.cpp
   src/utilities/halfprecision.c
   src/utilities/Utils.cpp
+  src/utilities/UVWParser.cpp
   src/utilities/Logger.cpp
 )
 

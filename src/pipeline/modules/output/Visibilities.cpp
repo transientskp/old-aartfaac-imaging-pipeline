@@ -1,5 +1,6 @@
 #include "Visibilities.h"
 #include "../../StreamBlob.h"
+#include "../../../utilities/UVWParser.h"
 
 #include <QtCore>
 
@@ -13,7 +14,10 @@ extern char *gTableName;
 Visibilities::Visibilities(const ConfigNode &inConfigNode)
   : AbstractOutputStream(inConfigNode)
 {
-  mPath = inConfigNode.getOption("file", "path", "./");
+  mPath = inConfigNode.getOption("output", "path", "./");
+  QString uvw_file_name = inConfigNode.getOption("uvw", "path");
+
+  UVWParser uvw_parser(uvw_file_name);
   mTableName = gTableName;
 
   if (sUpperTriangleIndices.empty())
@@ -23,50 +27,36 @@ Visibilities::Visibilities(const ConfigNode &inConfigNode)
 
     sExposure = msc.exposure()(0);
     sWeightSpectrum = msc.weightSpectrum()(0);
-    // From matlab, converts antenna positions to local coords
-    const Double rot_m[9] = {
-     -0.1195950000, -0.7919540000, 0.5987530000,
-      0.9928230000, -0.0954190000, 0.0720990000,
-      0.0000330000,  0.6030780000, 0.7976820000
-    };
 
     int a2 = 0;
     while (a2 < 288)
     {
       for (int a1 = 0; a1 < (a2 + 1); a1++)
       {
-        sUpperTriangleIndices.push_back(a1 * 288 + a2);
-
-        Array<Double> pos1 = msc.antenna().position()(a1);
-        Array<Double> pos2 = msc.antenna().position()(a2);
         Array<Double> uvw(IPosition(1, 3));
 
-        uvw(IPosition(0,0)) = (pos2(IPosition(0,0)) * rot_m[0] +
-                               pos2(IPosition(0,1)) * rot_m[1] +
-                               pos2(IPosition(0,2)) * rot_m[2])
-                              -
-                              (pos1(IPosition(0,0)) * rot_m[0] +
-                               pos1(IPosition(0,1)) * rot_m[1] +
-                               pos1(IPosition(0,2)) * rot_m[2]);
+        if (a1 == a2)
+        {
+          uvw(IPosition(0,0)) = 0.0;
+          uvw(IPosition(0,1)) = 0.0;
+          uvw(IPosition(0,2)) = 0.0;
+        }
+        else
+        {
+          String a1_name = msc.antenna().name()(a1);
+          String a2_name = msc.antenna().name()(a2);
 
-        uvw(IPosition(0,1)) = (pos2(IPosition(0,0)) * rot_m[3] +
-                               pos2(IPosition(0,1)) * rot_m[4] +
-                               pos2(IPosition(0,2)) * rot_m[5])
-                              -
-                              (pos1(IPosition(0,0)) * rot_m[3] +
-                               pos1(IPosition(0,1)) * rot_m[4] +
-                               pos1(IPosition(0,2)) * rot_m[5]);
+          UVWParser::UVW my_uvw = uvw_parser.GetUVW(a1_name.c_str(),
+                                                    a2_name.c_str(),
+                                                    UVWParser::LBA_OUTER);
 
-        uvw(IPosition(0,2)) = (pos2(IPosition(0,0)) * rot_m[6] +
-                               pos2(IPosition(0,1)) * rot_m[7] +
-                               pos2(IPosition(0,2)) * rot_m[8])
-                              -
-                              (pos1(IPosition(0,0)) * rot_m[6] +
-                               pos1(IPosition(0,1)) * rot_m[7] +
-                               pos1(IPosition(0,2)) * rot_m[8]);
-
+          uvw(IPosition(0,0)) = Double(my_uvw.uvw[0]);
+          uvw(IPosition(0,1)) = Double(my_uvw.uvw[1]);
+          uvw(IPosition(0,2)) = Double(my_uvw.uvw[2]);
+        }
 
         sUVWCoordinates.push_back(uvw);
+        sUpperTriangleIndices.push_back(a1 * 288 + a2);
       }
 
       a2++;
@@ -78,7 +68,6 @@ Visibilities::Visibilities(const ConfigNode &inConfigNode)
 
 Visibilities::~Visibilities()
 {
-
 }
 
 void Visibilities::sendStream(const QString &inStreamName, const DataBlob *inDataBlob)

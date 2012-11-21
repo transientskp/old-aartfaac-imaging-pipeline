@@ -30,7 +30,8 @@
     <output>
       <streamers>
         <Visibilities active="true">
-          <file path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
+          <output path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
+          <uvw path="/home/fhuizing/Workspace/Aartfaac/data/uvloc/uvw_merged.txt"/>
         </Visibilities>
         <TiffStorage active="false">
           <file path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
