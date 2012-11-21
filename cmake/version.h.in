@@ -1,4 +1,4 @@
-#ifdef DEBUG
+#ifndef NDEBUG
   #define NAME "@PROJECT_NAME@ (debug)"
 #else
   #define NAME "@PROJECT_NAME@"

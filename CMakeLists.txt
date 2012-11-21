@@ -1,12 +1,12 @@
 # === Set the project name and specify the required CMAKE version.
 project(aartfaac CXX C Fortran)
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8)
 
 # === Compiler options
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")
-set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "-O2")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -DQT_NO_DEBUG")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
 
 # === Project version
 execute_process(
@@ -34,7 +34,7 @@ configure_file(
 )
 
 # === Set cmake 3rd library modules path
-SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
 
 # === Include sources.
 include(cmake/sources.cmake)
@@ -55,17 +55,6 @@ include_directories(${CASACORE_INCLUDES})
 
 find_package(Lofar REQUIRED)
 include_directories(${LOFAR_INCLUDES})
-
-# === Create the metadata binary.
-set(METADATA ${PROJECT_NAME}-metadata)
-add_executable(${METADATA} ${METADATA_SOURCES})
-
-target_link_libraries(${METADATA}
-  ${QT_QTCORE_LIBRARY}
-  ${QT_QTXML_LIBRARY}
-  ${CASACORE_LIBRARIES}
-  ${LOFAR_LIBRARIES}
-)
 
 # === Create the emulator binary.
 set(EMULATOR ${PROJECT_NAME}-emulator)
