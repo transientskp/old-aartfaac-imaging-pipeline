@@ -11,6 +11,8 @@ UVWParser::UVWParser(const QString &inFileName)
 {
   QFile file(inFileName);
 
+  int x; // Fire scan-build warning
+
   if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
     qFatal("Failed opening %s", qPrintable(inFileName));
 
