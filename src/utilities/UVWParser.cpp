@@ -81,11 +81,11 @@ UVWParser::UVW::UVW():
   a1(-1),
   a2(-1),
   s1(-1),
-  s2(-1),
-  a1_name("XXXXXXXX"),
-  a2_name("XXXXXXXX")
+  s2(-1)
 {
   uvw[0] = uvw[1] = uvw[2] = 0.0;
+  strcpy(a1_name, "XXXXXXXX");
+  strcpy(a2_name, "XXXXXXXX");
 }
 
 UVWParser::UVW::UVW(const QString &a)
