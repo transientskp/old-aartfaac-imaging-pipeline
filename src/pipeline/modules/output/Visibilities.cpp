@@ -44,9 +44,9 @@ Visibilities::Visibilities(const ConfigNode &inConfigNode)
                                                   a2_name.c_str(),
                                                   lba_type);
 
-        uvw(IPosition(0,0)) = Double(my_uvw.uvw[0]);
-        uvw(IPosition(0,1)) = Double(my_uvw.uvw[1]);
-        uvw(IPosition(0,2)) = Double(my_uvw.uvw[2]);
+        uvw(IPosition(1,0)) = Double(my_uvw.uvw[0]);
+        uvw(IPosition(1,1)) = Double(my_uvw.uvw[1]);
+        uvw(IPosition(1,2)) = Double(my_uvw.uvw[2]);
 
         sUVWCoordinates.push_back(uvw);
         sUpperTriangleIndices.push_back(a1 * NUM_ANTENNAS + a2);
@@ -138,6 +138,7 @@ void Visibilities::sendStream(const QString &inStreamName, const DataBlob *inDat
 
     // Update WEIGHT_SPECTRUM
     msc.weightSpectrum().put(i, sWeightSpectrum);
+
   }
   ms.flush();
   ms.closeSubTables();
