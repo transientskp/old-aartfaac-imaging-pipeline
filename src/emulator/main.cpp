@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
   QString host = "127.0.0.1";
 
   CleanExit clean_exit;
-  Logger::open(NAME"-emulator");
+  Logger::open("aartfaac-emulator");
   qInstallMsgHandler(Logger::messageHandler);
   QCoreApplication app(argc, argv);
 
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
   app.setApplicationVersion(VERSION);
   app.setOrganizationName("Anton Pannekoek Institute");
   app.setOrganizationDomain("http://www.aartfaac.org");
-  qDebug("%s", HUMAN_NAME);
+  std::cout << HUMAN_NAME << std::endl;
 
   pelican::ConfigNode service_config(
     "<ServiceEmulator>"

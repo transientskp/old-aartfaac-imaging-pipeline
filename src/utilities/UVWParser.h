@@ -19,6 +19,7 @@ public:
   struct UVW
   {
     UVW();
+    UVW(const QString &a);
     UVW(const QString &a1, const QString &a2, const double u, const double v, const double w);
     bool operator <(const UVW &uvw) const;
 

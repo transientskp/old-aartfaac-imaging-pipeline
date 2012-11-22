@@ -12,7 +12,7 @@ char *gTableName; ///< Used in the Visibilities class for constructing an ms
 
 int main(int argc, char *argv[])
 {
-  Logger::open(NAME"-pipeline");
+  Logger::open("aartfaac-pipeline");
   qInstallMsgHandler(Logger::messageHandler);
 
   if (argc != 3)
@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
   app.setApplicationVersion(VERSION);
   app.setOrganizationName("Anton Pannekoek Institute");
   app.setOrganizationDomain("http://www.aartfaac.org");
-  qDebug("%s", HUMAN_NAME);
+  std::cout << HUMAN_NAME << std::endl;
 
   try
   {

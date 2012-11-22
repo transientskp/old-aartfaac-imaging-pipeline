@@ -16,6 +16,7 @@ Visibilities::Visibilities(const ConfigNode &inConfigNode)
 {
   mPath = inConfigNode.getOption("output", "path", "./");
   QString uvw_file_name = inConfigNode.getOption("uvw", "path");
+  UVWParser::Type lba_type = UVWParser::Type(inConfigNode.getOption("lba", "type").toInt());
 
   UVWParser uvw_parser(uvw_file_name);
   mTableName = gTableName;
@@ -35,25 +36,16 @@ Visibilities::Visibilities(const ConfigNode &inConfigNode)
       {
         Array<Double> uvw(IPosition(1, 3));
 
-        if (a1 == a2)
-        {
-          uvw(IPosition(0,0)) = 0.0;
-          uvw(IPosition(0,1)) = 0.0;
-          uvw(IPosition(0,2)) = 0.0;
-        }
-        else
-        {
-          String a1_name = msc.antenna().name()(a1);
-          String a2_name = msc.antenna().name()(a2);
+        String a1_name = msc.antenna().name()(a1);
+        String a2_name = msc.antenna().name()(a2);
 
-          UVWParser::UVW my_uvw = uvw_parser.GetUVW(a1_name.c_str(),
-                                                    a2_name.c_str(),
-                                                    UVWParser::LBA_OUTER);
+        UVWParser::UVW my_uvw = uvw_parser.GetUVW(a1_name.c_str(),
+                                                  a2_name.c_str(),
+                                                  lba_type);
 
-          uvw(IPosition(0,0)) = Double(my_uvw.uvw[0]);
-          uvw(IPosition(0,1)) = Double(my_uvw.uvw[1]);
-          uvw(IPosition(0,2)) = Double(my_uvw.uvw[2]);
-        }
+        uvw(IPosition(0,0)) = Double(my_uvw.uvw[0]);
+        uvw(IPosition(0,1)) = Double(my_uvw.uvw[1]);
+        uvw(IPosition(0,2)) = Double(my_uvw.uvw[2]);
 
         sUVWCoordinates.push_back(uvw);
         sUpperTriangleIndices.push_back(a1 * 288 + a2);

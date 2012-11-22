@@ -5,6 +5,7 @@
 
 #define NUM_ANTENNAS_PER_STATION 96
 #define NUM_STATIONS 6
+#define NUM_ANTENNAS (NUM_ANTENNAS_PER_STATION*NUM_STATIONS)
 
 UVWParser::UVWParser(const QString &inFileName)
 {
@@ -46,8 +47,17 @@ UVWParser::UVWParser(const QString &inFileName)
     mUVWPositions.push_back(UVW(a1, a2, u, v, w));
   }
 
+  Q_ASSERT(mUVWPositions.size() == (NUM_ANTENNAS*(NUM_ANTENNAS-1)));
+
   // Sort vector so we can query by index
   std::sort(mUVWPositions.begin(), mUVWPositions.end());
+  qDebug("UVWPositions(%lu):\n  (%s,%s): <%0.8f %0.8f %0.8f>\n  (%s,%s): <%0.8f %0.8f %0.8f>", 
+    mUVWPositions.size(), mUVWPositions.front().a1_name,
+    mUVWPositions.front().a2_name, mUVWPositions.front().uvw[0],
+    mUVWPositions.front().uvw[1], mUVWPositions.front().uvw[2],
+    mUVWPositions.back().a1_name, mUVWPositions.back().a2_name,
+    mUVWPositions.back().uvw[0], mUVWPositions.back().uvw[1],
+    mUVWPositions.back().uvw[2]);
 }
 
 UVWParser::UVW UVWParser::GetUVW(const QString &inA1, const QString &inA2, const Type inType)
@@ -55,7 +65,7 @@ UVWParser::UVW UVWParser::GetUVW(const QString &inA1, const QString &inA2, const
   Q_ASSERT(!mUVWPositions.empty());
 
   if (inA1.compare(inA2) == 0)
-    return UVW();
+    return UVW(inA1);
 
   int a1, s1, a2, s2;
   GetIdAndStation(inA1, a1, s1);
@@ -75,7 +85,21 @@ UVWParser::UVW::UVW():
   a1_name("XXXXXXXX"),
   a2_name("XXXXXXXX")
 {
-  uvw[0] = uvw[1] = uvw[2] = 0.0f;
+  uvw[0] = uvw[1] = uvw[2] = 0.0;
+}
+
+UVWParser::UVW::UVW(const QString &a)
+{
+  Q_ASSERT(a.size() <= MAX_NUM_CHARS);
+
+  strcpy(a1_name, qPrintable(a));
+  strcpy(a2_name, qPrintable(a));
+
+  UVWParser::GetIdAndStation(a, a1, s1);
+  a2 = a1;
+  s2 = s1;
+  
+  uvw[0] = uvw[1] = uvw[2] = 0.0;
 }
 
 UVWParser::UVW::UVW(const QString &inA1, const QString &inA2, const double u, const double v, const double w)
@@ -116,7 +140,7 @@ inline int UVWParser::GetIndex(const int inA1, const int inS1, const int inA2, c
   int a1_id = inS1 * NUM_ANTENNAS_PER_STATION + inA1;
   int a2_id = inS2 * NUM_ANTENNAS_PER_STATION + inA2;
 
-  return a1_id * (NUM_STATIONS*NUM_ANTENNAS_PER_STATION) + a2_id;
+  return a1_id * NUM_ANTENNAS + a2_id;
 }
 
 bool UVWParser::UVW::operator <(const UVW &uvw) const

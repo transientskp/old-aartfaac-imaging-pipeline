@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  Logger::open(NAME"-server");
+  Logger::open("aartfaac-server");
   qInstallMsgHandler(Logger::messageHandler);
 
   QCoreApplication app(argc, argv);
@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
   QString config_file(argv[1]);
   pelican::Config config(config_file);
 
-  qDebug("%s", HUMAN_NAME);
+  std::cout << HUMAN_NAME << std::endl;
 
   try
   {
