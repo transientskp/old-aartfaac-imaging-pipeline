@@ -1,6 +1,7 @@
 #include "Calibrator.h"
 
 #include "../../StreamBlob.h"
+#include "../../../Constants.h"
 
 #include <pelican/utility/Config.h>
 #include <QtCore>
@@ -8,7 +9,7 @@
 Calibrator::Calibrator(const ConfigNode &inConfig)
   : AbstractModule(inConfig)
 {
-  mUVFlags.resize(288 * 288, 0);
+  mUVFlags.resize(NUM_ANTENNAS*NUM_ANTENNAS, 0);
 }
 
 Calibrator::~Calibrator()

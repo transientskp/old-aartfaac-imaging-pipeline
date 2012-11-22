@@ -3,8 +3,9 @@
 
 #include <QtCore>
 
+#include "../../Constants.h"
+
 #define MAX_ANTENNAS 83
-#define MAX_NAME_SIZE 16
 
 class ServiceUdpPacket
 {
@@ -18,7 +19,7 @@ public:
   struct Antenna
   {
     quint16 id;
-    char name[MAX_NAME_SIZE];
+    char name[MAX_CHARS_ANTENNA_NAME];
   } __attribute__((packed)) mAntennas[MAX_ANTENNAS];
 };
 

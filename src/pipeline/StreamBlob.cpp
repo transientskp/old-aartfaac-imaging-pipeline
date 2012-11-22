@@ -1,6 +1,7 @@
 #include "StreamBlob.h"
 
 #include "../utilities/Utils.h"
+#include "../Constants.h"
 
 #include <limits>
 #include <QtGui/QImage>
@@ -10,16 +11,16 @@
 StreamBlob::StreamBlob()
   : DataBlob("StreamBlob")
 {
-  mWidth = mHeight = 512;
+  mWidth = mHeight = IMAGE_OUTPUT_SIZE;
 
-  mXXReal.resize(288 * 288, 0.0f);
-  mXXImag.resize(288 * 288, 0.0f);
-  mYYReal.resize(288 * 288, 0.0f);
-  mYYImag.resize(288 * 288, 0.0f);
-  mXYReal.resize(288 * 288, 0.0f);
-  mXYImag.resize(288 * 288, 0.0f);
-  mYXReal.resize(288 * 288, 0.0f);
-  mYXImag.resize(288 * 288, 0.0f);
+  mXXReal.resize(NUM_ANTENNAS * NUM_ANTENNAS, 0.0f);
+  mXXImag.resize(NUM_ANTENNAS * NUM_ANTENNAS, 0.0f);
+  mYYReal.resize(NUM_ANTENNAS * NUM_ANTENNAS, 0.0f);
+  mYYImag.resize(NUM_ANTENNAS * NUM_ANTENNAS, 0.0f);
+  mXYReal.resize(NUM_ANTENNAS * NUM_ANTENNAS, 0.0f);
+  mXYImag.resize(NUM_ANTENNAS * NUM_ANTENNAS, 0.0f);
+  mYXReal.resize(NUM_ANTENNAS * NUM_ANTENNAS, 0.0f);
+  mYXImag.resize(NUM_ANTENNAS * NUM_ANTENNAS, 0.0f);
 
   mSkyMap.resize(mWidth * mHeight);
   mVisMap.resize(mWidth * mHeight);
@@ -76,7 +77,7 @@ void StreamBlob::createImage(const std::vector<unsigned char> &inData, const QSt
     }
   }
 
-  QImage image(&inData[0], 512, 512, QImage::Format_Indexed8);
+  QImage image(&inData[0], IMAGE_OUTPUT_SIZE, IMAGE_OUTPUT_SIZE, QImage::Format_Indexed8);
   image.setColorTable(colors);
   QString filename = inType + mDateTime.toString("_dd-MM-yyyy_hh-mm-ss") + ".tiff";
   image.save(filename, "TIFF");
@@ -92,25 +93,25 @@ void StreamBlob::addSample(const quint16 inA1,
   std::complex<float> conj;
 
   conj = std::conj<float>(inXX);
-  mXXReal[inA1 * 288 + inA2] = conj.real();
-  mXXReal[inA2 * 288 + inA1] = inXX.real();
-  mXXImag[inA1 * 288 + inA2] = conj.imag();
-  mXXImag[inA2 * 288 + inA1] = inXX.imag();
+  mXXReal[inA1 * NUM_ANTENNAS + inA2] = conj.real();
+  mXXReal[inA2 * NUM_ANTENNAS + inA1] = inXX.real();
+  mXXImag[inA1 * NUM_ANTENNAS + inA2] = conj.imag();
+  mXXImag[inA2 * NUM_ANTENNAS + inA1] = inXX.imag();
   conj = std::conj<float>(inYY);
-  mYYReal[inA1 * 288 + inA2] = conj.real();
-  mYYReal[inA2 * 288 + inA1] = inYY.real();
-  mYYImag[inA1 * 288 + inA2] = conj.imag();
-  mYYImag[inA2 * 288 + inA1] = inYY.imag();
+  mYYReal[inA1 * NUM_ANTENNAS + inA2] = conj.real();
+  mYYReal[inA2 * NUM_ANTENNAS + inA1] = inYY.real();
+  mYYImag[inA1 * NUM_ANTENNAS + inA2] = conj.imag();
+  mYYImag[inA2 * NUM_ANTENNAS + inA1] = inYY.imag();
   conj = std::conj<float>(inXY);
-  mXYReal[inA1 * 288 + inA2] = conj.real();
-  mXYReal[inA2 * 288 + inA1] = inXY.real();
-  mXYImag[inA1 * 288 + inA2] = conj.imag();
-  mXYImag[inA2 * 288 + inA1] = inXY.imag();
+  mXYReal[inA1 * NUM_ANTENNAS + inA2] = conj.real();
+  mXYReal[inA2 * NUM_ANTENNAS + inA1] = inXY.real();
+  mXYImag[inA1 * NUM_ANTENNAS + inA2] = conj.imag();
+  mXYImag[inA2 * NUM_ANTENNAS + inA1] = inXY.imag();
   conj = std::conj<float>(inYX);
-  mYXReal[inA1 * 288 + inA2] = conj.real();
-  mYXReal[inA2 * 288 + inA1] = inYX.real();
-  mYXImag[inA1 * 288 + inA2] = conj.imag();
-  mYXImag[inA2 * 288 + inA1] = inYX.imag();
+  mYXReal[inA1 * NUM_ANTENNAS + inA2] = conj.real();
+  mYXReal[inA2 * NUM_ANTENNAS + inA1] = inYX.real();
+  mYXImag[inA1 * NUM_ANTENNAS + inA2] = conj.imag();
+  mYXImag[inA2 * NUM_ANTENNAS + inA1] = inYX.imag();
 }
 
 std::vector<float>* StreamBlob::getXXReal()

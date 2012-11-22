@@ -1,6 +1,7 @@
 #include "Visibilities.h"
 #include "../../StreamBlob.h"
 #include "../../../utilities/UVWParser.h"
+#include "../../../Constants.h"
 
 #include <QtCore>
 
@@ -30,7 +31,7 @@ Visibilities::Visibilities(const ConfigNode &inConfigNode)
     sWeightSpectrum = msc.weightSpectrum()(0);
 
     int a2 = 0;
-    while (a2 < 288)
+    while (a2 < NUM_ANTENNAS)
     {
       for (int a1 = 0; a1 < (a2 + 1); a1++)
       {
@@ -48,14 +49,14 @@ Visibilities::Visibilities(const ConfigNode &inConfigNode)
         uvw(IPosition(0,2)) = Double(my_uvw.uvw[2]);
 
         sUVWCoordinates.push_back(uvw);
-        sUpperTriangleIndices.push_back(a1 * 288 + a2);
+        sUpperTriangleIndices.push_back(a1 * NUM_ANTENNAS + a2);
       }
 
       a2++;
     }
   }
 
-  Q_ASSERT(sUpperTriangleIndices.size() == (288*289/2));
+  Q_ASSERT(sUpperTriangleIndices.size() == (NUM_ANTENNAS*(NUM_ANTENNAS+1))/2);
 }
 
 Visibilities::~Visibilities()
@@ -96,8 +97,8 @@ void Visibilities::sendStream(const QString &inStreamName, const DataBlob *inDat
   {
     ms.addRow();
     int index = sUpperTriangleIndices[i];
-    int a1 = (index / 288);
-    int a2 = (index % 288);
+    int a1 = (index / NUM_ANTENNAS);
+    int a2 = (index % NUM_ANTENNAS);
 
     // Update UVW
     msc.uvw().put(i, sUVWCoordinates[i]);

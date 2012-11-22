@@ -1,6 +1,7 @@
 #include "Imager.h"
 
 #include "../../StreamBlob.h"
+#include "../../../Constants.h"
 
 #include <pelican/utility/Config.h>
 #include <QtCore>
@@ -8,8 +9,8 @@
 Imager::Imager(const ConfigNode &inConfig)
   : AbstractModule(inConfig)
 {
-  mULoc.resize(288 * 288);
-  mVLoc.resize(288 * 288);
+  mULoc.resize(NUM_ANTENNAS*NUM_ANTENNAS);
+  mVLoc.resize(NUM_ANTENNAS*NUM_ANTENNAS);
   QString uloc_filename = inConfig.getOption("uloc", "filename");
   QString vloc_filename = inConfig.getOption("vloc", "filename");
   readData(uloc_filename, mULoc);
