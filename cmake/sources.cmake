@@ -2,6 +2,7 @@
 
 # === Emulator sources
 set (EMULATOR_SOURCES
+  src/Constants.h
   src/emulator/main.cpp
   src/emulator/stream/StreamUdpPacket.h
   src/emulator/stream/StreamEmulator.cpp
@@ -13,6 +14,7 @@ set (EMULATOR_SOURCES
 
 # === Pipeline sources
 set (PIPELINE_SOURCES
+  src/Constants.h
   src/pipeline/main.cpp
   src/pipeline/StreamBlob.cpp
   src/pipeline/StreamAdapter.cpp
@@ -32,6 +34,7 @@ set (PIPELINE_SOURCES
 
 # === Server sources
 set (SERVER_SOURCES
+  src/Constants.h
   src/server/main.cpp
   src/server/StreamChunker.cpp
   src/server/ServiceChunker.cpp
@@ -45,6 +48,7 @@ set (SERVER_SOURCES
 set (TESTS emulatortest pipelinetest servertest)
 
 set (emulatortest_SOURCES
+  src/Constants.h
   src/emulator/test/main.cpp
   src/emulator/test/UniboardEmulatorTest.cpp
   src/emulator/stream/StreamEmulator.cpp
