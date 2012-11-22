@@ -11,12 +11,6 @@ UVWParser::UVWParser(const QString &inFileName)
 {
   QFile file(inFileName);
 
-  int x;
-
-  int y = x;
-
-  y++;
-
   if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
     qFatal("Failed opening %s", qPrintable(inFileName));
 
