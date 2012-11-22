@@ -7,8 +7,11 @@
 #include <pelican/utility/ConfigNode.h>
 #include <vector>
 
+
 using namespace casa;
 using namespace pelican;
+
+class UVWParser;
 
 class Visibilities : public AbstractOutputStream
 {

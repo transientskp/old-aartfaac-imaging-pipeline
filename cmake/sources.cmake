@@ -1,7 +1,7 @@
 # === All *.{cpp,h} files
 
 # === Emulator sources
-set(EMULATOR_SOURCES
+set (EMULATOR_SOURCES
   src/emulator/main.cpp
   src/emulator/stream/StreamUdpPacket.h
   src/emulator/stream/StreamEmulator.cpp
@@ -12,12 +12,12 @@ set(EMULATOR_SOURCES
 )
 
 # === Pipeline sources
-set(PIPELINE_SOURCES
+set (PIPELINE_SOURCES
   src/pipeline/main.cpp
   src/pipeline/StreamBlob.cpp
   src/pipeline/StreamAdapter.cpp
   src/pipeline/ServiceAdapter.cpp
-  src/pipeline/ServiceBlob.cpp
+	src/pipeline/ServiceBlob.cpp
   src/pipeline/UniboardPipeline.cpp
   src/pipeline/modules/output/TiffStorage.cpp
   src/pipeline/modules/output/CasaImageStorage.cpp
@@ -26,11 +26,12 @@ set(PIPELINE_SOURCES
   src/pipeline/modules/imager/Imager.cpp
   src/utilities/halfprecision.c
   src/utilities/Utils.cpp
+  src/utilities/UVWParser.cpp
   src/utilities/Logger.cpp
 )
 
 # === Server sources
-set(SERVER_SOURCES
+set (SERVER_SOURCES
   src/server/main.cpp
   src/server/StreamChunker.cpp
   src/server/ServiceChunker.cpp

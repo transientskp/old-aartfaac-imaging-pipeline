@@ -30,12 +30,14 @@
     <output>
       <streamers>
         <Visibilities active="true">
-          <file path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
+          <output path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
+          <uvw path="/home/fhuizing/Workspace/Aartfaac/data/uvloc/uvw_merged.txt"/>
+          <lba type="0"/> <!-- 0 = LBA_INNER, 1 = LBA_OUTER -->
         </Visibilities>
         <TiffStorage active="false">
           <file path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
         </TiffStorage>
-        <CasaImageStorage active="true">
+        <CasaImageStorage active="false">
           <file path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
         </CasaImageStorage>
       </streamers>
