@@ -43,7 +43,7 @@ UVWParser::UVWParser(const QString &inFileName)
     mUVWPositions.push_back(UVW(a1, a2, u, v, w));
   }
 
-  Q_ASSERT(mUVWPositions.size() == (NUM_ANTENNAS*(NUM_ANTENNAS-1)));
+  Q_ASSERT(mUVWPositions.size() == (NUM_TOTAL_ANTENNAS*(NUM_TOTAL_ANTENNAS-1)));
 
   // Add baselines with self
   for (int s = 0; s < NUM_STATIONS; s++)
