@@ -1,5 +1,4 @@
 #include "UVWParser.h"
-#include "../Constants.h"
 
 #include <algorithm>
 #include <QtCore>
@@ -44,7 +43,7 @@ UVWParser::UVWParser(const QString &inFileName)
     mUVWPositions.push_back(UVW(a1, a2, u, v, w));
   }
 
-  Q_ASSERT(mUVWPositions.size() == (NUM_TOTAL_ANTENNAS*(NUM_TOTAL_ANTENNAS-1)));
+  Q_ASSERT(mUVWPositions.size() == (NUM_ANTENNAS*(NUM_ANTENNAS-1)));
 
   // Add baselines with self
   for (int s = 0; s < NUM_STATIONS; s++)
@@ -137,10 +136,10 @@ inline int UVWParser::GetIndex(const int inA1, const int inS1, const int inA2, c
   Q_ASSERT(inA1 >= 0 && inA1 < NUM_ANTENNAS_PER_STATION);
   Q_ASSERT(inA2 >= 0 && inA2 < NUM_ANTENNAS_PER_STATION);
 
-  int a1_id = inS1 * NUM_ANTENNAS_PER_STATION + inA1;
-  int a2_id = inS2 * NUM_ANTENNAS_PER_STATION + inA2;
-
-  return a1_id * NUM_TOTAL_ANTENNAS + a2_id;
+  return inA1 +
+         inS1*NUM_ANTENNAS_PER_STATION +
+         inA2*NUM_ANTENNAS_PER_STATION*NUM_STATIONS +
+         inS2*NUM_ANTENNAS_PER_STATION*NUM_STATIONS*NUM_ANTENNAS_PER_STATION;
 }
 
 bool UVWParser::UVW::operator <(const UVW &uvw) const
