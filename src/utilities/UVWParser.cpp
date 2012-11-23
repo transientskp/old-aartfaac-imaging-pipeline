@@ -49,23 +49,26 @@ UVWParser::UVWParser(const QString &inFileName)
 
   Q_ASSERT(mUVWPositions.size() == (NUM_ANTENNAS*(NUM_ANTENNAS-1)));
 
+  // Add baselines with self
+  for (int s = 0; s < NUM_STATIONS; s++)
+  {
+    for (int a = 0; a < NUM_ANTENNAS_PER_STATION; a++)
+    {
+      UVW uvw;
+      uvw.a1 = uvw.a2 = a;
+      uvw.s1 = uvw.s2 = s;
+      uvw.uvw[0] = uvw.uvw[1] = uvw.uvw[2] = 0.0;
+      mUVWPositions.push_back(uvw);
+    }
+  }
+
   // Sort vector so we can query by index
   std::sort(mUVWPositions.begin(), mUVWPositions.end());
-  qDebug("UVWPositions(%lu):\n  (%s,%s): <%0.8f %0.8f %0.8f>\n  (%s,%s): <%0.8f %0.8f %0.8f>", 
-    mUVWPositions.size(), mUVWPositions.front().a1_name,
-    mUVWPositions.front().a2_name, mUVWPositions.front().uvw[0],
-    mUVWPositions.front().uvw[1], mUVWPositions.front().uvw[2],
-    mUVWPositions.back().a1_name, mUVWPositions.back().a2_name,
-    mUVWPositions.back().uvw[0], mUVWPositions.back().uvw[1],
-    mUVWPositions.back().uvw[2]);
 }
 
 UVWParser::UVW UVWParser::GetUVW(const QString &inA1, const QString &inA2, const Type inType)
 {
   Q_ASSERT(!mUVWPositions.empty());
-
-  if (inA1.compare(inA2) == 0)
-    return UVW(inA1);
 
   int a1, s1, a2, s2;
   GetIdAndStation(inA1, a1, s1);
@@ -98,7 +101,7 @@ UVWParser::UVW::UVW(const QString &a)
   UVWParser::GetIdAndStation(a, a1, s1);
   a2 = a1;
   s2 = s1;
-  
+
   uvw[0] = uvw[1] = uvw[2] = 0.0;
 }
 
