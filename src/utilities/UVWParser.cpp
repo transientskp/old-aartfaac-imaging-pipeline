@@ -1,4 +1,5 @@
 #include "UVWParser.h"
+#include "../Constants.h"
 
 #include <algorithm>
 #include <QtCore>
