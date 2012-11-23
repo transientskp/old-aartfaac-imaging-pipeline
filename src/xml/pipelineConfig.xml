@@ -32,7 +32,7 @@
         <Visibilities active="true">
           <output path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
           <uvw path="/home/fhuizing/Workspace/Aartfaac/data/uvloc/uvw_merged.txt"/>
-          <lba type="0"/> <!-- 0 = LBA_INNER, 1 = LBA_OUTER -->
+          <lba type="1"/> <!-- 0 = LBA_INNER, 1 = LBA_OUTER -->
         </Visibilities>
         <TiffStorage active="false">
           <file path="/home/fhuizing/Workspace/Aartfaac/data/output"/>

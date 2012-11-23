@@ -137,8 +137,8 @@ void Visibilities::sendStream(const QString &inStreamName, const DataBlob *inDat
 
     // Update WEIGHT_SPECTRUM
     msc.weightSpectrum().put(i, sWeightSpectrum);
-
   }
+
   ms.flush();
   ms.closeSubTables();
 }

@@ -140,10 +140,11 @@ inline int UVWParser::GetIndex(const int inA1, const int inS1, const int inA2, c
   Q_ASSERT(inA1 >= 0 && inA1 < NUM_ANTENNAS_PER_STATION);
   Q_ASSERT(inA2 >= 0 && inA2 < NUM_ANTENNAS_PER_STATION);
 
-  int a1_id = inS1 * NUM_ANTENNAS_PER_STATION + inA1;
-  int a2_id = inS2 * NUM_ANTENNAS_PER_STATION + inA2;
 
-  return a1_id * NUM_ANTENNAS + a2_id;
+  return inA1 +
+         inS1*NUM_ANTENNAS_PER_STATION +
+         inA2*NUM_ANTENNAS_PER_STATION*NUM_STATIONS +
+         inS2*NUM_ANTENNAS_PER_STATION*NUM_STATIONS*NUM_ANTENNAS_PER_STATION;
 }
 
 bool UVWParser::UVW::operator <(const UVW &uvw) const
