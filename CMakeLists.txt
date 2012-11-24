@@ -3,21 +3,22 @@ project (aartfaac CXX C Fortran)
 cmake_minimum_required (VERSION 2.6)
 
 # === Compiler options
-set (CMAKE_C_FLAGS "-Wall -Wextra")
-set (CMAKE_C_FLAGS_DEBUG "-O0 -g")
-set (CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG -DQT_NO_DEBUG")
-set (CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g")
-set (CMAKE_CXX_FLAGS "-Wall -Wextra")
+set (CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -Wno-long-long")
 set (CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
 set (CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -DQT_NO_DEBUG")
 set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
 
 # === General options
+option (ENABLE_TESTS "Enable/disable test framework" ON)
+option (ENABLE_OPENMP "Enable/disable openmp" OFF)
+
 if (NOT CMAKE_BUILD_TYPE)
   set (CMAKE_BUILD_TYPE "RelWithDebInfo")
 endif (NOT CMAKE_BUILD_TYPE)
 
-option (ENABLE_TESTS "Enable/disable test framework" ON)
+if (ENABLE_OPENMP)
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+endif (ENABLE_OPENMP)
 
 # === Project version
 execute_process (
@@ -52,18 +53,20 @@ include (cmake/sources.cmake)
 include_directories (${PROJECT_BINARY_DIR})
 
 # === Find and include dependencies.
+find_package (Eigen3 REQUIRED)
 find_package (Qt4 COMPONENTS QtCore QtNetwork QtXml REQUIRED)
-include_directories (${QT_INCLUDE_DIR})
-include_directories (${QT_QTCORE_INCLUDE_DIR})
-
 find_package (Pelican REQUIRED)
-include_directories (${PELICAN_INCLUDES})
-
 find_package (Casacore REQUIRED)
-include_directories (${CASACORE_INCLUDES})
-
 find_package (Lofar REQUIRED)
-include_directories (${LOFAR_INCLUDES})
+
+include_directories (
+  ${EIGEN3_INCLUDE_DIR}
+  ${PELICAN_INCLUDES}
+  ${CASACORE_INCLUDES}
+  ${LOFAR_INCLUDES}
+  ${QT_INCLUDE_DIR}
+  ${QT_QTCORE_INCLUDE_DIR}
+)
 
 # === Create the emulator binary.
 set (EMULATOR ${PROJECT_NAME}-emulator)
@@ -134,15 +137,11 @@ endif (ENABLE_TESTS)
 
 # === Status report
 message (STATUS "")
-message (STATUS " C/C++:")
+message (STATUS " C++:")
 message (STATUS "   C++ Compiler:               ${CMAKE_CXX_COMPILER}")
 message (STATUS "   C++ flags (Release):        ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}")
 message (STATUS "   C++ flags (Debug):          ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}")
 message (STATUS "   C++ flags (RelWithDebInfo): ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
-message (STATUS "   C Compiler:                 ${CMAKE_C_COMPILER} ${CMAKE_C_COMPILER_ARG1}")
-message (STATUS "   C flags (Release):          ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_RELEASE}")
-message (STATUS "   C flags (Debug):            ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_DEBUG}")
-message (STATUS "   C flags (RelWithDebInfo):   ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_RELWITHDEBINFO}")
 message (STATUS "")
 message (STATUS " CMakeflags (${CMAKE_PROJECT_NAME}):")
 message (STATUS "   CMAKE_BUILD_TYPE            ${CMAKE_BUILD_TYPE}")
