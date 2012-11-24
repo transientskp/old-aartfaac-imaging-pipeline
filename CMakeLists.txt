@@ -22,23 +22,13 @@ endif (ENABLE_OPENMP)
 
 # === Project version
 execute_process (
-  COMMAND git describe --tags
-  OUTPUT_VARIABLE GIT_TAG
+  COMMAND git describe --tags --always
+  OUTPUT_VARIABLE GIT_VERSION
   ERROR_VARIABLE GIT_ERROR
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-if (GIT_TAG)
-  set (VERSION ${GIT_TAG})
-else (NOT GIT_TAG)
-  execute_process (
-    COMMAND git describe --always
-    OUTPUT_VARIABLE GIT_SHA1
-    ERROR_VARIABLE GIT_ERROR
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-  )
-  set (VERSION ${GIT_SHA1})
-endif (GIT_TAG)
+set (VERSION ${GIT_VERSION})
 
 configure_file (
   ${PROJECT_SOURCE_DIR}/cmake/version.h.in
