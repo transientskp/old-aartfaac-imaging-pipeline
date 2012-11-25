@@ -23,12 +23,10 @@ endif (ENABLE_OPENMP)
 # === Project version
 execute_process (
   COMMAND git describe --tags --always
-  OUTPUT_VARIABLE GIT_VERSION
+  OUTPUT_VARIABLE VERSION
   ERROR_VARIABLE GIT_ERROR
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
-
-set (VERSION ${GIT_VERSION})
 
 configure_file (
   ${PROJECT_SOURCE_DIR}/cmake/version.h.in
@@ -95,6 +93,7 @@ target_link_libraries (${SERVER}
   ${PELICAN_LIBRARIES}
 )
 
+# === Testing framework
 if (ENABLE_TESTS)
   # === Find CppUnit library
   find_package (CppUnit REQUIRED)

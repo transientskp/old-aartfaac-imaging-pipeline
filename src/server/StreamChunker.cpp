@@ -60,7 +60,6 @@ void StreamChunker::next(QIODevice *inDevice)
     if (udp_socket->readDatagram(reinterpret_cast<char *>(&packet), mPacketSize) <= 0)
     {
       qWarning("Failed receiving UDP packet %u/%u", i, packets);
-      i--;
       continue;
     }
 
@@ -86,17 +85,17 @@ void StreamChunker::next(QIODevice *inDevice)
       i = mDataBuffers.erase(i);
     }
     else
-      if (chunk->isTimeUp())
-      {
-        quint32 missing_bytes = chunk->fill();
-        qWarning("Chunk incomplete, missing %u/%lld bytes", missing_bytes, mChunkSize);
-        delete chunk;
-        i = mDataBuffers.erase(i);
-      }
-      else
-      {
-        ++i;
-      }
+    if (chunk->isTimeUp())
+    {
+      quint32 missing_bytes = chunk->fill();
+      qWarning("Chunk incomplete, missing %u/%lld bytes", missing_bytes, mChunkSize);
+      delete chunk;
+      i = mDataBuffers.erase(i);
+    }
+    else
+    {
+      ++i;
+    }
   }
 }
 
@@ -105,9 +104,9 @@ quint64 StreamChunker::hash(const double inTime, const double inFrequency)
   return static_cast<quint64>(inTime * inFrequency);
 }
 
-StreamChunker::Chunk::Chunk(StreamChunker *inChunker)
-  : mBytesRead(0),
-    mChunker(inChunker)
+StreamChunker::Chunk::Chunk(StreamChunker *inChunker):
+  mBytesRead(0),
+  mChunker(inChunker)
 {
   mData = mChunker->getDataStorage(mChunker->mChunkSize);
 

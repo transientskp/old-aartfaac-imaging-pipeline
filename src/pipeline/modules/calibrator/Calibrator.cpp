@@ -6,10 +6,9 @@
 #include <pelican/utility/Config.h>
 #include <QtCore>
 
-Calibrator::Calibrator(const ConfigNode &inConfig)
-  : AbstractModule(inConfig)
+Calibrator::Calibrator(const ConfigNode &inConfig):
+  AbstractModule(inConfig)
 {
-  mUVFlags.resize(NUM_ANTENNAS*NUM_ANTENNAS, 0);
 }
 
 Calibrator::~Calibrator()
@@ -26,6 +25,7 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
 
   std::vector<float> *out_real = output->getXXReal();
   std::vector<float> *out_imag = output->getXXImag();
+
   Q_UNUSED(inp_real);
   Q_UNUSED(inp_imag);
   Q_UNUSED(out_real);

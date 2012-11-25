@@ -57,12 +57,11 @@ void ServiceChunker::next(QIODevice *inDevice)
       qint64 max_length = mChunkSize - bytes_read;
       qint64 length = socket->readDatagram(ptr + bytes_read, max_length);
       if (length > 0)
-      {
         bytes_read += length;
-        qDebug("Bytes read: %d/%lld", bytes_read, mChunkSize);
-      }
     }
   }
   else
-    qFatal("Unable to allocate memory!");
+  {
+    qCritical("Unable to allocate memory, is the buffer large enough?");
+  }
 }

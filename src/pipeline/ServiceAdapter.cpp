@@ -10,7 +10,6 @@ ServiceAdapter::ServiceAdapter(const ConfigNode &inConfig)
 
 void ServiceAdapter::deserialise(QIODevice *inDevice)
 {
-  qWarning("Received service data");
   quint32 num_packets = chunkSize() / mPacketSize;
 
   ServiceUdpPacket packet;

@@ -16,10 +16,6 @@ public:
   void run(const StreamBlob *input, StreamBlob *output);
 
 private:
-  std::vector<float> mULoc;
-  std::vector<float> mVLoc;
-
-  void readData(const QString &inFilename, std::vector<float> &outData);
 };
 
 PELICAN_DECLARE_MODULE(Imager)

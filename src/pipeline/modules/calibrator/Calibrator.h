@@ -16,7 +16,6 @@ public:
   void run(const StreamBlob *input, StreamBlob *output);
 
 private:
-  std::vector<int> mUVFlags;
 };
 
 PELICAN_DECLARE_MODULE(Calibrator)

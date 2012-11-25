@@ -6,43 +6,13 @@
 #include <pelican/utility/Config.h>
 #include <QtCore>
 
-Imager::Imager(const ConfigNode &inConfig)
-  : AbstractModule(inConfig)
+Imager::Imager(const ConfigNode &inConfig):
+ AbstractModule(inConfig)
 {
-  mULoc.resize(NUM_ANTENNAS*NUM_ANTENNAS);
-  mVLoc.resize(NUM_ANTENNAS*NUM_ANTENNAS);
-  QString uloc_filename = inConfig.getOption("uloc", "filename");
-  QString vloc_filename = inConfig.getOption("vloc", "filename");
-  readData(uloc_filename, mULoc);
-  readData(vloc_filename, mVLoc);
 }
 
 Imager::~Imager()
 {
-}
-
-void Imager::readData(const QString &inFilename, std::vector<float> &outData)
-{
-  QFile file(inFilename);
-
-  if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-  {
-    qCritical("Failed opening %s", qPrintable(inFilename));
-    return;
-  }
-
-  quint32 i = 0;
-  QTextStream txt(&file);
-
-  while (!txt.atEnd())
-  {
-    QString line = txt.readLine();
-    outData[i] = line.toFloat();
-    i++;
-  }
-
-  qDebug("parsed %s", qPrintable(inFilename));
-  Q_ASSERT(i == 288 * 288);
 }
 
 void Imager::run(const StreamBlob *input, StreamBlob *output)
