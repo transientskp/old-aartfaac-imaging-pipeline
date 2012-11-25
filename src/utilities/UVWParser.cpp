@@ -51,11 +51,12 @@ UVWParser::UVWParser(const QString &inFileName)
   {
     for (int a = 0; a < NUM_ANTENNAS_PER_STATION; a++)
     {
-      UVW uvw;
-      uvw.a1 = uvw.a2 = a;
-      uvw.s1 = uvw.s2 = s;
-      uvw.uvw[0] = uvw.uvw[1] = uvw.uvw[2] = 0.0;
-      mUVWPositions.push_back(uvw);
+      QString a_name = QString("CS%1D%2").
+                         arg(s+2, 3, 10, QChar('0')).
+                         arg(a, 2, 10, QChar('0'));
+
+      qWarning("%s", qPrintable(a_name));
+      mUVWPositions.push_back(UVW(a_name));
     }
   }
 
