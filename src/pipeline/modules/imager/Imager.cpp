@@ -17,14 +17,6 @@ Imager::~Imager()
 
 void Imager::run(const StreamBlob *input, StreamBlob *output)
 {
-  output->setMJDTime(input->getMJDTime());
-  const std::vector<float> *real = input->getXXReal();
-  const std::vector<float> *imag = input->getXXImag();
-  std::vector<float> &skymap = output->getSkyMap();
-  std::vector<float> &vismap = output->getVisMap();
-
-  Q_UNUSED(real);
-  Q_UNUSED(imag);
-  Q_UNUSED(skymap);
-  Q_UNUSED(vismap);
+  Q_UNUSED(input);
+  Q_UNUSED(output);
 }

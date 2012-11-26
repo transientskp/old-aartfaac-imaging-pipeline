@@ -13,18 +13,14 @@ StreamBlob::StreamBlob()
 {
   mWidth = mHeight = IMAGE_OUTPUT_SIZE;
 
-  mXXReal.resize(NUM_ANTENNAS * NUM_ANTENNAS, 0.0f);
-  mXXImag.resize(NUM_ANTENNAS * NUM_ANTENNAS, 0.0f);
-  mYYReal.resize(NUM_ANTENNAS * NUM_ANTENNAS, 0.0f);
-  mYYImag.resize(NUM_ANTENNAS * NUM_ANTENNAS, 0.0f);
-  mXYReal.resize(NUM_ANTENNAS * NUM_ANTENNAS, 0.0f);
-  mXYImag.resize(NUM_ANTENNAS * NUM_ANTENNAS, 0.0f);
-  mYXReal.resize(NUM_ANTENNAS * NUM_ANTENNAS, 0.0f);
-  mYXImag.resize(NUM_ANTENNAS * NUM_ANTENNAS, 0.0f);
+  mXX.resize(NUM_ANTENNAS, NUM_ANTENNAS);
+  mYY.resize(NUM_ANTENNAS, NUM_ANTENNAS);
+  mXY.resize(NUM_ANTENNAS, NUM_ANTENNAS);
+  mYX.resize(NUM_ANTENNAS, NUM_ANTENNAS);
 
-  mSkyMap.resize(mWidth * mHeight);
-  mVisMap.resize(mWidth * mHeight);
-  mFrequency = 0.0;
+  mSkyMap.resize(mHeight, mWidth);
+  mVisMap.resize(mHeight, mWidth);
+
   reset();
 }
 
@@ -32,6 +28,7 @@ void StreamBlob::reset()
 {
   mMJDTime = -1.0;
   mChannelId = 0;
+  mFrequency = 0.0f;
 }
 
 void StreamBlob::serialise(QIODevice &out) const
@@ -42,8 +39,9 @@ void StreamBlob::serialise(QIODevice &out) const
   stream << mWidth;
   stream << mHeight;
 
-  for (int i = 0, n = mSkyMap.size(); i < n; i++)
-    stream << mSkyMap[i];
+  for (unsigned int i = 0; i < mHeight; i++)
+    for (unsigned int j = 0; j < mWidth; j++)
+      stream << mSkyMap(i,j);
 }
 
 void StreamBlob::deserialise(QIODevice &in, QSysInfo::Endian)
@@ -54,33 +52,12 @@ void StreamBlob::deserialise(QIODevice &in, QSysInfo::Endian)
   stream >> mWidth;
   stream >> mHeight;
 
-  mSkyMap.resize(mWidth * mHeight);
+  if (mSkyMap.rows() != mHeight || mSkyMap.cols() != mWidth)
+    mSkyMap.resize(mHeight, mWidth);
 
-  for (int i = 0, n = mWidth * mHeight; i < n; i++)
-    stream >> mSkyMap[i];
-}
-
-void StreamBlob::createImage(const std::vector<unsigned char> &inData, const QString &inType)
-{
-  static QVector<QRgb> colors;
-
-  if (colors.empty())
-  {
-    QColor color;
-
-    for (int i = 0; i < 256; i++)
-    {
-      //      int h = (int) round((i/256.0)*360.0);
-      //      color.setHsv(h, 100, 100);
-      color.setRgb(i, i, i);
-      colors.append(color.rgb());
-    }
-  }
-
-  QImage image(&inData[0], IMAGE_OUTPUT_SIZE, IMAGE_OUTPUT_SIZE, QImage::Format_Indexed8);
-  image.setColorTable(colors);
-  QString filename = inType + mDateTime.toString("_dd-MM-yyyy_hh-mm-ss") + ".tiff";
-  image.save(filename, "TIFF");
+  for (unsigned int i = 0; i < mHeight; i++)
+    for (unsigned int j = 0; j < mWidth; j++)
+      stream >> mSkyMap(i,j);
 }
 
 void StreamBlob::addSample(const quint16 inA1,
@@ -93,47 +70,18 @@ void StreamBlob::addSample(const quint16 inA1,
   std::complex<float> conj;
 
   conj = std::conj<float>(inXX);
-  mXXReal[inA1 * NUM_ANTENNAS + inA2] = conj.real();
-  mXXReal[inA2 * NUM_ANTENNAS + inA1] = inXX.real();
-  mXXImag[inA1 * NUM_ANTENNAS + inA2] = conj.imag();
-  mXXImag[inA2 * NUM_ANTENNAS + inA1] = inXX.imag();
+  mXX(inA1, inA2) = inXX;
+  mXX(inA2, inA1) = conj;
   conj = std::conj<float>(inYY);
-  mYYReal[inA1 * NUM_ANTENNAS + inA2] = conj.real();
-  mYYReal[inA2 * NUM_ANTENNAS + inA1] = inYY.real();
-  mYYImag[inA1 * NUM_ANTENNAS + inA2] = conj.imag();
-  mYYImag[inA2 * NUM_ANTENNAS + inA1] = inYY.imag();
+  mYY(inA1, inA2) = inYY;
+  mYY(inA2, inA1) = conj;
   conj = std::conj<float>(inXY);
-  mXYReal[inA1 * NUM_ANTENNAS + inA2] = conj.real();
-  mXYReal[inA2 * NUM_ANTENNAS + inA1] = inXY.real();
-  mXYImag[inA1 * NUM_ANTENNAS + inA2] = conj.imag();
-  mXYImag[inA2 * NUM_ANTENNAS + inA1] = inXY.imag();
+  mXY(inA1, inA2) = inXY;
+  mXY(inA2, inA1) = conj;
   conj = std::conj<float>(inYX);
-  mYXReal[inA1 * NUM_ANTENNAS + inA2] = conj.real();
-  mYXReal[inA2 * NUM_ANTENNAS + inA1] = inYX.real();
-  mYXImag[inA1 * NUM_ANTENNAS + inA2] = conj.imag();
-  mYXImag[inA2 * NUM_ANTENNAS + inA1] = inYX.imag();
+  mYX(inA1, inA2) = inYX;
+  mYX(inA2, inA1) = conj;
 }
-
-std::vector<float>* StreamBlob::getXXReal()
-{
-  return &mXXReal;
-}
-
-std::vector<float>* StreamBlob::getXXImag()
-{
-  return &mXXImag;
-}
-
-const std::vector<float>* StreamBlob::getXXReal() const
-{
-  return &mXXReal;
-}
-
-const std::vector<float>* StreamBlob::getXXImag() const
-{
-  return &mXXImag;
-}
-
 
 void StreamBlob::setMJDTime(const double inTime)
 {

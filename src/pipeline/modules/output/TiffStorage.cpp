@@ -37,6 +37,7 @@ void TiffStorage::sendStream(const QString &inStreamName, const DataBlob *inData
     return;
   }
 
+/*
   const std::vector<float> &skymap = blob->getSkyMap();
 
   // Obtain min and max value
@@ -69,5 +70,6 @@ void TiffStorage::sendStream(const QString &inStreamName, const DataBlob *inData
   image.setColorTable(mColors);
   QString filename = QString::number(blob->getFrequency()) + "_" + blob->getDateTime().toString("dd-MM-yyyy_hh:mm:ss") + ".tiff";
   image.save(mPath + "/" + filename, "TIFF");
+*/
 }
 

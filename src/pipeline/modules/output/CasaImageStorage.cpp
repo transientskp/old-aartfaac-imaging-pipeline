@@ -28,11 +28,9 @@ void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *i
     return;
   }
 
-  const std::vector<float> &skymap = blob->getSkyMap();
-
   QString filename = mPath + "/" +
-                     QString::number(blob->getFrequency()) +
-                     "_" + blob->getDateTime().toString("dd-MM-yyyy_hh:mm:ss") + ".image";
+                     QString::number(blob->mFrequency) +
+                     "_" + blob->mDateTime.toString("dd-MM-yyyy_hh-mm-ss") + ".image";
 
   static casa::TiledShape map_shape(casa::IPosition(2, IMAGE_OUTPUT_SIZE, IMAGE_OUTPUT_SIZE));
 
@@ -40,11 +38,8 @@ void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *i
 
   casa::PagedImage<casa::Float> image(map_shape, coordinate_info, qPrintable(filename));
 
-  for (int i = 0, x, y, n = skymap.size(); i < n; i++)
-  {
-    x = i % IMAGE_OUTPUT_SIZE;
-    y = (IMAGE_OUTPUT_SIZE-1) - i / IMAGE_OUTPUT_SIZE;
-    image.putAt(skymap[i], casa::IPosition(2, x, y));
-  }
+  for (int i = 0; i < IMAGE_OUTPUT_SIZE; i++)
+    for (int j = 0; j < IMAGE_OUTPUT_SIZE; j++)
+      image.putAt(blob->mSkyMap(i, j), casa::IPosition(2, i, j));
 }
 

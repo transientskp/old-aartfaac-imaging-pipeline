@@ -38,5 +38,5 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
 
   // Output to stream(s), see modules/output
   dataOutput(mOutputData, "post");
-  qDebug("Processed %4lldth blob with timestamp %s", ++mBlobCount, qPrintable(input_data->getDateTime().toString("dd-MM-yyyy hh:mm:ss")));
+  qDebug("Processed %4lldth blob with timestamp %s", ++mBlobCount, qPrintable(input_data->mDateTime.toString("dd-MM-yyyy hh:mm:ss")));
 }

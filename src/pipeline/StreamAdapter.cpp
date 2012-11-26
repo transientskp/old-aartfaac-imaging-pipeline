@@ -37,7 +37,7 @@ void StreamAdapter::deserialise(QIODevice *inDevice)
     if (!is_touched)
     {
       blob->setMJDTime(packet.mHeader.time);
-      blob->setFrequency(packet.mHeader.freq);
+      blob->mFrequency = packet.mHeader.freq;
       is_touched = true;
     }
 

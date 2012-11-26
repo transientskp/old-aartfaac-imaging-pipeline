@@ -55,7 +55,6 @@ UVWParser::UVWParser(const QString &inFileName)
                          arg(s+2, 3, 10, QChar('0')).
                          arg(a, 2, 10, QChar('0'));
 
-      qWarning("%s", qPrintable(a_name));
       mUVWPositions.push_back(UVW(a_name));
     }
   }

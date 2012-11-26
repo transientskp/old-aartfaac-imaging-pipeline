@@ -75,8 +75,8 @@ void Visibilities::sendStream(const QString &inStreamName, const DataBlob *inDat
   }
 
   String out_name = qPrintable(mPath + "/" +
-                    QString::number(blob->getFrequency()) +
-                    "_" + blob->getDateTime().toString("dd-MM-yyyy_hh-mm-ss") + ".ms");
+                    QString::number(blob->mFrequency) +
+                    "_" + blob->mDateTime.toString("dd-MM-yyyy_hh-mm-ss") + ".ms");
   String cmd("select from " + mTableName + " where TIME=0 giving " + out_name + " as plain");
 
   Table table = tableCommand(cmd);
@@ -118,22 +118,22 @@ void Visibilities::sendStream(const QString &inStreamName, const DataBlob *inDat
     msc.interval().put(i, sExposure);
 
     // Update TIME and TIME_CENTROID
-    msc.time().put(i, blob->getMJDTime());
-    msc.timeCentroid().put(i, blob->getMJDTime());
+    msc.time().put(i, blob->mMJDTime);
+    msc.timeCentroid().put(i, blob->mMJDTime);
 
     // Update DATA column
     Array<Complex>::iterator it = data.begin();
-    (*it).real() = blob->mXXReal[index];
-    (*it).imag() = blob->mXXImag[index];
+    (*it).real() = blob->mXX(a1, a2).real();
+    (*it).imag() = blob->mXX(a1, a2).imag();
     ++it;
-    (*it).real() = blob->mYYReal[index];
-    (*it).imag() = blob->mYYImag[index];
+    (*it).real() = blob->mYY(a1, a2).real();
+    (*it).imag() = blob->mYY(a1, a2).imag();
     ++it;
-    (*it).real() = blob->mXYReal[index];
-    (*it).imag() = blob->mXYImag[index];
+    (*it).real() = blob->mXY(a1, a2).real();
+    (*it).imag() = blob->mXY(a1, a2).imag();
     ++it;
-    (*it).real() = blob->mYXReal[index];
-    (*it).imag() = blob->mYXImag[index];
+    (*it).real() = blob->mYX(a1, a2).real();
+    (*it).imag() = blob->mYX(a1, a2).imag();
     msc.data().put(i, data);
 
     // Update WEIGHT_SPECTRUM
