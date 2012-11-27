@@ -82,7 +82,6 @@ void Visibilities::sendStream(const QString &inStreamName, const DataBlob *inDat
   table.reopenRW();
   MeasurementSet ms(table);
   MSColumns msc(ms);
-  Array<Complex> data(IPosition(2, 4, 1));
   Array<Float> ones(IPosition(1, 4));
   ones.set(1.0);
 
@@ -92,10 +91,11 @@ void Visibilities::sendStream(const QString &inStreamName, const DataBlob *inDat
   //   LOFAR_FULL_RES_FLAG
   //
   // The others are filled below:
+  qCritical("XX SIZE: %lu, YY SIZE: %lu", blob->mXXReal.size(), blob->mYYReal.size());
   for (int i = 0, n = sUpperTriangleIndices.size(); i < n; i++)
   {
     ms.addRow();
-    int index = sUpperTriangleIndices[i];
+    quint32 index = sUpperTriangleIndices[i];
     int a1 = (index / 288);
     int a2 = (index % 288);
 
@@ -121,18 +121,21 @@ void Visibilities::sendStream(const QString &inStreamName, const DataBlob *inDat
     msc.timeCentroid().put(i, blob->getMJDTime());
 
     // Update DATA column
-    Array<Complex>::iterator it = data.begin();
-    (*it).real() = blob->mXXReal[index];
-    (*it).imag() = blob->mXXImag[index];
-    ++it;
-    (*it).real() = blob->mYYReal[index];
-    (*it).imag() = blob->mYYImag[index];
-    ++it;
-    (*it).real() = blob->mXYReal[index];
-    (*it).imag() = blob->mXYImag[index];
-    ++it;
-    (*it).real() = blob->mYXReal[index];
-    (*it).imag() = blob->mYXImag[index];
+    Q_ASSERT(index >= 0 && index < blob->mXXReal.size());
+    Q_ASSERT(index >= 0 && index < blob->mYYReal.size());
+    Q_ASSERT(index >= 0 && index < blob->mXYReal.size());
+    Q_ASSERT(index >= 0 && index < blob->mYXReal.size());
+
+    Array<Complex> data(IPosition(2, 4, 1));
+    data(IPosition(2, 0, 0)).real() = blob->mXXReal[index];
+    data(IPosition(2, 0, 0)).imag() = blob->mXXImag[index];
+    data(IPosition(2, 1, 0)).real() = blob->mYYReal[index];
+    data(IPosition(2, 1, 0)).imag() = blob->mYYImag[index];
+    data(IPosition(2, 2, 0)).real() = blob->mXYReal[index];
+    data(IPosition(2, 2, 0)).imag() = blob->mXYImag[index];
+    data(IPosition(2, 3, 0)).real() = blob->mYXReal[index];
+    data(IPosition(2, 3, 0)).imag() = blob->mYXImag[index];
+
     msc.data().put(i, data);
 
     // Update WEIGHT_SPECTRUM

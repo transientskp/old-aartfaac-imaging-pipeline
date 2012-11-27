@@ -49,6 +49,7 @@ void Imager::run(const StreamBlob *input, StreamBlob *output)
   output->setMJDTime(input->getMJDTime());
   const std::vector<float> *real = input->getXXReal();
   const std::vector<float> *imag = input->getXXImag();
+
   std::vector<float> &skymap = output->getSkyMap();
   std::vector<float> &skymapradec = output->getSkyMapradec();
   std::vector<float> &vismap = output->getVisMap();

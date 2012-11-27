@@ -18,9 +18,9 @@ MatlabBridge* MatlabBridge::sSingleton = NULL;
 MatlabBridge::MatlabBridge()
 { initMatlab();
   try 
-  { mAntFlag = new mwArray (1,2,mxINT32_CLASS); 
-    (*mAntFlag)(1) = 6; (*mAntFlag)(2) =103;
-    nAnts = 288; nActiveAnts = nAnts - 2;
+  { mAntFlag = new mwArray;// (1,2,mxINT32_CLASS); 
+    //(*mAntFlag)(1) = 6; (*mAntFlag)(2) =103;
+    nAnts = 288; nActiveAnts = nAnts;
     // Use when no flagging needed.
     // mAntFlag = new mwArray;
     // nAnts = 288; nActiveAnts = nAnts;
@@ -285,7 +285,6 @@ bool MatlabBridge::createImage(const std::vector<float> &inReal,
   correlations.Real().SetData(const_cast<float*>(&inReal[0]), inReal.size());
   correlations.Imag().SetData(const_cast<float*>(&inImag[0]), inImag.size());
 */
-
   if (first)
   { // call matlab function to separate out unflagged uloc, vloc, which 
     // fills in the private uloc, vloc.
