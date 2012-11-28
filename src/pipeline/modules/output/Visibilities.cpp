@@ -122,18 +122,10 @@ void Visibilities::sendStream(const QString &inStreamName, const DataBlob *inDat
     msc.timeCentroid().put(i, blob->mMJDTime);
 
     // Update DATA column
-    Array<Complex>::iterator it = data.begin();
-    (*it).real() = blob->mXX(a1, a2).real();
-    (*it).imag() = blob->mXX(a1, a2).imag();
-    ++it;
-    (*it).real() = blob->mYY(a1, a2).real();
-    (*it).imag() = blob->mYY(a1, a2).imag();
-    ++it;
-    (*it).real() = blob->mXY(a1, a2).real();
-    (*it).imag() = blob->mXY(a1, a2).imag();
-    ++it;
-    (*it).real() = blob->mYX(a1, a2).real();
-    (*it).imag() = blob->mYX(a1, a2).imag();
+    data(IPosition(2, 0, 0)) = blob->mXX(a1, a2);
+    data(IPosition(2, 1, 0)) = blob->mYY(a1, a2);
+    data(IPosition(2, 2, 0)) = blob->mXY(a1, a2);
+    data(IPosition(2, 3, 0)) = blob->mYX(a1, a2);
     msc.data().put(i, data);
 
     // Update WEIGHT_SPECTRUM

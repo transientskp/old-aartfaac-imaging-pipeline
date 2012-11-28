@@ -9,7 +9,7 @@
 CasaImageStorage::CasaImageStorage(const ConfigNode &inConfigNode)
   : AbstractOutputStream(inConfigNode)
 {
-  mPath = inConfigNode.getOption("file", "path", "./");
+  mPath = inConfigNode.getOption("output", "path", "./");
 }
 
 CasaImageStorage::~CasaImageStorage()

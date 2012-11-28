@@ -4,6 +4,7 @@
 #include <pelican/data/DataBlob.h>
 #include <eigen3/Eigen/Dense>
 #include <complex>
+#include <vector>
 #include <QtCore>
 
 using namespace pelican;
@@ -34,7 +35,8 @@ public:
   Eigen::MatrixXcf mYX;
 
   Eigen::MatrixXf mSkyMap;
-  Eigen::MatrixXf mVisMap;
+
+  std::vector<bool> mFlagged;
 
   double mMJDTime;
   double mFrequency;

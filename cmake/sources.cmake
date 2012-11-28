@@ -21,11 +21,12 @@ set (PIPELINE_SOURCES
   src/pipeline/ServiceAdapter.cpp
 	src/pipeline/ServiceBlob.cpp
   src/pipeline/UniboardPipeline.cpp
+  src/pipeline/modules/flagger/Flagger.cpp
+  src/pipeline/modules/calibrator/Calibrator.cpp
+  src/pipeline/modules/imager/Imager.cpp
   src/pipeline/modules/output/TiffStorage.cpp
   src/pipeline/modules/output/CasaImageStorage.cpp
   src/pipeline/modules/output/Visibilities.cpp
-  src/pipeline/modules/calibrator/Calibrator.cpp
-  src/pipeline/modules/imager/Imager.cpp
   src/utilities/halfprecision.c
   src/utilities/Utils.cpp
   src/utilities/UVWParser.cpp

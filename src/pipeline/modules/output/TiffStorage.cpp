@@ -9,7 +9,7 @@
 TiffStorage::TiffStorage(const ConfigNode &inConfigNode)
   : AbstractOutputStream(inConfigNode)
 {
-  mPath = inConfigNode.getOption("file", "path", "./");
+  mPath = inConfigNode.getOption("output", "path", "./");
 
   QColor color;
 

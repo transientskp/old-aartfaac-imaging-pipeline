@@ -8,15 +8,16 @@ using namespace pelican;
 class StreamBlob;
 class Calibrator;
 class Imager;
+class Flagger;
 
 class UniboardPipeline : public AbstractPipeline
 {
 public:
   /// Constructor.
   UniboardPipeline() : AbstractPipeline(),
-    mOutputData(NULL),
-    mImager(NULL),
+    mFlagger(NULL),
     mCalibrator(NULL),
+    mImager(NULL),
     mBlobCount(0)
   {}
 
@@ -27,9 +28,10 @@ public:
   void run(QHash<QString, DataBlob *>& remoteData);
 
 private:
-  StreamBlob *mOutputData;
-  Imager *mImager;
+  Flagger *mFlagger;
   Calibrator *mCalibrator;
+  Imager *mImager;
+
   quint64 mBlobCount;
 };
 

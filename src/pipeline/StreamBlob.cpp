@@ -19,7 +19,7 @@ StreamBlob::StreamBlob()
   mYX.resize(NUM_ANTENNAS, NUM_ANTENNAS);
 
   mSkyMap.resize(mHeight, mWidth);
-  mVisMap.resize(mHeight, mWidth);
+  mFlagged.resize(NUM_ANTENNAS, false);
 
   reset();
 }
@@ -29,6 +29,9 @@ void StreamBlob::reset()
   mMJDTime = -1.0;
   mChannelId = 0;
   mFrequency = 0.0f;
+  mFlagged.assign(NUM_ANTENNAS, false);
+  mSkyMap = Eigen::MatrixXf::Zero(mHeight, mWidth);
+  mXX = mYY = mXY = mYX = Eigen::MatrixXcf::Zero(NUM_ANTENNAS, NUM_ANTENNAS);
 }
 
 void StreamBlob::serialise(QIODevice &out) const

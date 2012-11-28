@@ -21,9 +21,14 @@
     </adapters>
 
     <modules>
+      <Flagger>
+        <deviation multiplier="4.0"/>
+      </Flagger>
+
       <Imager>
-        <uloc filename="/home/fhuizing/Workspace/Aartfaac/data/uvloc/uloc.txt"/>
-        <vloc filename="/home/fhuizing/Workspace/Aartfaac/data/uvloc/vloc.txt"/>
+        <output path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
+        <uvw path="/home/fhuizing/Workspace/Aartfaac/data/uvloc/uvw_merged.txt"/>
+        <lba type="1"/> <!-- 0 = LBA_INNER, 1 = LBA_OUTER -->
       </Imager>
     </modules>
 
@@ -35,10 +40,10 @@
           <lba type="1"/> <!-- 0 = LBA_INNER, 1 = LBA_OUTER -->
         </Visibilities>
         <TiffStorage active="false">
-          <file path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
+          <output path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
         </TiffStorage>
         <CasaImageStorage active="false">
-          <file path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
+          <output path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
         </CasaImageStorage>
       </streamers>
       <dataStreams>

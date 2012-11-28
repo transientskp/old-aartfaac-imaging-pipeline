@@ -4,15 +4,16 @@
 #include "ServiceBlob.h"
 #include "modules/imager/Imager.h"
 #include "modules/calibrator/Calibrator.h"
+#include "modules/flagger/Flagger.h"
 
 // Initialises the pipeline, creating required modules and data blobs,
 // and requesting remote data.
 void UniboardPipeline::init()
 {
   // Create the pipeline modules and any local data blobs.
-  mOutputData = static_cast<StreamBlob *>(createBlob("StreamBlob"));
   mImager = static_cast<Imager *>(createModule("Imager"));
   mCalibrator = static_cast<Calibrator *>(createModule("Calibrator"));
+  mFlagger = static_cast<Flagger *>(createModule("Flagger"));
 
   // Request remote data.
   requestRemoteData("StreamBlob");
@@ -25,18 +26,21 @@ void UniboardPipeline::init()
 void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
 {
   // Get pointers to the remote data blob(s) from the supplied hash.
-  StreamBlob *input_data = static_cast<StreamBlob *>(inRemoteData["StreamBlob"]);
+  StreamBlob *data = static_cast<StreamBlob *>(inRemoteData["StreamBlob"]);
+
+  // Flag bad antennas/visibilities
+  mFlagger->run(data, data);
 
   // Calibrate correlations
-  mCalibrator->run(input_data, mOutputData);
+  mCalibrator->run(data, data);
 
   // Output calibrated visibilities
-  dataOutput(input_data, "calibrated");
+  dataOutput(data, "calibrated");
 
   // Create image
-  mImager->run(mOutputData, mOutputData);
+  mImager->run(data, data);
 
   // Output to stream(s), see modules/output
-  dataOutput(mOutputData, "post");
-  qDebug("Processed %4lldth blob with timestamp %s", ++mBlobCount, qPrintable(input_data->mDateTime.toString("dd-MM-yyyy hh:mm:ss")));
+  dataOutput(data, "post");
+  qDebug("Processed %4lldth blob with timestamp %s", ++mBlobCount, qPrintable(data->mDateTime.toString("dd-MM-yyyy hh:mm:ss")));
 }
