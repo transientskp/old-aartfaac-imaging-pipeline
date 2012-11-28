@@ -19,7 +19,7 @@ StreamBlob::StreamBlob()
   mYX.resize(NUM_ANTENNAS, NUM_ANTENNAS);
 
   mSkyMap.resize(mHeight, mWidth);
-  mFlagged.resize(NUM_ANTENNAS, false);
+  mFlagged.resize(NUM_ANTENNAS);
 
   reset();
 }
@@ -29,38 +29,70 @@ void StreamBlob::reset()
   mMJDTime = -1.0;
   mChannelId = 0;
   mFrequency = 0.0f;
-  mFlagged.assign(NUM_ANTENNAS, false);
-  mSkyMap = Eigen::MatrixXf::Zero(mHeight, mWidth);
-  mXX = mYY = mXY = mYX = Eigen::MatrixXcf::Zero(NUM_ANTENNAS, NUM_ANTENNAS);
+  mFlagged.assign(NUM_ANTENNAS, 0);
+  mSkyMap.setZero();
+  mXX.setZero();
+  mYY.setZero();
+  mXY.setZero();
+  mYX.setZero();
 }
 
 void StreamBlob::serialise(QIODevice &out) const
 {
   QDataStream stream(&out);
 
-  stream << mDateTime;
-  stream << mWidth;
-  stream << mHeight;
+  stream << mMJDTime;
+  stream << mFrequency;
 
   for (unsigned int i = 0; i < mHeight; i++)
     for (unsigned int j = 0; j < mWidth; j++)
       stream << mSkyMap(i,j);
+
+  for (int a1 = 0; a1 < NUM_ANTENNAS; a1++)
+  {
+    for (int a2 = 0; a2 < NUM_ANTENNAS; a2++)
+    {
+      stream << mXX(a1, a2).real();
+      stream << mXX(a1, a2).imag();
+      stream << mYY(a1, a2).real();
+      stream << mYY(a1, a2).imag();
+      stream << mXY(a1, a2).real();
+      stream << mXY(a1, a2).imag();
+      stream << mYX(a1, a2).real();
+      stream << mYX(a1, a2).imag();
+    }
+    stream << mFlagged[a1];
+  }
 }
 
 void StreamBlob::deserialise(QIODevice &in, QSysInfo::Endian)
 {
   QDataStream stream(&in);
 
-  stream >> mDateTime;
-  stream >> mWidth;
-  stream >> mHeight;
-
-  if (mSkyMap.rows() != mHeight || mSkyMap.cols() != mWidth)
-    mSkyMap.resize(mHeight, mWidth);
+  stream >> mMJDTime;
+  stream >> mFrequency;
 
   for (unsigned int i = 0; i < mHeight; i++)
     for (unsigned int j = 0; j < mWidth; j++)
       stream >> mSkyMap(i,j);
+
+  for (int a1 = 0; a1 < NUM_ANTENNAS; a1++)
+  {
+    for (int a2 = 0; a2 < NUM_ANTENNAS; a2++)
+    {
+      stream >> mXX(a1, a2).real();
+      stream >> mXX(a1, a2).imag();
+      stream >> mYY(a1, a2).real();
+      stream >> mYY(a1, a2).imag();
+      stream >> mXY(a1, a2).real();
+      stream >> mXY(a1, a2).imag();
+      stream >> mYX(a1, a2).real();
+      stream >> mYX(a1, a2).imag();
+    }
+    stream >> mFlagged[a1];
+  }
+
+  setMJDTime(mMJDTime);
 }
 
 void StreamBlob::addSample(const quint16 inA1,

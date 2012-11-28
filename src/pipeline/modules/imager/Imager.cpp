@@ -18,7 +18,6 @@ Imager::Imager(const ConfigNode &inConfig):
  mResolution(IMAGE_OUTPUT_SIZE)
 {
   mGridded.resize(mGridPoints, mGridPoints);
-  mGridded.setZero();
 
   mUCoords.resize(NUM_ANTENNAS, NUM_ANTENNAS);
   mVCoords.resize(NUM_ANTENNAS, NUM_ANTENNAS);
@@ -67,6 +66,7 @@ void Imager::run(const StreamBlob *input, StreamBlob *output)
 void Imager::gridding(const MatrixXcf &inCorrelations)
 {
   Q_UNUSED(inCorrelations);
+  mGridded.setZero();
 /*
   for (int a1 = 0; a1 < NUM_ANTENNAS; a1++)
   {

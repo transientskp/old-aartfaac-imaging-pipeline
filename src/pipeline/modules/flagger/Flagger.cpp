@@ -52,7 +52,7 @@ void Flagger::run(const StreamBlob *input, StreamBlob *output)
     if (mAntennas(a) < (median - threshold) || mAntennas(a) > (median + threshold))
     {
       qWarning("Antenna %d is bad, flagged", a);
-      output->mFlagged[a] = true;
+      output->mFlagged[a] = 1;
     }
   }
 }

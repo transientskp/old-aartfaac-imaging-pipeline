@@ -84,13 +84,13 @@ void Visibilities::sendStream(const QString &inStreamName, const DataBlob *inDat
   MeasurementSet ms(table);
   MSColumns msc(ms);
   Array<Complex> data(IPosition(2, 4, 1));
+  Array<Bool> flags(IPosition(2, 4, 1));
   Array<Float> ones(IPosition(1, 4));
   ones.set(1.0);
 
   // The following data table columns hold the default MS values:
   //   FLAG_CATEGORY, ARRAY_ID, DATA_DESC_ID, FEED1, FEED2, FIELD_ID, FLAG_ROW
-  //   OBSERVATION_ID, PROCESSOR_ID, SCAN_NUMBER, STATE_ID, FLAG,
-  //   LOFAR_FULL_RES_FLAG
+  //   OBSERVATION_ID, PROCESSOR_ID, SCAN_NUMBER, STATE_ID, LOFAR_FULL_RES_FLAG
   //
   // The others are filled below:
   for (int i = 0, n = sUpperTriangleIndices.size(); i < n; i++)
@@ -127,6 +127,21 @@ void Visibilities::sendStream(const QString &inStreamName, const DataBlob *inDat
     data(IPosition(2, 2, 0)) = blob->mXY(a1, a2);
     data(IPosition(2, 3, 0)) = blob->mYX(a1, a2);
     msc.data().put(i, data);
+
+    // Update FLAG column
+    // TODO: Perform flagging per polarization
+    flags(IPosition(2, 0, 0)) = false;
+    flags(IPosition(2, 1, 0)) = false;
+    flags(IPosition(2, 2, 0)) = false;
+    flags(IPosition(2, 3, 0)) = false;
+    if (blob->mFlagged[a1] || blob->mFlagged[a2])
+    {
+      flags(IPosition(2, 0, 0)) = true;
+      flags(IPosition(2, 1, 0)) = true;
+      flags(IPosition(2, 2, 0)) = true;
+      flags(IPosition(2, 3, 0)) = true;
+    }
+    msc.flag().put(i, flags);
 
     // Update WEIGHT_SPECTRUM
     msc.weightSpectrum().put(i, sWeightSpectrum);
