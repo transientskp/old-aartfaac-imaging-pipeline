@@ -76,25 +76,6 @@ void Imager::run(const StreamBlob *input, StreamBlob *output)
   Q_UNUSED(output);
 
   gridding(input->mXX, input->mFlagged);
-
-  std::ofstream real, imag;
-  real.open(qPrintable(input->mDateTime.toString("dd-MM-yyyy_hh-mm-ss") + "-R.dat"));
-  imag.open(qPrintable(input->mDateTime.toString("dd-MM-yyyy_hh-mm-ss") + "-I.dat"));
-
-  for (int i = 0; i < IMAGE_OUTPUT_SIZE; i++)
-  {
-    for (int j = 0; j < IMAGE_OUTPUT_SIZE; j++)
-    {
-      float cr = mGridded(i, j).real();
-      float ci = mGridded(i, j).imag();
-      real << cr << " ";
-      imag << ci << " ";
-    }
-    real << std::endl;
-    imag << std::endl;
-  }
-  real.close();
-  imag.close();
 }
 
 void Imager::gridding(const MatrixXcf &inCorrelations, const std::vector<int> &inFlagged)
@@ -121,11 +102,6 @@ void Imager::gridding(const MatrixXcf &inCorrelations, const std::vector<int> &i
       int s = std::floor(v);
       int n = std::ceil(v);
 
-      Q_ASSERT(s >= 0 && s < IMAGE_OUTPUT_SIZE);
-      Q_ASSERT(n >= 0 && n < IMAGE_OUTPUT_SIZE);
-      Q_ASSERT(w >= 0 && w < IMAGE_OUTPUT_SIZE);
-      Q_ASSERT(e >= 0 && e < IMAGE_OUTPUT_SIZE);
-
       float west_power  = 1.0f - std::abs(u - w);
       float east_power  = 1.0f - std::abs(u - e);
       float south_power = 1.0f - std::abs(v - s);
@@ -144,14 +120,16 @@ void Imager::gridding(const MatrixXcf &inCorrelations, const std::vector<int> &i
   }
 
   #ifndef NDEBUG
-  std::complex<float> grid_max = mGridded.sum();
-  std::complex<float> corr_max = 0.0f;
+  std::complex<float> grid_sum = mGridded.sum();
+  std::complex<float> corr_sum = 0.0f;
   for (int a1 = 0; a1 < NUM_ANTENNAS; a1++)
     for (int a2 = 0; a2 < NUM_ANTENNAS; a2++)
       if (!inFlagged[a1] && !inFlagged[a2])
-        corr_max += inCorrelations(a1,a2);
+        corr_sum += inCorrelations(a1,a2);
 
-  Q_ASSERT(std::abs(grid_max.real()-corr_max.real()) < 1e-2f);
+  float diff = std::abs(grid_sum.real()-corr_sum.real());
+  if (diff > 1e-2f)
+    qWarning("Gridding: diff(sum(grid), sum(corr)) = %0.5f", diff);
   #endif
 }
 
