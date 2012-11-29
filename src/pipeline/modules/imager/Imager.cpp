@@ -8,8 +8,6 @@
 #include <casacore/ms/MeasurementSets.h>
 #include <pelican/utility/Config.h>
 #include <QtCore>
-#include <fstream>
-#include <iostream>
 #include <limits>
 
 extern char *gTableName;
@@ -65,17 +63,60 @@ Imager::Imager(const ConfigNode &inConfig):
   mVCoords.array() += minv;
   mVCoords.array() /= minv + maxv;
   mVCoords.array() *= (IMAGE_OUTPUT_SIZE - 1);
+
+  // Create fftw plan
+  mFFTWPlan = fftwf_plan_dft_2d(IMAGE_OUTPUT_SIZE, IMAGE_OUTPUT_SIZE,
+                               reinterpret_cast<fftwf_complex*>(mGridded.data()),
+                               reinterpret_cast<fftwf_complex*>(mGridded.data()),
+                               FFTW_FORWARD, FFTW_ESTIMATE|FFTW_PRESERVE_INPUT);
+
+  #ifndef NDEBUG
+  qDebug("BEGIN FFTW PLAN");
+  fftwf_print_plan(mFFTWPlan);
+  qDebug("END FFTW PLAN");
+  #endif
 }
 
 Imager::~Imager()
 {
+  fftwf_destroy_plan(mFFTWPlan);
+  fftwf_cleanup();
 }
 
 void Imager::run(const StreamBlob *input, StreamBlob *output)
 {
-  Q_UNUSED(output);
-
+  // Splat the image on a grid
   gridding(input->mXX, input->mFlagged);
+
+  // Perform fft
+  fftShift();
+  fftwf_execute(mFFTWPlan);
+  fftShift();
+
+  // Copy real part to skymap and flip over hor and vert axis
+  for (int i = 0; i < IMAGE_OUTPUT_SIZE; i++)
+    for (int j = 0; j < IMAGE_OUTPUT_SIZE; j++)
+      output->mSkyMap(i,j) = mGridded(i,IMAGE_OUTPUT_SIZE-j-1).real();
+}
+
+void Imager::fftShift()
+{
+  int half = IMAGE_OUTPUT_SIZE/2;
+  int q2_i, q2_j, q3_i, q3_j, q4_i, q4_j;
+  for (int q1_i = 0; q1_i < IMAGE_OUTPUT_SIZE/2; q1_i++)
+  {
+    for (int q1_j = 0; q1_j < IMAGE_OUTPUT_SIZE/2; q1_j++)
+    {
+      q3_i = q1_i + half;
+      q3_j = q1_j + half;
+      q4_i = q1_i + half;
+      q4_j = q1_j;
+      q2_i = q1_i;
+      q2_j = q1_j + half;
+      std::swap(mGridded(q1_i, q1_j), mGridded(q3_i, q3_j));
+      std::swap(mGridded(q4_i, q4_j), mGridded(q2_i, q2_j));
+    }
+  }
 }
 
 void Imager::gridding(const MatrixXcf &inCorrelations, const std::vector<int> &inFlagged)
@@ -118,26 +159,4 @@ void Imager::gridding(const MatrixXcf &inCorrelations, const std::vector<int> &i
       mGridded(n, e) += north_east_power * corr;
     }
   }
-
-  #ifndef NDEBUG
-  std::complex<float> grid_sum = mGridded.sum();
-  std::complex<float> corr_sum = 0.0f;
-  for (int a1 = 0; a1 < NUM_ANTENNAS; a1++)
-    for (int a2 = 0; a2 < NUM_ANTENNAS; a2++)
-      if (!inFlagged[a1] && !inFlagged[a2])
-        corr_sum += inCorrelations(a1,a2);
-
-  float diff = std::abs(grid_sum.real()-corr_sum.real());
-  if (diff > 1e-2f)
-    qWarning("Gridding: diff(sum(grid), sum(corr)) = %0.5f", diff);
-  #endif
 }
-
-
-
-
-
-
-
-
-

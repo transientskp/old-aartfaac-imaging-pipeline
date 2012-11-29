@@ -42,6 +42,7 @@ include_directories (${PROJECT_BINARY_DIR})
 
 # === Find and include dependencies.
 find_package (Eigen3 REQUIRED)
+find_package (FFTW REQUIRED)
 find_package (Qt4 COMPONENTS QtCore QtNetwork QtXml REQUIRED)
 find_package (Pelican REQUIRED)
 find_package (Casacore REQUIRED)
@@ -49,6 +50,7 @@ find_package (Lofar REQUIRED)
 
 include_directories (
   ${EIGEN3_INCLUDE_DIR}
+  ${FFTW_INCLUDES}
   ${PELICAN_INCLUDES}
   ${CASACORE_INCLUDES}
   ${LOFAR_INCLUDES}
@@ -79,6 +81,7 @@ target_link_libraries (${PIPELINE}
   ${QT_QTXML_LIBRARY}
   ${QT_QTGUI_LIBRARY}
   ${CASACORE_LIBRARIES}
+  -lfftw3f # can't use ${FFTW_LIBRARIES} here...
   ${PELICAN_LIBRARIES}
 )
 
@@ -127,13 +130,13 @@ endif (ENABLE_TESTS)
 # === Status report
 message (STATUS "")
 message (STATUS " C++:")
-message (STATUS "   C++ Compiler:               ${CMAKE_CXX_COMPILER}")
-message (STATUS "   C++ flags (Release):        ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}")
-message (STATUS "   C++ flags (Debug):          ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}")
-message (STATUS "   C++ flags (RelWithDebInfo): ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+message (STATUS "   C++ Compiler:         ${CMAKE_CXX_COMPILER}")
+message (STATUS "   C++ (Release):        ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}")
+message (STATUS "   C++ (Debug):          ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}")
+message (STATUS "   C++ (RelWithDebInfo): ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
 message (STATUS "")
 message (STATUS " CMakeflags (${CMAKE_PROJECT_NAME}):")
-message (STATUS "   CMAKE_BUILD_TYPE            ${CMAKE_BUILD_TYPE}")
-message (STATUS "   ENABLE_TESTS                ${ENABLE_TESTS}")
-message (STATUS "   ENABLE_OPENMP               ${ENABLE_OPENMP}")
+message (STATUS "   CMAKE_BUILD_TYPE      ${CMAKE_BUILD_TYPE}")
+message (STATUS "   ENABLE_TESTS          ${ENABLE_TESTS}")
+message (STATUS "   ENABLE_OPENMP         ${ENABLE_OPENMP}")
 message (STATUS "")

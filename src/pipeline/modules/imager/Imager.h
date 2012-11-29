@@ -4,7 +4,8 @@
 #include <pelican/core/AbstractModule.h>
 
 #include <eigen3/Eigen/Dense>
-#include <eigen3/unsupported/Eigen/FFT>
+#include <complex>
+#include <fftw3.h>
 
 using namespace pelican;
 using namespace Eigen;
@@ -21,11 +22,14 @@ public:
 
 private:
   void gridding(const MatrixXcf &inCorrelations, const std::vector<int> &inFlagged);
+  void fftShift();
 
   MatrixXf mUCoords;
   MatrixXf mVCoords;
 
   MatrixXcf mGridded;
+
+  fftwf_plan mFFTWPlan;
 };
 
 PELICAN_DECLARE_MODULE(Imager)
