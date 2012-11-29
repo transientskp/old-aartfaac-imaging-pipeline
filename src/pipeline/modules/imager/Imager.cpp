@@ -142,6 +142,17 @@ void Imager::gridding(const MatrixXcf &inCorrelations, const std::vector<int> &i
       mGridded(n, e) += north_east_power * corr;
     }
   }
+
+  #ifndef NDEBUG
+  std::complex<float> grid_max = mGridded.sum();
+  std::complex<float> corr_max = 0.0f;
+  for (int a1 = 0; a1 < NUM_ANTENNAS; a1++)
+    for (int a2 = 0; a2 < NUM_ANTENNAS; a2++)
+      if (!inFlagged[a1] && !inFlagged[a2])
+        corr_max += inCorrelations(a1,a2);
+
+  Q_ASSERT(std::abs(grid_max.real()-corr_max.real()) < 1e-2f);
+  #endif
 }
 
 
