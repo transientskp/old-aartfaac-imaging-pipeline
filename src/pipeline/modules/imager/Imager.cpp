@@ -73,17 +73,23 @@ void Imager::run(const StreamBlob *input, StreamBlob *output)
 {
   Q_UNUSED(output);
 
-  gridding(input->mXX);
+  gridding(input->mXX, input->mFlagged);
 }
 
-void Imager::gridding(const MatrixXcf &inCorrelations)
+void Imager::gridding(const MatrixXcf &inCorrelations, const std::vector<int> &inFlagged)
 {
   mGridded.setZero();
 
   for (int a1 = 0; a1 < NUM_ANTENNAS; a1++)
   {
+    if (inFlagged[a1])
+      continue;
+
     for (int a2 = a1; a2 < NUM_ANTENNAS; a2++)
     {
+      if (inFlagged[a2])
+        continue;
+
       const std::complex<float> &corr = inCorrelations(a1, a2);
       float amplitude = std::abs(corr);
       std::complex<float> phasor = corr / amplitude;
@@ -123,10 +129,10 @@ void Imager::gridding(const MatrixXcf &inCorrelations)
       // Update lower triangle, exclude diagonal
       if (a1 != a2)
       {
-        mGridded(vidxl, uidxl) += sull * phasor;
-        mGridded(vidxl, uidxh) += sulh * phasor;
-        mGridded(vidxh, uidxl) += suhl * phasor;
-        mGridded(vidxh, uidxh) += suhh * phasor;
+        mGridded(vidxl, uidxl) = mGridded(uidxl, vidxl);
+        mGridded(vidxl, uidxh) = mGridded(uidxl, vidxh);
+        mGridded(vidxh, uidxl) = mGridded(uidxh, vidxl);
+        mGridded(vidxh, uidxh) = mGridded(uidxh, vidxh);
       }
     }
   }

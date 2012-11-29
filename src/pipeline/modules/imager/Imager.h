@@ -20,7 +20,7 @@ public:
   void run(const StreamBlob *input, StreamBlob *output);
 
 private:
-  void gridding(const MatrixXcf &inCorrelations);
+  void gridding(const MatrixXcf &inCorrelations, const std::vector<int> &inFlagged);
 
   MatrixXf mUCoords;
   MatrixXf mVCoords;
