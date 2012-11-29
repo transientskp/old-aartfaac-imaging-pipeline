@@ -14,7 +14,7 @@ UVWParser::UVWParser(const QString &inFileName)
   QTextStream ts(&file);
 
   int begin, end;
-  double u, v, w;
+  float u, v, w;
   bool success;
   QString a1, a2, line, tmp;
   QStringList list;
@@ -32,13 +32,13 @@ UVWParser::UVWParser(const QString &inFileName)
     list = tmp.split(", ");
     Q_ASSERT(list.size() == 3);
 
-    u = list.at(0).toDouble(&success);
+    u = list.at(0).toFloat(&success);
     Q_ASSERT(success);
 
-    v = list.at(1).toDouble(&success);
+    v = list.at(1).toFloat(&success);
     Q_ASSERT(success);
 
-    w = list.at(2).toDouble(&success);
+    w = list.at(2).toFloat(&success);
     Q_ASSERT(success);
 
     mUVWPositions.push_back(UVW(a1, a2, u, v, w));
@@ -102,7 +102,7 @@ UVWParser::UVW::UVW(const QString &a)
   uvw[0] = uvw[1] = uvw[2] = 0.0;
 }
 
-UVWParser::UVW::UVW(const QString &inA1, const QString &inA2, const double u, const double v, const double w)
+UVWParser::UVW::UVW(const QString &inA1, const QString &inA2, const float u, const float v, const float w)
 {
   Q_ASSERT(inA1.size() <= MAX_NUM_CHARS);
   Q_ASSERT(inA2.size() <= MAX_NUM_CHARS);

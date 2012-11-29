@@ -20,7 +20,7 @@ public:
   {
     UVW();
     UVW(const QString &a);
-    UVW(const QString &a1, const QString &a2, const double u, const double v, const double w);
+    UVW(const QString &a1, const QString &a2, const float u, const float v, const float w);
     bool operator <(const UVW &uvw) const;
 
     int a1;
@@ -29,7 +29,7 @@ public:
     int s2;
     char a1_name[MAX_NUM_CHARS];
     char a2_name[MAX_NUM_CHARS];
-    double uvw[3];
+    float uvw[3];
   };
 
   UVW GetUVW(const QString &inA1, const QString &inA2, const Type inType);

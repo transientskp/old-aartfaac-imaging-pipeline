@@ -22,13 +22,8 @@ public:
 private:
   void gridding(const MatrixXcf &inCorrelations);
 
-  float mGridSize;
-  int mGridPoints;
-  int mResolution;
-
   MatrixXf mUCoords;
   MatrixXf mVCoords;
-  MatrixXf mWCoords;
 
   MatrixXcf mGridded;
 };

@@ -42,7 +42,7 @@
         <TiffStorage active="false">
           <output path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
         </TiffStorage>
-        <CasaImageStorage active="false">
+        <CasaImageStorage active="true">
           <output path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
         </CasaImageStorage>
       </streamers>
