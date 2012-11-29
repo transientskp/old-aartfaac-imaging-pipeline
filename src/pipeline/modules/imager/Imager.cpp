@@ -101,8 +101,6 @@ void Imager::gridding(const MatrixXcf &inCorrelations, const std::vector<int> &i
 {
   mGridded.setZero();
 
-  static const float sq2 = sqrtf(2.0f);
-
   for (int a1 = 0; a1 < NUM_ANTENNAS; a1++)
   {
     if (inFlagged[a1])
@@ -115,40 +113,33 @@ void Imager::gridding(const MatrixXcf &inCorrelations, const std::vector<int> &i
 
       const std::complex<float> &corr = inCorrelations(a1, a2);
 
-      float uidx = mUCoords(a1, a2);
-      int uidxl = std::floor(uidx);
-      int uidxh = std::ceil(uidx);
+      float u = mUCoords(a1, a2);
+      float v = mVCoords(a1, a2);
 
-      Q_ASSERT(uidxl >= 0 && uidxl < IMAGE_OUTPUT_SIZE);
-      Q_ASSERT(uidxh >= 0 && uidxh < IMAGE_OUTPUT_SIZE);
+      int w = std::floor(u);
+      int e = std::ceil(u);
+      int s = std::floor(v);
+      int n = std::ceil(v);
 
-      float dul = std::abs(uidx - uidxl);
-      float duh = std::abs(uidx - uidxh);
+      Q_ASSERT(s >= 0 && s < IMAGE_OUTPUT_SIZE);
+      Q_ASSERT(n >= 0 && n < IMAGE_OUTPUT_SIZE);
+      Q_ASSERT(w >= 0 && w < IMAGE_OUTPUT_SIZE);
+      Q_ASSERT(e >= 0 && e < IMAGE_OUTPUT_SIZE);
 
-      float vidx = mVCoords(a1, a2);
-      int vidxl = std::floor(vidx);
-      int vidxh = std::ceil(vidx);
+      float west_power  = 1.0f - std::abs(u - w);
+      float east_power  = 1.0f - std::abs(u - e);
+      float south_power = 1.0f - std::abs(v - s);
+      float north_power = 1.0f - std::abs(v - n);
 
-      Q_ASSERT(vidxl >= 0 && vidxl < IMAGE_OUTPUT_SIZE);
-      Q_ASSERT(vidxh >= 0 && vidxh < IMAGE_OUTPUT_SIZE);
+      float south_west_power = south_power * west_power;
+      float north_west_power = north_power * west_power;
+      float south_east_power = south_power * east_power;
+      float north_east_power = north_power * east_power;
 
-      float dvl = std::abs(vidx - vidxl);
-      float dvh = std::abs(vidx - vidxh);
-
-      float sull = (1.0f - (sqrtf(dul*dul + dvl*dvl) / sq2));
-      float suhl = (1.0f - (sqrtf(duh*duh + dvl*dvl) / sq2));
-      float sulh = (1.0f - (sqrtf(dul*dul + dvh*dvh) / sq2));
-      float suhh = (1.0f - (sqrtf(duh*duh + dvh*dvh) / sq2));
-
-      Q_ASSERT(sull >= 0.0f && sull <= 1.0f);
-      Q_ASSERT(suhl >= 0.0f && suhl <= 1.0f);
-      Q_ASSERT(sulh >= 0.0f && sulh <= 1.0f);
-      Q_ASSERT(suhh >= 0.0f && suhh <= 1.0f);
-
-      mGridded(uidxl, vidxl) += sull * corr;
-      mGridded(uidxl, vidxh) += sulh * corr;
-      mGridded(uidxh, vidxl) += suhl * corr;
-      mGridded(uidxh, vidxh) += suhh * corr;
+      mGridded(s, w) += south_west_power * corr;
+      mGridded(n, w) += north_west_power * corr;
+      mGridded(s, e) += south_east_power * corr;
+      mGridded(n, e) += north_east_power * corr;
     }
   }
 }
