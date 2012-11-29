@@ -46,6 +46,8 @@ Imager::Imager(const ConfigNode &inConfig):
 
       mUCoords(a1, a2) = uvw.uvw[0];
       mVCoords(a1, a2) = uvw.uvw[1];
+      mUCoords(a2, a1) = uvw.uvw[0];
+      mVCoords(a2, a1) = uvw.uvw[1];
 
       minu = std::min<float>(minu, mUCoords(a1,a2));
       minv = std::min<float>(minv, mVCoords(a1,a2));
@@ -85,7 +87,7 @@ void Imager::gridding(const MatrixXcf &inCorrelations, const std::vector<int> &i
     if (inFlagged[a1])
       continue;
 
-    for (int a2 = a1; a2 < NUM_ANTENNAS; a2++)
+    for (int a2 = 0; a2 < NUM_ANTENNAS; a2++)
     {
       if (inFlagged[a2])
         continue;
@@ -120,20 +122,10 @@ void Imager::gridding(const MatrixXcf &inCorrelations, const std::vector<int> &i
       float sulh = dvl * sul;
       float suhh = dvl * suh;
 
-      // Update upper triangle, include diagonal
       mGridded(uidxl, vidxl) += sull * phasor;
       mGridded(uidxl, vidxh) += sulh * phasor;
       mGridded(uidxh, vidxl) += suhl * phasor;
       mGridded(uidxh, vidxh) += suhh * phasor;
-
-      // Update lower triangle, exclude diagonal
-      if (a1 != a2)
-      {
-        mGridded(vidxl, uidxl) = mGridded(uidxl, vidxl);
-        mGridded(vidxl, uidxh) = mGridded(uidxl, vidxh);
-        mGridded(vidxh, uidxl) = mGridded(uidxh, vidxl);
-        mGridded(vidxh, uidxh) = mGridded(uidxh, vidxh);
-      }
     }
   }
 }
