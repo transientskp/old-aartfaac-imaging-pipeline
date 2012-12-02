@@ -18,13 +18,13 @@ void UniboardPipeline::init()
   // Request remote data.
   requestRemoteData("StreamBlob");
   requestRemoteData("ServiceBlob");
-
-  mBlobCount = 0;
 }
 
 // Defines a single iteration of the pipeline.
 void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
 {
+  mTimer.start();
+
   // Get pointers to the remote data blob(s) from the supplied hash.
   StreamBlob *data = static_cast<StreamBlob *>(inRemoteData["StreamBlob"]);
 
@@ -42,5 +42,9 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
 
   // Output to stream(s), see modules/output
   dataOutput(data, "post");
-  qDebug("Processed %4lldth blob with timestamp %s", ++mBlobCount, qPrintable(data->mDateTime.toString("dd-MM-yyyy hh:mm:ss")));
+
+  float time = (mTimer.elapsed() / 1000.0f);
+
+  qDebug("Processed `%s' in %0.3f sec",
+          qPrintable(data->mDateTime.toString("hh:mm:ss")), time);
 }

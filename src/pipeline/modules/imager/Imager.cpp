@@ -71,9 +71,9 @@ Imager::Imager(const ConfigNode &inConfig):
                                FFTW_FORWARD, FFTW_ESTIMATE|FFTW_PRESERVE_INPUT);
 
   #ifndef NDEBUG
-  qDebug("BEGIN FFTW PLAN");
+  std::cout << "BEGIN FFTW PLAN" << std::endl;
   fftwf_print_plan(mFFTWPlan);
-  qDebug("END FFTW PLAN");
+  std::cout << std::endl << "END FFTW PLAN" << std::endl;
   #endif
 }
 
@@ -93,7 +93,7 @@ void Imager::run(const StreamBlob *input, StreamBlob *output)
   fftwf_execute(mFFTWPlan);
   fftShift();
 
-  // Copy real part to skymap and flip over hor and vert axis
+  // Copy real part to skymap and flip over vert axis
   for (int i = 0; i < IMAGE_OUTPUT_SIZE; i++)
     for (int j = 0; j < IMAGE_OUTPUT_SIZE; j++)
       output->mSkyMap(i,j) = mGridded(i,IMAGE_OUTPUT_SIZE-j-1).real();
@@ -101,6 +101,8 @@ void Imager::run(const StreamBlob *input, StreamBlob *output)
 
 void Imager::fftShift()
 {
+  Q_ASSERT(IMAGE_OUTPUT_SIZE % 2 == 0);
+
   int half = IMAGE_OUTPUT_SIZE/2;
   int q2_i, q2_j, q3_i, q3_j, q4_i, q4_j;
   for (int q1_i = 0; q1_i < IMAGE_OUTPUT_SIZE/2; q1_i++)

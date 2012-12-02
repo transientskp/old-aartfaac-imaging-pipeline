@@ -2,6 +2,7 @@
 #define UNIBOARD_PIPELINE_H
 
 #include <pelican/core/AbstractPipeline.h>
+#include <QtCore>
 
 using namespace pelican;
 
@@ -17,8 +18,7 @@ public:
   UniboardPipeline() : AbstractPipeline(),
     mFlagger(NULL),
     mCalibrator(NULL),
-    mImager(NULL),
-    mBlobCount(0)
+    mImager(NULL)
   {}
 
   /// Initialises the pipeline.
@@ -32,7 +32,7 @@ private:
   Calibrator *mCalibrator;
   Imager *mImager;
 
-  quint64 mBlobCount;
+  QTime mTimer;
 };
 
 #endif // UNIBOARD_PIPELINE_H
