@@ -11,6 +11,7 @@ set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
 # === General options
 option (ENABLE_TESTS "Enable/disable test framework" ON)
 option (ENABLE_OPENMP "Enable/disable openmp" OFF)
+option (ENABLE_PROFILING "Enable/disable profiling" OFF)
 
 if (NOT CMAKE_BUILD_TYPE)
   set (CMAKE_BUILD_TYPE "RelWithDebInfo")
@@ -19,6 +20,11 @@ endif (NOT CMAKE_BUILD_TYPE)
 if (ENABLE_OPENMP)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 endif (ENABLE_OPENMP)
+
+if (ENABLE_PROFILING)
+  set (CMAKE_BUILD_TYPE "Release")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -pg")
+endif (ENABLE_PROFILING)
 
 # === Project version
 execute_process (
@@ -139,4 +145,5 @@ message (STATUS " CMakeflags (${CMAKE_PROJECT_NAME}):")
 message (STATUS "   CMAKE_BUILD_TYPE      ${CMAKE_BUILD_TYPE}")
 message (STATUS "   ENABLE_TESTS          ${ENABLE_TESTS}")
 message (STATUS "   ENABLE_OPENMP         ${ENABLE_OPENMP}")
+message (STATUS "   ENABLE_PROFILING      ${ENABLE_PROFILING}")
 message (STATUS "")
