@@ -10,29 +10,24 @@
 #include <QtCore/QCoreApplication>
 #include <QtCore/QString>
 
-struct CleanExit
+void sighandler(int signal)
 {
-  CleanExit()
-  {
-    signal(SIGINT, &CleanExit::exitQt);
-    signal(SIGTERM, &CleanExit::exitQt);
-    signal(SIGKILL, &CleanExit::exitQt);
-  }
-
-  static void exitQt(int signal)
-  {
-    Logger::close();
-    QCoreApplication::exit(signal);
-  }
-};
+  qCritical("Received signal %d (%s), exit now", signal, strsignal(signal));
+  Logger::close();
+  exit(signal);
+}
 
 int main(int argc, char *argv[])
 {
   QString host = "127.0.0.1";
 
-  CleanExit clean_exit;
   Logger::open("aartfaac-emulator");
   qInstallMsgHandler(Logger::messageHandler);
+
+  signal(SIGTERM, &sighandler);
+  signal(SIGINT, &sighandler);
+  signal(SIGQUIT, &sighandler);
+
   QCoreApplication app(argc, argv);
 
   if (argc != 2 && argc != 3)

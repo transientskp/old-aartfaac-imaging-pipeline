@@ -5,19 +5,31 @@
 #include "../utilities/Logger.h"
 #include "version.h"
 
+#include <csignal>
 #include <iostream>
 #include <QtCore>
 
+void sighandler(int signal)
+{
+  qCritical("Received signal %d (%s), exit now", signal, strsignal(signal));
+  Logger::close();
+  exit(signal);
+}
+
 int main(int argc, char *argv[])
 {
+  Logger::open("aartfaac-server");
+  qInstallMsgHandler(Logger::messageHandler);
+
   if (argc != 2)
   {
     std::cerr << "Usage: aartfaac-server <config.xml>" << std::endl;
     return EXIT_FAILURE;
   }
 
-  Logger::open("aartfaac-server");
-  qInstallMsgHandler(Logger::messageHandler);
+  signal(SIGTERM, &sighandler);
+  signal(SIGINT, &sighandler);
+  signal(SIGQUIT, &sighandler);
 
   QCoreApplication app(argc, argv);
 
