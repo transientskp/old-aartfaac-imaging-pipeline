@@ -12,6 +12,7 @@ class StreamChunker : public AbstractChunker
 {
 public:
   StreamChunker(const ConfigNode &inConfig);
+  ~StreamChunker();
 
   virtual QIODevice *newDevice();
   virtual void next(QIODevice *inDevice);
@@ -33,7 +34,6 @@ private:
     QTime mTimer;
     quint64 mBytesRead;
     StreamChunker *mChunker;
-    char *mPtr;
   };
 
   quint64 mChunkSize; ///< Size of a chunk in bytes

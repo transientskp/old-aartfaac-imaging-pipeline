@@ -26,6 +26,18 @@ StreamChunker::StreamChunker(const ConfigNode &inConfig)
   Q_ASSERT(mChunkSize % mPacketSize == 0);
 }
 
+StreamChunker::~StreamChunker()
+{
+  qWarning("~StreamChunker()");
+  QHash<quint64, Chunk *>::iterator i = mDataBuffers.begin();
+
+  while (i != mDataBuffers.end())
+  {
+    delete i.value();
+    ++i;
+  }
+}
+
 QIODevice *StreamChunker::newDevice()
 {
   QUdpSocket *socket = new QUdpSocket();
@@ -111,9 +123,8 @@ StreamChunker::Chunk::Chunk(StreamChunker *inChunker):
   mData = mChunker->getDataStorage(mChunker->mChunkSize);
 
   if (!mData.isValid())
-    qCritical("Unable to allocate chunk memory, is the buffer large enough?");
+    qFatal("Unable to allocate chunk memory, is the buffer large enough?");
 
-  mPtr = (char *) mData.ptr();
   mTimer.start();
 }
 
