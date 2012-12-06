@@ -11,9 +11,8 @@
 
 void sighandler(int signal)
 {
-  qCritical("Received signal %d (%s), exit now", signal, strsignal(signal));
-  Logger::close();
-  exit(signal);
+  qCritical("Caught signal %d (%s), shutting down", signal, strsignal(signal));
+  QCoreApplication::exit(signal);
 }
 
 int main(int argc, char *argv[])
@@ -43,6 +42,7 @@ int main(int argc, char *argv[])
 
   std::cout << HUMAN_NAME << std::endl;
 
+  int retcode = 1;
   try
   {
     pelican::PelicanServer server(&config);
@@ -57,10 +57,14 @@ int main(int argc, char *argv[])
     while (!server.isReady())
       {}
 
-    return app.exec();
+    retcode = app.exec();
   }
   catch (const QString &error)
   {
     qFatal("%s", qPrintable(error));
   }
+
+  Logger::close();
+
+  return retcode;
 }

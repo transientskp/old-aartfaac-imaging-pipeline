@@ -4,19 +4,11 @@
 #include "StreamAdapter.h"
 #include "ServiceAdapter.h"
 
-#include <csignal>
 #include <pelican/core/PipelineApplication.h>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QString>
 
 char *gTableName; ///< Used in the Visibilities class for constructing an ms
-
-void sighandler(int signal)
-{
-  qCritical("Received signal %d (%s), exit now", signal, strsignal(signal));
-  Logger::close();
-  exit(signal);
-}
 
 int main(int argc, char *argv[])
 {
@@ -32,10 +24,6 @@ int main(int argc, char *argv[])
   //       strip them off again here.
   int   ac    = argc - 1;
   char *av[]  = {argv[0], argv[1]};
-
-  signal(SIGTERM, &sighandler);
-  signal(SIGINT, &sighandler);
-  signal(SIGQUIT, &sighandler);
 
   QCoreApplication app(ac, av);
 
@@ -57,5 +45,7 @@ int main(int argc, char *argv[])
     qFatal("%s", qPrintable(error));
   }
 
-  return app.exec();
+  Logger::close();
+
+  return EXIT_SUCCESS;
 }
