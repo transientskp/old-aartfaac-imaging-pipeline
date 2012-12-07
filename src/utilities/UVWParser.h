@@ -2,10 +2,9 @@
 #define UVWPARSER_H
 
 #include <vector>
-
 #include <QString>
 
-#define MAX_NUM_CHARS 10
+#include "../Constants.h"
 
 class UVWParser
 {
@@ -27,8 +26,8 @@ public:
     int a2;
     int s1;
     int s2;
-    char a1_name[MAX_NUM_CHARS];
-    char a2_name[MAX_NUM_CHARS];
+    char a1_name[MAX_CHARS_ANTENNA_NAME];
+    char a2_name[MAX_CHARS_ANTENNA_NAME];
     float uvw[3];
   };
 
@@ -37,8 +36,7 @@ public:
 private:
   static void GetIdAndStation(const QString &inA, int &outId, int &outStation);
   static int GetIndex(const int inA1, const int inS1, const int inA2, const int inS2);
-
-  std::vector<UVW> mUVWPositions;
+  static std::vector<UVW> sUVWPositions;
 };
 
 #endif // UVWPARSER_H

@@ -120,6 +120,7 @@ if (ENABLE_TESTS)
         ${QT_QTXML_LIBRARY}
         ${PELICAN_LIBRARIES}
         ${CASACORE_LIBRARIES}
+        -lfftw3f # can't use ${FFTW_LIBRARIES} here...
         ${LOFAR_LIBRARIES}
       )
       add_test (${TEST} ${TEST})

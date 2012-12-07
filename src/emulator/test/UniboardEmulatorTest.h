@@ -1,3 +1,6 @@
+#ifndef UNIBOARDEMULATOR_TEST_H
+#define UNIBOARDEMULATOR_TEST_H
+
 #include <cppunit/extensions/HelperMacros.h>
 
 class QCoreApplication;
@@ -21,3 +24,5 @@ public:
 private:
   QCoreApplication *mApp;
 };
+
+#endif // UNIBOARDEMULATOR_TEST_H

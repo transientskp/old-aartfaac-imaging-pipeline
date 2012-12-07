@@ -86,12 +86,12 @@ Imager::~Imager()
 void Imager::run(const StreamBlob *input, StreamBlob *output)
 {
   // Splat the image on a grid
-  gridding(input->mXX, input->mFlagged);
+  gridding(input->mXX, mUCoords, mVCoords, input->mFlagged, mGridded);
 
   // Perform fft
-  fftShift();
+  fftShift(mGridded);
   fftwf_execute(mFFTWPlan);
-  fftShift();
+  fftShift(mGridded);
 
   // Copy real part to skymap and flip over vert axis
   for (int i = 0; i < IMAGE_OUTPUT_SIZE; i++)
@@ -99,15 +99,16 @@ void Imager::run(const StreamBlob *input, StreamBlob *output)
       output->mSkyMap(i,j) = mGridded(i,IMAGE_OUTPUT_SIZE-j-1).real();
 }
 
-void Imager::fftShift()
+void Imager::fftShift(MatrixXcf &ioMatrix)
 {
-  Q_ASSERT(IMAGE_OUTPUT_SIZE % 2 == 0);
+  Q_ASSERT(ioMatrix.rows() == ioMatrix.cols());
+  Q_ASSERT(ioMatrix.rows() % 2 == 0);
 
-  int half = IMAGE_OUTPUT_SIZE/2;
+  int half = ioMatrix.rows() / 2;
   int q2_i, q2_j, q3_i, q3_j, q4_i, q4_j;
-  for (int q1_i = 0; q1_i < IMAGE_OUTPUT_SIZE/2; q1_i++)
+  for (int q1_i = 0; q1_i < half; q1_i++)
   {
-    for (int q1_j = 0; q1_j < IMAGE_OUTPUT_SIZE/2; q1_j++)
+    for (int q1_j = 0; q1_j < half; q1_j++)
     {
       q3_i = q1_i + half;
       q3_j = q1_j + half;
@@ -115,30 +116,41 @@ void Imager::fftShift()
       q4_j = q1_j;
       q2_i = q1_i;
       q2_j = q1_j + half;
-      std::swap(mGridded(q1_i, q1_j), mGridded(q3_i, q3_j));
-      std::swap(mGridded(q4_i, q4_j), mGridded(q2_i, q2_j));
+      std::swap(ioMatrix(q1_i, q1_j), ioMatrix(q3_i, q3_j));
+      std::swap(ioMatrix(q4_i, q4_j), ioMatrix(q2_i, q2_j));
     }
   }
 }
 
-void Imager::gridding(const MatrixXcf &inCorrelations, const std::vector<int> &inFlagged)
+void Imager::gridding(const MatrixXcf &inCorrelations, const MatrixXf &inX, const MatrixXf &inY, const std::vector<int> &inFlagged, MatrixXcf &outGridded)
 {
-  mGridded.setZero();
 
-  for (int a1 = 0; a1 < NUM_ANTENNAS; a1++)
+  Q_ASSERT(inCorrelations.rows() == inCorrelations.cols());
+
+  Q_ASSERT(inX.rows() == inCorrelations.rows());
+  Q_ASSERT(inY.rows() == inCorrelations.rows());
+  Q_ASSERT(inX.cols() == inCorrelations.cols());
+  Q_ASSERT(inY.cols() == inCorrelations.cols());
+
+  outGridded.setZero();
+
+  Q_ASSERT(inCorrelations.rows() == static_cast<int>(inFlagged.size()));
+
+  int N = inCorrelations.rows();
+  for (int a1 = 0; a1 < N; a1++)
   {
     if (inFlagged[a1])
       continue;
 
-    for (int a2 = 0; a2 < NUM_ANTENNAS; a2++)
+    for (int a2 = 0; a2 < N; a2++)
     {
       if (inFlagged[a2])
         continue;
 
       const std::complex<float> &corr = inCorrelations(a1, a2);
 
-      float u = mUCoords(a1, a2);
-      float v = mVCoords(a1, a2);
+      float u = inX(a1, a2);
+      float v = inY(a1, a2);
 
       int w = std::floor(u);
       int e = std::ceil(u);
@@ -155,10 +167,10 @@ void Imager::gridding(const MatrixXcf &inCorrelations, const std::vector<int> &i
       float south_east_power = south_power * east_power;
       float north_east_power = north_power * east_power;
 
-      mGridded(s, w) += south_west_power * corr;
-      mGridded(n, w) += north_west_power * corr;
-      mGridded(s, e) += south_east_power * corr;
-      mGridded(n, e) += north_east_power * corr;
+      outGridded(s, w) += south_west_power * corr;
+      outGridded(n, w) += north_west_power * corr;
+      outGridded(s, e) += south_east_power * corr;
+      outGridded(n, e) += north_east_power * corr;
     }
   }
 }

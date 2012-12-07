@@ -1,3 +1,3 @@
 #!/bin/bash
 
-pkill -SIGQUIT -U ${USER} aartfaac
+pkill -SIGTERM -U ${USER} aartfaac
