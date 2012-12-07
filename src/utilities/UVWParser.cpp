@@ -1,5 +1,4 @@
 #include "UVWParser.h"
-#include "../Constants.h"
 
 #include <algorithm>
 #include <QtCore>
@@ -95,7 +94,7 @@ UVWParser::UVW::UVW():
 
 UVWParser::UVW::UVW(const QString &a)
 {
-  Q_ASSERT(a.size() <= MAX_NUM_CHARS);
+  Q_ASSERT(a.size() <= MAX_CHARS_ANTENNA_NAME);
 
   strcpy(a1_name, qPrintable(a));
   strcpy(a2_name, qPrintable(a));
@@ -109,8 +108,8 @@ UVWParser::UVW::UVW(const QString &a)
 
 UVWParser::UVW::UVW(const QString &inA1, const QString &inA2, const float u, const float v, const float w)
 {
-  Q_ASSERT(inA1.size() <= MAX_NUM_CHARS);
-  Q_ASSERT(inA2.size() <= MAX_NUM_CHARS);
+  Q_ASSERT(inA1.size() <= MAX_CHARS_ANTENNA_NAME);
+  Q_ASSERT(inA2.size() <= MAX_CHARS_ANTENNA_NAME);
 
   strcpy(a1_name, qPrintable(inA1));
   strcpy(a2_name, qPrintable(inA2));
