@@ -37,8 +37,7 @@ public:
 private:
   static void GetIdAndStation(const QString &inA, int &outId, int &outStation);
   static int GetIndex(const int inA1, const int inS1, const int inA2, const int inS2);
-
-  std::vector<UVW> mUVWPositions;
+  static std::vector<UVW> sUVWPositions;
 };
 
 #endif // UVWPARSER_H

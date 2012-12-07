@@ -4,8 +4,13 @@
 #include <algorithm>
 #include <QtCore>
 
+std::vector<UVWParser::UVW> UVWParser::sUVWPositions;
+
 UVWParser::UVWParser(const QString &inFileName)
 {
+  if (!sUVWPositions.empty())
+    return;
+
   QFile file(inFileName);
 
   if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -41,10 +46,10 @@ UVWParser::UVWParser(const QString &inFileName)
     w = list.at(2).toFloat(&success);
     Q_ASSERT(success);
 
-    mUVWPositions.push_back(UVW(a1, a2, u, v, w));
+    sUVWPositions.push_back(UVW(a1, a2, u, v, w));
   }
 
-  Q_ASSERT(mUVWPositions.size() == (NUM_TOTAL_ANTENNAS*(NUM_TOTAL_ANTENNAS-1)));
+  Q_ASSERT(sUVWPositions.size() == (NUM_TOTAL_ANTENNAS*(NUM_TOTAL_ANTENNAS-1)));
 
   // Add baselines with self
   for (int s = 0; s < NUM_STATIONS; s++)
@@ -55,17 +60,17 @@ UVWParser::UVWParser(const QString &inFileName)
                          arg(s+2, 3, 10, QChar('0')).
                          arg(a, 2, 10, QChar('0'));
 
-      mUVWPositions.push_back(UVW(a_name));
+      sUVWPositions.push_back(UVW(a_name));
     }
   }
 
   // Sort vector so we can query by index
-  std::sort(mUVWPositions.begin(), mUVWPositions.end());
+  std::sort(sUVWPositions.begin(), sUVWPositions.end());
 }
 
 UVWParser::UVW UVWParser::GetUVW(const QString &inA1, const QString &inA2, const Type inType)
 {
-  Q_ASSERT(!mUVWPositions.empty());
+  Q_ASSERT(!sUVWPositions.empty());
 
   int a1, s1, a2, s2;
   GetIdAndStation(inA1, a1, s1);
@@ -74,7 +79,7 @@ UVWParser::UVW UVWParser::GetUVW(const QString &inA1, const QString &inA2, const
   a1 += inType * (NUM_ANTENNAS_PER_STATION/2);
   a2 += inType * (NUM_ANTENNAS_PER_STATION/2);
 
-  return mUVWPositions[GetIndex(a1, s1, a2, s2)];
+  return sUVWPositions[GetIndex(a1, s1, a2, s2)];
 }
 
 UVWParser::UVW::UVW():
