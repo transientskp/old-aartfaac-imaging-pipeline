@@ -14,6 +14,8 @@ class StreamBlob;
 
 class Imager : public AbstractModule
 {
+friend class ImagerTest;
+
 public:
   Imager(const ConfigNode &inConfig);
   ~Imager();
@@ -21,8 +23,8 @@ public:
   void run(const StreamBlob *input, StreamBlob *output);
 
 private:
-  void gridding(const MatrixXcf &inCorrelations, const std::vector<int> &inFlagged);
-  void fftShift();
+  void gridding(const MatrixXcf &inCorrelations, const MatrixXf &inX, const MatrixXf &inY, const std::vector<int> &inFlagged, MatrixXcf &outGridded);
+  void fftShift(MatrixXcf &ioMatrix);
 
   MatrixXf mUCoords;
   MatrixXf mVCoords;

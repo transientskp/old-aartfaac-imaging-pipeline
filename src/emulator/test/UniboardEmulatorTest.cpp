@@ -22,7 +22,7 @@ UniboardEmulatorTest::~UniboardEmulatorTest()
 void UniboardEmulatorTest::setUp()
 {
   static int argc = 2;
-  static char *argv[] = {(char *)"emulatortest", (char *)"/opt/aartfaac/testset"};
+  static char *argv[] = {(char *)"emulatortest", (char *)"/opt/aartfaac/TEST.MS"};
   mApp = new QCoreApplication(argc, argv);
 }
 
