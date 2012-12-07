@@ -9,8 +9,6 @@
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ImagerTest);
 
-char *gTableName;
-
 ImagerTest::ImagerTest():
   CppUnit::TestFixture(),
   mImager(NULL)
@@ -19,7 +17,6 @@ ImagerTest::ImagerTest():
 
 void ImagerTest::setUp()
 {
-  gTableName = const_cast<char*>("/opt/aartfaac/TEST.MS");
   pelican::ConfigNode config(
     "<Imager>"
     "  <output path=\"/dev/null\"/>"

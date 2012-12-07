@@ -59,9 +59,13 @@ set (emulatortest_SOURCES
 
 set (pipelinetest_SOURCES
   src/pipeline/test/main.cpp
+  src/pipeline/test/FlaggerTest.cpp
+  src/pipeline/test/CalibratorTest.cpp
   src/pipeline/test/ImagerTest.cpp
   src/pipeline/StreamBlob.cpp
   src/pipeline/modules/imager/Imager.cpp
+  src/pipeline/modules/calibrator/Calibrator.cpp
+  src/pipeline/modules/flagger/Flagger.cpp
   src/utilities/Utils.cpp
   src/utilities/UVWParser.cpp
 )

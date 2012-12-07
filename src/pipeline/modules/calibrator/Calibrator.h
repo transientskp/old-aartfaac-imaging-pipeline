@@ -9,6 +9,8 @@ class StreamBlob;
 
 class Calibrator : public AbstractModule
 {
+friend class CalibratorTest;
+
 public:
   Calibrator(const ConfigNode &inConfig);
   ~Calibrator();

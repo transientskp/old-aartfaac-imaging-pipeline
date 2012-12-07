@@ -49,3 +49,4 @@ public:
 PELICAN_DECLARE_DATABLOB(StreamBlob)
 
 #endif // STREAM_BLOB_H
+
