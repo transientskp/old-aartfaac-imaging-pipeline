@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <csignal>
+#include <unistd.h>
 #include <pelican/emulator/EmulatorDriver.h>
 #include <pelican/utility/ConfigNode.h>
 #include <QtCore/QCoreApplication>

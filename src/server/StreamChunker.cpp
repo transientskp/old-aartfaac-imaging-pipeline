@@ -28,7 +28,6 @@ StreamChunker::StreamChunker(const ConfigNode &inConfig)
 
 StreamChunker::~StreamChunker()
 {
-  qWarning("~StreamChunker()");
   QHash<quint64, Chunk *>::iterator i = mDataBuffers.begin();
 
   while (i != mDataBuffers.end())
