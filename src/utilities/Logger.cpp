@@ -86,15 +86,9 @@ QString Logger::colorize(const QString &inMsg, Color inColor)
 
 bool Logger::shouldUseColor()
 {
-#if WIN32
-  // On Windows the TERM variable is usually not set, but the
-  // console there does support colors.
-  return true;
-#else
-  // On non-Windows platforms, we rely on the TERM variable.
   const char *term = getenv("TERM");
 
-  if (term == NULL)
+  if (term == NULL || !isatty(1))
     return false;
 
   const bool term_supports_color =
@@ -106,5 +100,4 @@ bool Logger::shouldUseColor()
     strcmp(term, "cygwin") >= 0;
 
   return term_supports_color;
-#endif  // WIN32
 }
