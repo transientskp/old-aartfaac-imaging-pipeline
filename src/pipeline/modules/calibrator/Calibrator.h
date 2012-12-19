@@ -2,8 +2,11 @@
 #define CALIBRATOR_MODULE_H
 
 #include <pelican/core/AbstractModule.h>
+#include <eigen3/Eigen/Dense>
+#include <complex>
 
 using namespace pelican;
+using namespace Eigen;
 
 class StreamBlob;
 
@@ -18,6 +21,8 @@ public:
   void run(const StreamBlob *input, StreamBlob *output);
 
 private:
+  void khatrirao(const MatrixXcf &inA, const MatrixXcf &inB, MatrixXcf &outC);
+  void kronecker(const MatrixXcf &inA, const MatrixXcf &inB, MatrixXcf &outC);
 };
 
 PELICAN_DECLARE_MODULE(Calibrator)
