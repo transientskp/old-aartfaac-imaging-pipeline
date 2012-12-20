@@ -11,8 +11,6 @@ public:
   CPPUNIT_TEST_SUITE(CalibratorTest);
   CPPUNIT_TEST(gainSolve);
   CPPUNIT_TEST(stefCal);
-  CPPUNIT_TEST(kronecker);
-  CPPUNIT_TEST(khatrirao);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -21,8 +19,6 @@ public:
 
   void gainSolve();
   void stefCal();
-  void kronecker();
-  void khatrirao();
 
   CalibratorTest();
   ~CalibratorTest() {}

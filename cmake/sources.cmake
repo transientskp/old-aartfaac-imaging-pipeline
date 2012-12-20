@@ -19,7 +19,7 @@ set (PIPELINE_SOURCES
   src/pipeline/StreamBlob.cpp
   src/pipeline/StreamAdapter.cpp
   src/pipeline/ServiceAdapter.cpp
-	src/pipeline/ServiceBlob.cpp
+  src/pipeline/ServiceBlob.cpp
   src/pipeline/UniboardPipeline.cpp
   src/pipeline/modules/flagger/Flagger.cpp
   src/pipeline/modules/calibrator/Calibrator.cpp
@@ -46,7 +46,7 @@ set (SERVER_SOURCES
 )
 
 # === Test sources
-set (TESTS emulatortest pipelinetest servertest)
+set (TESTS emulatortest pipelinetest servertest utilitiestest)
 
 set (emulatortest_SOURCES
   src/Constants.h
@@ -72,4 +72,9 @@ set (pipelinetest_SOURCES
 
 set (servertest_SOURCES
   src/server/test/main.cpp
+)
+
+set (utilitiestest_SOURCES
+  src/utilities/test/main.cpp
+  src/utilities/test/UtilitiesTest.cpp
 )
