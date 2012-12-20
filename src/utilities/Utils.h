@@ -15,6 +15,8 @@ namespace utils
  */
 QDateTime MJD2QDateTime(const double inMJD);
 
+double julianDay(const double inTime);
+
 /**
  * @brief
  * Get the current system time in microseconds
@@ -23,7 +25,7 @@ long GetTimeInMicros();
 
 /**
  * @brief
- * Perform column-wise Khatri-Rao function Computes the Khatri-Rao (column wise Kronecker) product of A and B
+ * Computes the Khatri-Rao (column wise Kronecker) product of A and B
  */
 template<typename T>
 void khatrirao(const Matrix<T, Dynamic, Dynamic> &inA, const Matrix<T, Dynamic, Dynamic> &inB, Matrix<T, Dynamic, Dynamic> &outC)
