@@ -13,6 +13,7 @@ public:
   CPPUNIT_TEST(dates);
   CPPUNIT_TEST(kronecker);
   CPPUNIT_TEST(khatrirao);
+  CPPUNIT_TEST(polyval);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -22,6 +23,7 @@ public:
   void dates();
   void kronecker();
   void khatrirao();
+  void polyval();
 
   UtilitiesTest();
   ~UtilitiesTest() {}
