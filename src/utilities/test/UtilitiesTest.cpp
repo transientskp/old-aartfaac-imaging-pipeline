@@ -22,6 +22,20 @@ void UtilitiesTest::dates()
 {
 }
 
+void UtilitiesTest::precession()
+{
+  Matrix3f M;
+  utils::precessionMatrix<float>(0.0, M);
+  Matrix3f A;
+  A << -0.041394f, 0.907724f, 0.417520f,
+       -0.912267f, 0.136094f,-0.386324f,
+       -0.407498f,-0.396881f, 0.822454f;
+
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 3; j++)
+      CPPUNIT_ASSERT_DOUBLES_EQUAL(A(i,j), M(i,j), 1e-5);
+}
+
 void UtilitiesTest::kronecker()
 {
   MatrixXi A(2,2), B(2,2), C(4,4), D(4,4);
@@ -71,4 +85,27 @@ void UtilitiesTest::polyval()
   double ans = utils::polyval<double>(P, 5.0);
   CPPUNIT_ASSERT_DOUBLES_EQUAL(5.0, ans, 1e-5);
   }
+}
+
+void UtilitiesTest::sph2cart()
+{
+  VectorXf theta(3);
+  theta << 0.0f, 0.5f, 1.0f;
+  theta *= M_PI;
+
+  VectorXf phi(3);
+  phi << 0.0f, 0.0f, 0.0f;
+
+  float radius = 1.0f;
+
+  MatrixXf C(3,3), D(3,3);
+  utils::spherical2cartesian<float>(theta, phi, radius, C);
+
+  D <<  1.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f,
+       -1.0f, 0.0f, 0.0f;
+
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 3; j++)
+      CPPUNIT_ASSERT_DOUBLES_EQUAL(D(i,j), C(i,j), 1e-5);
 }

@@ -14,6 +14,8 @@ public:
   CPPUNIT_TEST(kronecker);
   CPPUNIT_TEST(khatrirao);
   CPPUNIT_TEST(polyval);
+  CPPUNIT_TEST(sph2cart);
+  CPPUNIT_TEST(precession);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -24,6 +26,8 @@ public:
   void kronecker();
   void khatrirao();
   void polyval();
+  void sph2cart();
+  void precession();
 
   UtilitiesTest();
   ~UtilitiesTest() {}
