@@ -23,7 +23,7 @@ long GetTimeInMicros();
 
 /**
  * @brief
- * Computes the Khatri-Rao (column wise Kronecker) product of A and B
+ * Perform column-wise Khatri-Rao function Computes the Khatri-Rao (column wise Kronecker) product of A and B
  */
 template<typename T>
 void khatrirao(const Matrix<T, Dynamic, Dynamic> &inA, const Matrix<T, Dynamic, Dynamic> &inB, Matrix<T, Dynamic, Dynamic> &outC)
@@ -59,12 +59,11 @@ void kronecker(const Matrix<T, Dynamic, Dynamic> &inA, const Matrix<T, Dynamic, 
 template<typename T>
 T polyval(const Matrix<T, Dynamic, 1> &inP, const T &inX)
 {
-  int n = inP.rows();
-  Matrix<T, Dynamic, 1> A(n);
-  for (int i = 0; i < n; i++)
-    A(i) = std::pow(inX, n-i-1);
+  T r(0);
+  for (int i = 0, n = inP.rows(); i < n; i++)
+    r += std::pow(inX, n-i-1) * inP(i);
 
-  return A.dot(inP);
+  return r;
 }
 }
 
