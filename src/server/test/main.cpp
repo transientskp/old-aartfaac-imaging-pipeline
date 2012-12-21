@@ -4,6 +4,7 @@
 #include <cppunit/ui/text/TestRunner.h>
 #include <cppunit/XmlOutputter.h>
 #include <cppunit/portability/Stream.h>
+#include <cppunit/TestResultCollector.h>
 
 int main(int, char **)
 {
@@ -15,5 +16,5 @@ int main(int, char **)
   runner.addTest(CppUnit::TestFactoryRegistry::getRegistry().makeTest());
   runner.run();
 
-  return 0;
+  return runner.result().testFailuresTotal();
 }
