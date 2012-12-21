@@ -21,6 +21,28 @@ QDateTime MJD2QDateTime(const double inMJD);
  */
 long GetTimeInMicros();
 
+
+/**
+ * @brief
+ * Compute the pseudo inverse using the singular value decomposition
+ */
+template<typename T>
+void pseudoInverse(const Matrix<T, Dynamic, Dynamic> &inA, Matrix<T, Dynamic, Dynamic> &outI)
+{
+  static JacobiSVD<Matrix<T, Dynamic, Dynamic> > svd;
+  svd.compute(inA, ComputeFullU | ComputeFullV);
+
+  int n = svd.singularValues().rows();
+  Q_ASSERT(n == std::min(inA.rows(), inA.cols()));
+
+
+  Matrix<T, Dynamic, Dynamic> S = Matrix<T, Dynamic, Dynamic>::Zero(inA.rows(), inA.cols());
+  for (int i = 0; i < n; i++)
+    S(i,i) = 1.0 / svd.singularValues()(i);
+
+  outI = (svd.matrixV() * S.transpose() * svd.matrixU().adjoint());
+}
+
 /**
  * @brief
  * Computes the Khatri-Rao (column wise Kronecker) product of A and B

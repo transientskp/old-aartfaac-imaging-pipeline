@@ -1,6 +1,6 @@
 #include "UtilitiesTest.h"
 #include "../Utils.h"
-
+#include <complex>
 
 CPPUNIT_TEST_SUITE_REGISTRATION(UtilitiesTest);
 
@@ -18,8 +18,33 @@ void UtilitiesTest::tearDown()
 {
 }
 
-void UtilitiesTest::dates()
+void UtilitiesTest::pseudoinv()
 {
+  {
+  MatrixXf M = MatrixXf::Random(3,2);
+  MatrixXf I(3,2);
+
+  utils::pseudoInverse<float>(M, I);
+
+  MatrixXf eye = M.transpose() * I.transpose();
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(eye(0,0), 1.0, 1e-6);
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(eye(1,1), 1.0, 1e-6);
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(eye(0,1), 0.0, 1e-6);
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(eye(1,0), 0.0, 1e-6);
+  }
+
+  {
+  MatrixXcf M = MatrixXcf::Random(3,2);
+  MatrixXcf I(3,2);
+
+  utils::pseudoInverse<std::complex<float> >(M, I);
+
+  MatrixXcf eye = M.transpose() * I.transpose();
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(eye(0,0).real(), 1.0, 1e-6);
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(eye(1,1).real(), 1.0, 1e-6);
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(eye(0,1).real(), 0.0, 1e-6);
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(eye(1,0).real(), 0.0, 1e-6);
+  }
 }
 
 void UtilitiesTest::precession()
