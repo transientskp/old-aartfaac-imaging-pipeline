@@ -21,6 +21,10 @@ public:
   void run(const StreamBlob *input, StreamBlob *output);
 
 private:
+  int gainSolv(const MatrixXcf &inModel,
+               const MatrixXcf &inData,
+               const VectorXcf &inEstimatedGains,
+                     VectorXcf &outGains);
 };
 
 PELICAN_DECLARE_MODULE(Calibrator)
