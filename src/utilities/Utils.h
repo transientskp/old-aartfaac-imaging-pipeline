@@ -118,6 +118,10 @@ void precessionMatrix(const double inJD, Matrix<T, 3, 3> &outM)
           s2*s3, -s3*c2*c1 - s1*c3, c3*c1 - s3*c2*s1;
 }
 
+/**
+ * @brief
+ * Conversion from source positions in radec to ITRF coordinates
+ */
 template<typename T>
 void radec2itrf(const Matrix<T, Dynamic, 1> &inRa,
                 const Matrix<T, Dynamic, 1> &inDec,
@@ -139,7 +143,7 @@ void radec2itrf(const Matrix<T, Dynamic, 1> &inRa,
   precessionMatrix<T>(2433282.5, tmp_mat);
   for (int i = 0; i < n; i++)
     if (inEpoch(i) == 1)
-      cartesian_mat.row(i) = cartesian_mat.row(i) * tmp_mat;
+      cartesian_mat.row(i) *= tmp_mat;
 
   // compute apparent position
   precessionMatrix<T>(inJD, tmp_mat);
