@@ -16,6 +16,7 @@ public:
   CPPUNIT_TEST(polyval);
   CPPUNIT_TEST(sph2cart);
   CPPUNIT_TEST(precession);
+  CPPUNIT_TEST(radec2itrf);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -28,6 +29,7 @@ public:
   void polyval();
   void sph2cart();
   void precession();
+  void radec2itrf();
 
   UtilitiesTest();
   ~UtilitiesTest() {}

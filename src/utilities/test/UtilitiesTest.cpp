@@ -36,6 +36,31 @@ void UtilitiesTest::precession()
       CPPUNIT_ASSERT_DOUBLES_EQUAL(A(i,j), M(i,j), 1e-5);
 }
 
+void UtilitiesTest::radec2itrf()
+{
+  VectorXf ra(4);
+  ra << 1.0f, 2.0f, 3.0f, 4.0f;
+  VectorXf dec(4);
+  dec << 2.0f, 3.0f, 4.0f, 5.0f;
+  VectorXi epoch(4);
+  epoch << 1, 0, 1, 0;
+
+  MatrixXf itrf(4,3);
+  utils::radec2itrf<float>(ra, dec, epoch, 0.0, itrf);
+
+  MatrixXf A(4,3);
+  A <<  0.14208f,  0.14783f,  0.97875f,
+        0.84192f, -0.44482f,  0.30545f,
+        0.46940f, -0.23295f, -0.85170f,
+       -0.19254f, -0.75409f, -0.62791f;
+
+  // NOTE: c++'s cos() gives other values then octave's cos()
+  //       therefore, precision of assert is lowered.
+  for (int i = 0; i < 4; i++)
+    for (int j = 0; j < 3; j++)
+      CPPUNIT_ASSERT_DOUBLES_EQUAL(A(i,j), itrf(i,j), 1e-2);
+}
+
 void UtilitiesTest::kronecker()
 {
   MatrixXi A(2,2), B(2,2), C(4,4), D(4,4);

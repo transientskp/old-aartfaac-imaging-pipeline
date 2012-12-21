@@ -15,8 +15,6 @@ namespace utils
  */
 QDateTime MJD2QDateTime(const double inMJD);
 
-double julianDay(const double inTime);
-
 /**
  * @brief
  * Get the current system time in microseconds
@@ -119,6 +117,48 @@ void precessionMatrix(const double inJD, Matrix<T, 3, 3> &outM)
          -s4*c2 - s2*c4*c3, c4*c3*c2*c1 - s4*s2*c1 - s1*c4*s3, c4*c3*c2*s1 + c1*c4*s3 - s4*s2*s1,
           s2*s3, -s3*c2*c1 - s1*c3, c3*c1 - s3*c2*s1;
 }
+
+template<typename T>
+void radec2itrf(const Matrix<T, Dynamic, 1> &inRa,
+                const Matrix<T, Dynamic, 1> &inDec,
+                const Matrix<int, Dynamic, 1> &inEpoch,
+                const double inJD,
+                Matrix<T, Dynamic, Dynamic> &outItrf)
+{
+  Q_ASSERT(inRa.rows() == inDec.rows());
+  Q_ASSERT(outItrf.rows() == inRa.rows());
+  Q_ASSERT(outItrf.cols() == 3);
+
+  static Matrix<T, 3, 3> tmp_mat;
+
+  int n = inRa.rows();
+  Matrix<T, Dynamic, Dynamic> cartesian_mat(n, 3);
+  spherical2cartesian<T>(inRa, inDec, 1, cartesian_mat);
+
+  // convert B1950 to J2000
+  precessionMatrix<T>(2433282.5, tmp_mat);
+  for (int i = 0; i < n; i++)
+    if (inEpoch(i) == 1)
+      cartesian_mat.row(i) = cartesian_mat.row(i) * tmp_mat;
+
+  // compute apparent position
+  precessionMatrix<T>(inJD, tmp_mat);
+  Matrix<T, Dynamic, Dynamic> app_pos(n, 3);
+  app_pos = cartesian_mat * tmp_mat.transpose();
+
+  // Greenwich mean sidereal time in seconds
+  static const Matrix<T, 4, 1> pc(-6.2e-6, 0.093104, 8640184.812866, 24110.54841);
+  T tu = (floor(inJD) + 0.5 - 2451545.0) / 36525.0;
+  T gmst = (inJD - floor(inJD) - 0.5) * 86400.0 * 1.002737811906 + polyval<T>(pc, tu);
+  gmst = (gmst / 86400.0) * 2.0 * M_PI;
+
+  // NOTE: c++'s cos() gives other values then octave's cos()
+  tmp_mat << cos(gmst),-sin(gmst), 0.0,
+             sin(gmst), cos(gmst), 0.0,
+                   0.0,       0.0, 1.0;
+
+  outItrf = app_pos * tmp_mat;
 }
+} // namespace utils
 
 #endif // UTILITIES_H
