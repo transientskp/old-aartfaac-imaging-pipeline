@@ -46,9 +46,11 @@ int Calibrator::gainSolv(const MatrixXcf &inModel,
   static const int max_iterations = 100;
   static const float epsilon = 1e-6f;
 
-  outGains = inEstimatedGains;
   for (int i = 0; i < n; i++)
   {
+    // Bootstrap with estimated gains
+    outGains(i) = inEstimatedGains(i);
+
     // Normalize the data
     data_normalised.col(i) = inData.col(i).array() / inData.col(i).adjoint().dot(inData.col(i));
 
@@ -77,7 +79,7 @@ int Calibrator::gainSolv(const MatrixXcf &inModel,
       float delta_gains_normal = tmp.norm();
       if (delta_gains_normal / gains_normal <= epsilon)
       {
-        qDebug("[Calibrator::gainSolv()] Convergance after %d iterations", i);
+        qDebug("[%s] Convergence after %d iterations", __FUNCTION__, i);
         break;
       }
     }
@@ -88,7 +90,7 @@ int Calibrator::gainSolv(const MatrixXcf &inModel,
   }
 
   if (i >= max_iterations)
-    qCritical("[Calibrator::gainSolv() Max number of iterations reached (%d), no convergence", i);
+    qCritical("[%s] No convergence after %d iterations", __FUNCTION__, i);
 
   return i;
 }
