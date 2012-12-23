@@ -21,7 +21,6 @@ QDateTime MJD2QDateTime(const double inMJD);
  */
 long GetTimeInMicros();
 
-
 /**
  * @brief
  * Compute the pseudo inverse using the singular value decomposition
@@ -161,10 +160,13 @@ void radec2itrf(const Matrix<T, Dynamic, 1> &inRa,
   spherical2cartesian<T>(inRa, inDec, 1, cartesian_mat);
 
   // convert B1950 to J2000
-  precessionMatrix<T>(2433282.5, tmp_mat);
-  for (int i = 0; i < n; i++)
-    if (inEpoch(i) == 1)
-      cartesian_mat.row(i) *= tmp_mat;
+  if (inEpoch.sum() > 0)
+  {
+    precessionMatrix<T>(2433282.5, tmp_mat);
+    for (int i = 0; i < n; i++)
+      if (inEpoch(i) == 1)
+        cartesian_mat.row(i) *= tmp_mat;
+  }
 
   // compute apparent position
   precessionMatrix<T>(inJD, tmp_mat);
