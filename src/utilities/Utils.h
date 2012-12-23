@@ -29,18 +29,17 @@ long GetTimeInMicros();
 template<typename T>
 void pseudoInverse(const Matrix<T, Dynamic, Dynamic> &inA, Matrix<T, Dynamic, Dynamic> &outI)
 {
+  Q_ASSERT(outI.rows() == inA.rows());
+  Q_ASSERT(outI.cols() == inA.cols());
+
   static JacobiSVD<Matrix<T, Dynamic, Dynamic> > svd;
   svd.compute(inA, ComputeFullU | ComputeFullV);
 
-  int n = svd.singularValues().rows();
-  Q_ASSERT(n == std::min(inA.rows(), inA.cols()));
+  outI.setZero(); // Use outI as temporary (Sigma^+)
+  for (int i = 0, n = svd.singularValues().rows(); i < n; i++)
+    outI(i, i) = 1.0 / svd.singularValues()(i);
 
-
-  Matrix<T, Dynamic, Dynamic> S = Matrix<T, Dynamic, Dynamic>::Zero(inA.rows(), inA.cols());
-  for (int i = 0; i < n; i++)
-    S(i,i) = 1.0 / svd.singularValues()(i);
-
-  outI = (svd.matrixV() * S.transpose() * svd.matrixU().adjoint());
+  outI = (svd.matrixV() * outI.transpose() * svd.matrixU().adjoint());
 }
 
 /**
