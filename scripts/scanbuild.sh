@@ -2,11 +2,9 @@
 
 set +e
 
-git reset --hard
 cd build
 sh clean.sh
-sh /usr/local/lofarinit.sh
-cmake .. -DCMAKE_C_COMPILER=/usr/share/clang/scan-build/ccc-analyzer -DCMAKE_CXX_COMPILER=/usr/share/clang/scan-build/c++-analyzer -DENABLE_TESTS=ON
+cmake .. -DCASACORE_ROOT=/usr/local/casacore -DLOFAR_ROOT=/usr/local/LofIm -DCMAKE_C_COMPILER=/usr/share/clang/scan-build/ccc-analyzer -DCMAKE_CXX_COMPILER=/usr/share/clang/scan-build/c++-analyzer -DENABLE_TESTS=ON
 
 if [ -z "${WORKSPACE}" ]; then
   WORKSPACE=`pwd`
