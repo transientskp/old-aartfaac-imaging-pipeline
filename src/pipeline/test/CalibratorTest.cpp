@@ -34,28 +34,29 @@ void CalibratorTest::tearDown()
 
 void CalibratorTest::gainSolve()
 {
-  MatrixXcf model(2, 2);
-  model << std::complex<float>(1.0f, 5.0f), std::complex<float>(2.0f, 6.0f),
-           std::complex<float>(3.0f, 7.0f), std::complex<float>(4.0f, 8.0f);
-  MatrixXcf data(model);
-  VectorXcf initial_gains(2);
-  initial_gains << std::complex<float>(1.0f, 0.0f), std::complex<float>(1.0f, 0.0f);
+  const int n = 3;
+  VectorXcf antennas = VectorXcf::Random(n) * 10.0f;
+  MatrixXcf model = antennas * antennas.adjoint();
+  MatrixXcf diagonal = model.diagonal();
+  for (int i = 0; i < n; i++)
+    model(i,i) -= diagonal(i);
 
-  VectorXcf gains(2);
-  int iters = mCalibrator->gainSolv(model, data, initial_gains, gains);
+  VectorXcf gains(antennas);
+  gains += VectorXcf::Random(n);
+  MatrixXcf data = gains.asDiagonal().toDenseMatrix().adjoint() * model * gains.asDiagonal();
 
-  data = model.array() * (gains * gains.transpose()).array();
+  VectorXcf recov(n), initial_gains(n);
+  for (int i = 0; i < n; i++)
+    initial_gains(i) = std::complex<float>(1.0f, 1.0f);
 
-  for (int i = 0; i < 2; i++)
-  {
-    for (int j = 0; j < 2; j++)
-    {
-      CPPUNIT_ASSERT_DOUBLES_EQUAL(model(i,j).real(), data(i,j).real(), 1e-6);
-      CPPUNIT_ASSERT_DOUBLES_EQUAL(model(i,j).imag(), data(i,j).imag(), 1e-6);
-    }
-  }
+  mCalibrator->gainSolv(model, data, initial_gains, recov);
 
-  CPPUNIT_ASSERT_EQUAL(2, iters);
+  MatrixXf org = (gains * gains.transpose()).array().abs();
+  MatrixXf rec = (recov * recov.transpose()).array().abs();
+
+  for (int i = 0; i < n; i++)
+    for (int j = 0; j < n; j++)
+      CPPUNIT_ASSERT_DOUBLES_EQUAL(org(i,j), rec(i,j), 1e-2);
 }
 
 void CalibratorTest::stefCal()
