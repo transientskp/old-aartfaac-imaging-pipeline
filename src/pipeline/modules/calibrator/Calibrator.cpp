@@ -22,6 +22,20 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
   Q_UNUSED(output);
 }
 
+int Calibrator::walsCalibration(const MatrixXcf &inModel,
+                                const MatrixXcf &inData,
+                                const VectorXcf &inEstimatedGains,
+                                      VectorXf  &outGains,
+                                      VectorXf  &outSourcePowers,
+                                      MatrixXcf &outNoiseCovMatrix)
+{
+  static const int max_iterations = 10;
+  static const float epsilon = 1e-10f;
+
+  int i;
+  return i;
+}
+
 int Calibrator::gainSolv(const MatrixXcf &inModel,
                          const MatrixXcf &inData,
                          const VectorXcf &inEstimatedGains,

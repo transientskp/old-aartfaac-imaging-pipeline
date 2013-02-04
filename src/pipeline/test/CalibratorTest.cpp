@@ -37,9 +37,8 @@ void CalibratorTest::gainSolve()
   const int n = 3;
   VectorXcf antennas = VectorXcf::Random(n) * 10.0f;
   MatrixXcf model = antennas * antennas.adjoint();
-  MatrixXcf diagonal = model.diagonal();
   for (int i = 0; i < n; i++)
-    model(i,i) -= diagonal(i);
+    model(i,i) = std::complex<float>(0.0f, 0.0f);
 
   VectorXcf gains(antennas);
   gains += VectorXcf::Random(n);
@@ -59,6 +58,28 @@ void CalibratorTest::gainSolve()
       CPPUNIT_ASSERT_DOUBLES_EQUAL(org(i,j), rec(i,j), 1e-2);
 }
 
-void CalibratorTest::stefCal()
+void CalibratorTest::walsCalibration()
 {
+  const int n = 3;
+  VectorXcf antennas = VectorXcf::Random(n) * 10.0f;
+  MatrixXcf model = antennas * antennas.adjoint();
+  for (int i = 0; i < n; i++)
+    model(i,i) = std::complex<float>(0.0f, 0.0f);
+
+  VectorXcf gains(antennas);
+  gains += VectorXcf::Random(n);
+  MatrixXcf data = gains.asDiagonal().toDenseMatrix().adjoint() * model * gains.asDiagonal();
+
+  VectorXcf initial_gains(n);
+  for (int i = 0; i < n; i++)
+    initial_gains(i) = std::complex<float>(1.0f, 1.0f);
+
+  VectorXf est_gains(n), source_powers(n);
+  MatrixXcf cov_matrix(n,n);
+
+  mCalibrator->walsCalibration(model, data, initial_gains, est_gains, source_powers, cov_matrix);
+
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(1.0, source_powers(0), 1e-3f);
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(0.304, source_powers(1), 1e-3f);
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(0.0, source_powers(2), 1e-3f);
 }

@@ -25,6 +25,13 @@ private:
                const MatrixXcf &inData,
                const VectorXcf &inEstimatedGains,
                      VectorXcf &outGains);
+
+  int walsCalibration(const MatrixXcf &inModel,
+                      const MatrixXcf &inData,
+                      const VectorXcf &inEstimatedGains,
+                            VectorXf  &outGains,
+                            VectorXf  &outSourcePowers,
+                            MatrixXcf &outNoiseCovMatrix);
 };
 
 PELICAN_DECLARE_MODULE(Calibrator)

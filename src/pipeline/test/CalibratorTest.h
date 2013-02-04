@@ -10,7 +10,7 @@ class CalibratorTest : public CppUnit::TestFixture
 public:
   CPPUNIT_TEST_SUITE(CalibratorTest);
   CPPUNIT_TEST(gainSolve);
-  CPPUNIT_TEST(stefCal);
+  CPPUNIT_TEST(walsCalibration);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -18,7 +18,7 @@ public:
   void tearDown();
 
   void gainSolve();
-  void stefCal();
+  void walsCalibration();
 
   CalibratorTest();
   ~CalibratorTest() {}
