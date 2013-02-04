@@ -142,7 +142,7 @@ message (STATUS "   C++ (Release):        ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_R
 message (STATUS "   C++ (Debug):          ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}")
 message (STATUS "   C++ (RelWithDebInfo): ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
 message (STATUS "")
-message (STATUS " CMakeflags (${CMAKE_PROJECT_NAME}):")
+message (STATUS " CMakeflags (${CMAKE_PROJECT_NAME} v${VERSION}):")
 message (STATUS "   CMAKE_BUILD_TYPE      ${CMAKE_BUILD_TYPE}")
 message (STATUS "   ENABLE_TESTS          ${ENABLE_TESTS}")
 message (STATUS "   ENABLE_OPENMP         ${ENABLE_OPENMP}")
