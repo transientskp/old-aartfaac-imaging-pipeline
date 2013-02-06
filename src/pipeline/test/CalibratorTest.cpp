@@ -61,13 +61,18 @@ void CalibratorTest::gainSolve()
 void CalibratorTest::walsCalibration()
 {
   const int n = 3;
-  VectorXcf antennas = VectorXcf::Random(n) * 10.0f;
+  VectorXcf antennas(n);
+  antennas << std::complex<float>(10.0f, 20.0f),
+              std::complex<float>(14.0f, 25.0f),
+              std::complex<float>(12.0f, 22.0f);
   MatrixXcf model = antennas * antennas.adjoint();
   for (int i = 0; i < n; i++)
     model(i,i) = std::complex<float>(0.0f, 0.0f);
 
-  VectorXcf gains(antennas);
-  gains += VectorXcf::Random(n);
+  VectorXcf gains(n);
+  gains << std::complex<float>(10.0f, 15.0f),
+           std::complex<float>(24.0f, 10.0f),
+           std::complex<float>(42.0f, 12.0f);
   MatrixXcf data = gains.asDiagonal().toDenseMatrix().adjoint() * model * gains.asDiagonal();
 
   VectorXcf initial_gains(n);

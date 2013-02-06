@@ -33,6 +33,11 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,
   static const float epsilon = 1e-10f;
 
   int i;
+
+  for (i = 1; i <= max_iterations; i++)
+  {
+  }
+
   return i;
 }
 
