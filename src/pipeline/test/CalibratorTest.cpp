@@ -48,15 +48,6 @@ void CalibratorTest::gainSolve()
   gains += VectorXcf::Random(n) * 2.0f;
   MatrixXcf data = gains.asDiagonal() * model * gains.asDiagonal().toDenseMatrix().adjoint();
 
-/*
-  const int n = 3;
-  MatrixXcf model = antennas * antennas.adjoint();
-  for (int i = 0; i < n; i++)
-    model(i,i) = std::complex<float>(0.0f, 0.0f);
-
-  MatrixXcf data = gains.asDiagonal().toDenseMatrix().adjoint() * model * gains.asDiagonal();
-*/
-
   VectorXcf recov(n), initial_gains(n);
   for (int i = 0; i < n; i++)
     initial_gains(i) = std::complex<float>(1.0f, 1.0f);
