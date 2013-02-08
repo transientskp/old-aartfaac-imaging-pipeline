@@ -28,8 +28,8 @@ private:
 
   int walsCalibration(const MatrixXcf &inModel,
                       const MatrixXcf &inData,
-                      const VectorXcf &inEstimatedGains,
-                            VectorXf  &outGains,
+                      const VectorXf  &inFluxes,
+                            VectorXcf &outGains,
                             VectorXf  &outSourcePowers,
                             MatrixXcf &outNoiseCovMatrix);
 };

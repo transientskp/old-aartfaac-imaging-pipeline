@@ -2,6 +2,7 @@
 
 #include "../../StreamBlob.h"
 #include "../../../Constants.h"
+#include "../../../utilities/Utils.h"
 
 #include <pelican/utility/Config.h>
 #include <QtCore>
@@ -22,20 +23,42 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
   Q_UNUSED(output);
 }
 
-int Calibrator::walsCalibration(const MatrixXcf &inModel,
-                                const MatrixXcf &inData,
-                                const VectorXcf &inEstimatedGains,
-                                      VectorXf  &outGains,
-                                      VectorXf  &outSourcePowers,
-                                      MatrixXcf &outNoiseCovMatrix)
+int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
+                                const MatrixXcf &inData,   					// Rhat
+                                const VectorXf  &inFluxes, 					// sigmas
+                                      VectorXcf &outGains,          // g
+                                      VectorXf  &outSourcePowers,   // sigmas
+                                      MatrixXcf &outNoiseCovMatrix) // Sigma_n
 {
-  static const int max_iterations = 10;
+  static const int max_iterations = 1;
   static const float epsilon = 1e-10f;
 
   int i;
+  VectorXcf cur_gains(inData.rows());
+  VectorXcf prev_gains(inData.rows());
+  for (int i = 0; i < inData.rows(); i++)
+    prev_gains(i) = std::complex<float>(1.0f, 1.0f);
+  VectorXf cur_fluxes(inFluxes.rows());
+  VectorXf prev_fluxes(inFluxes);
 
   for (i = 1; i <= max_iterations; i++)
   {
+    // Gain estimation using StefCal
+    MatrixXcf model = inModel * prev_fluxes.asDiagonal() * inModel.adjoint(); // TODO: mask
+    MatrixXcf data = inData; // TODO: mask
+    gainSolv(model, data, prev_gains, cur_gains);
+    //std::cout << "CUR_GAINS:\n" << cur_gains << std::endl;
+    /*
+    MatrixXcf GA = cur_gains.asDiagonal() * inModel;
+    MatrixXcf Rest = GA * prev_fluxes.asDiagonal() * GA.adjoint();
+    MatrixXcf tmp(Rest);
+    utils::pseudoInverse<std::complex<float> >(Rest, tmp);
+    //std::cout << "PINV:\n" << tmp << std::endl;
+    MatrixXf normg = (tmp * inData).array().sqrt().abs();
+    //std::cout << "NORM:\n" << normg << std::endl;
+    */
+
+    // Model source flux estimation
   }
 
   return i;
@@ -71,7 +94,7 @@ int Calibrator::gainSolv(const MatrixXcf &inModel,
     outGains(i) = inEstimatedGains(i);
 
     // Normalize the data
-    data_normalised.col(i) = inData.col(i).array() / inData.col(i).adjoint().dot(inData.col(i));
+    data_normalised.col(i) = inData.col(i) / inData.col(i).dot(inData.col(i));
 
     // Initial calibration
     data_calibrated.col(i) = inEstimatedGains.array() * inModel.col(i).array();
