@@ -90,9 +90,6 @@ int Calibrator::gainSolv(const MatrixXcf &inModel,
 
   for (int i = 0; i < n; i++)
   {
-    // Bootstrap with estimated gains
-    outGains(i) = inEstimatedGains(i);
-
     // Normalize the data
     data_normalised.col(i) = inData.col(i) / inData.col(i).dot(inData.col(i));
 
@@ -105,7 +102,7 @@ int Calibrator::gainSolv(const MatrixXcf &inModel,
   {
     for (int j = 0; j < n; j++)
     {
-      estimated_calibration(j) = data_normalised.col(j).adjoint().dot(data_calibrated.col(j));
+      estimated_calibration(j) = data_normalised.col(j).dot(data_calibrated.col(j));
       outGains(j) = 1.0f / std::conj(estimated_calibration(j));
     }
 
