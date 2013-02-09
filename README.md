@@ -3,8 +3,7 @@ Aartfaac Imaging Pipeline
 
 Build instructions
 ------------------
-    mkdir -p build
     cd build
-    rm -rf *
-    cmake -DPELICAN_ROOT= -DCASACORE_ROOT= -DLOFAR_ROOT= -DUSE_LOFARSTMAN=True ..
+    sh clean.sh
+    cmake -DPELICAN_ROOT= -DCASACORE_ROOT= ..
     make
