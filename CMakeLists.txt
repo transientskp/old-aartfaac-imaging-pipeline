@@ -8,10 +8,14 @@ set (CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
 set (CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -DQT_NO_DEBUG")
 set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
 
+# === Set cmake 3rd library modules path
+set (CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
+
 # === General options
 option (ENABLE_TESTS "Enable/disable test framework" ON)
 option (ENABLE_OPENMP "Enable/disable openmp" OFF)
 option (ENABLE_PROFILING "Enable/disable profiling" OFF)
+option (ENABLE_LOFARSTMAN "Enable/disable lofarstman linking" OFF)
 
 if (NOT CMAKE_BUILD_TYPE)
   set (CMAKE_BUILD_TYPE "RelWithDebInfo")
@@ -26,6 +30,11 @@ if (ENABLE_PROFILING)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -pg")
 endif (ENABLE_PROFILING)
 
+if (ENABLE_LOFARSTMAN)
+  find_package (Lofar REQUIRED)
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--no-as-needed")
+endif (ENABLE_LOFARSTMAN)
+
 # === Project version
 execute_process (
   COMMAND git describe --tags --always
@@ -39,9 +48,6 @@ configure_file (
   ${PROJECT_BINARY_DIR}/version.h
 )
 
-# === Set cmake 3rd library modules path
-set (CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
-
 # === Include sources.
 include (cmake/sources.cmake)
 include_directories (${PROJECT_BINARY_DIR})
@@ -52,14 +58,13 @@ find_package (FFTW REQUIRED)
 find_package (Qt4 COMPONENTS QtCore QtNetwork QtXml REQUIRED)
 find_package (Pelican REQUIRED)
 find_package (Casacore REQUIRED)
-find_package (Lofar REQUIRED)
 
 include_directories (
   ${EIGEN3_INCLUDE_DIR}
   ${FFTW_INCLUDES}
+  ${LOFAR_INCLUDES}
   ${PELICAN_INCLUDES}
   ${CASACORE_INCLUDES}
-  ${LOFAR_INCLUDES}
   ${QT_INCLUDE_DIR}
   ${QT_QTCORE_INCLUDE_DIR}
 )
@@ -72,9 +77,9 @@ target_link_libraries (${EMULATOR}
   ${QT_QTCORE_LIBRARY}
   ${QT_QTNETWORK_LIBRARY}
   ${QT_QTXML_LIBRARY}
+  ${LOFAR_LIBRARIES}
   ${PELICAN_LIBRARIES}
   ${CASACORE_LIBRARIES}
-  ${LOFAR_LIBRARIES}
 )
 
 # === Create the pipeline binary.
@@ -147,4 +152,5 @@ message (STATUS "   CMAKE_BUILD_TYPE      ${CMAKE_BUILD_TYPE}")
 message (STATUS "   ENABLE_TESTS          ${ENABLE_TESTS}")
 message (STATUS "   ENABLE_OPENMP         ${ENABLE_OPENMP}")
 message (STATUS "   ENABLE_PROFILING      ${ENABLE_PROFILING}")
+message (STATUS "   ENABLE_LOFARSTMAN     ${ENABLE_LOFARSTMAN}")
 message (STATUS "")
