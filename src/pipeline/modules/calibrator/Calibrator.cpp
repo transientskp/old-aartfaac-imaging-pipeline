@@ -30,7 +30,7 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
                                       VectorXf  &outSourcePowers,   // sigmas
                                       MatrixXcf &outNoiseCovMatrix) // Sigma_n
 {
-  static const int max_iterations = 1;
+  static const int max_iterations = 10;
   static const float epsilon = 1e-10f;
 
   int i;
@@ -69,19 +69,44 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
     MatrixXf tmp1 = tmp0.cwiseProduct(tmp0).inverse();
     MatrixXcf tmp2 = (GA.adjoint() * inv_data * (inData - outNoiseCovMatrix) * inv_data * GA).diagonal();
     cur_fluxes = (tmp1 * tmp2).array().real(); // TODO: Check for infinity
-    Q_ASSERT(abs(cur_fluxes(0)) > epsilon);
+    std::cout << cur_fluxes << std::endl;
+    Q_ASSERT(abs(cur_fluxes(0)) < epsilon);
     cur_fluxes /= cur_fluxes(0);
 
     for (int j = 0; j < cur_fluxes.size(); j++)
       cur_fluxes(j) = std::max<float>(cur_fluxes(j), 0.0f);
 
     // 3. Noise covariance estimation
+    outNoiseCovMatrix = (inData - GA * cur_fluxes.asDiagonal() * GA.adjoint()); // TODO: mask
 
     // Test for convergence
+    MatrixXcf prev_theta(prev_gains.size() + prev_fluxes.size(), 1);
+    MatrixXcf cur_theta(cur_gains.size() + cur_fluxes.size(), 1);
+    for (int j = 0; j < prev_gains.size(); j++)
+    {
+      prev_theta(j) = prev_gains(j);
+      cur_theta(j) = cur_gains(j);
+    }
+    for (int j = 0; j < prev_fluxes.size(); j++)
+    {
+      prev_theta(j+prev_gains.size()) = std::complex<float>(prev_fluxes(j), 0.0f);
+      cur_theta(j+prev_gains.size()) = std::complex<float>(cur_fluxes(j), 0.0f);
+    }
 
+    tmp.resize(prev_theta.rows(), prev_theta.cols());
+    utils::pseudoInverse<std::complex<float> >(prev_theta, tmp);
+    tmp2 = tmp.transpose().array() * cur_theta.array();
+    float sum = abs(tmp2.sum() - 1.0f);
+    if (sum < epsilon)
+      break;
+
+    // Prepare next iteration
     prev_gains = cur_gains;
     prev_fluxes = cur_fluxes;
   }
+
+  outGains = cur_gains;
+  outSourcePowers = cur_fluxes;
 
   return i;
 }
