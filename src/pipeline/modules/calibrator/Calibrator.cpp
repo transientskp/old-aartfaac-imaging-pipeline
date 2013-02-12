@@ -47,7 +47,9 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
 
   for (i = 1; i <= max_iterations; i++)
   {
-    // 1. Per sensor gain estimation using gainSolv
+    // ======================================================
+    // ==== 1. Per sensor gain estimation using gainSolv ====
+    // ======================================================
     MatrixXcf model = inModel * prev_fluxes.asDiagonal() * inModel.adjoint(); // TODO: mask
     MatrixXcf data = inData; // TODO: mask
     gainSolv(model, data, prev_gains, cur_gains);
@@ -62,24 +64,28 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
     float normg = std::abs(std::sqrt(Rest.sum()));
     cur_gains = normg * cur_gains / (cur_gains(0) / abs(cur_gains(0)));
 
-    // 2. Model source flux estimation
+    // =========================================
+    // ==== 2. Model source flux estimation ====
+    // =========================================
     MatrixXcf inv_data = inData.inverse();
     GA = cur_gains.asDiagonal() * inModel;
     MatrixXf tmp0 = (GA.adjoint() * inv_data * GA).conjugate().array().abs();
     MatrixXf tmp1 = tmp0.cwiseProduct(tmp0).inverse();
     MatrixXcf tmp2 = (GA.adjoint() * inv_data * (inData - outNoiseCovMatrix) * inv_data * GA).diagonal();
     cur_fluxes = (tmp1 * tmp2).array().real(); // TODO: Check for infinity
-    std::cout << cur_fluxes << std::endl;
-    Q_ASSERT(abs(cur_fluxes(0)) < epsilon);
-    cur_fluxes /= cur_fluxes(0);
+    cur_fluxes /= cur_fluxes(0); // TODO: Make sure cur_fluxes(0) != 0
 
     for (int j = 0; j < cur_fluxes.size(); j++)
       cur_fluxes(j) = std::max<float>(cur_fluxes(j), 0.0f);
 
-    // 3. Noise covariance estimation
+    // ========================================
+    // ==== 3. Noise covariance estimation ====
+    // ========================================
     outNoiseCovMatrix = (inData - GA * cur_fluxes.asDiagonal() * GA.adjoint()); // TODO: mask
 
-    // Test for convergence
+    // =================================
+    // ==== 4. Test for convergence ====
+    // =================================
     MatrixXcf prev_theta(prev_gains.size() + prev_fluxes.size(), 1);
     MatrixXcf cur_theta(cur_gains.size() + cur_fluxes.size(), 1);
     for (int j = 0; j < prev_gains.size(); j++)
@@ -98,15 +104,23 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
     tmp2 = tmp.transpose().array() * cur_theta.array();
     float sum = abs(tmp2.sum() - 1.0f);
     if (sum < epsilon)
+    {
+      qDebug("[%s] Convergence after %d iterations", __FUNCTION__, i);
       break;
+    }
 
-    // Prepare next iteration
+    // ================================
+    // ==== Prepare next iteration ====
+    // ================================
     prev_gains = cur_gains;
     prev_fluxes = cur_fluxes;
   }
 
   outGains = cur_gains;
   outSourcePowers = cur_fluxes;
+
+  if (i >= max_iterations)
+    qCritical("[%s] No convergence after %d iterations", __FUNCTION__, i);
 
   return i;
 }
