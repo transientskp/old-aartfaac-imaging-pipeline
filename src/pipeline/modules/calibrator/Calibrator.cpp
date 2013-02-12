@@ -34,6 +34,10 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
   static const float epsilon = 1e-10f;
 
   int i;
+  Q_ASSERT(outNoiseCovMatrix.rows() == inData.rows());
+  Q_ASSERT(outNoiseCovMatrix.cols() == inData.cols());
+
+  outNoiseCovMatrix.setZero();
   VectorXcf cur_gains(inData.rows());
   VectorXcf prev_gains(inData.rows());
   for (int i = 0; i < inData.rows(); i++)
@@ -43,7 +47,7 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
 
   for (i = 1; i <= max_iterations; i++)
   {
-    // Gain estimation using StefCal
+    // 1. Per sensor gain estimation using gainSolv
     MatrixXcf model = inModel * prev_fluxes.asDiagonal() * inModel.adjoint(); // TODO: mask
     MatrixXcf data = inData; // TODO: mask
     gainSolv(model, data, prev_gains, cur_gains);
@@ -56,11 +60,27 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
     utils::pseudoInverse<std::complex<float> >(Rest, tmp);
     Rest = tmp.array() * data.array();
     float normg = std::abs(std::sqrt(Rest.sum()));
-    std::cout << "GAINS:\n" << cur_gains << std::endl;
     cur_gains = normg * cur_gains / (cur_gains(0) / abs(cur_gains(0)));
-    std::cout << "GAINS:\n" << cur_gains << std::endl;
 
-    // Model source flux estimation
+    // 2. Model source flux estimation
+    MatrixXcf inv_data = inData.inverse();
+    GA = cur_gains.asDiagonal() * inModel;
+    MatrixXf tmp0 = (GA.adjoint() * inv_data * GA).conjugate().array().abs();
+    MatrixXf tmp1 = tmp0.cwiseProduct(tmp0).inverse();
+    MatrixXcf tmp2 = (GA.adjoint() * inv_data * (inData - outNoiseCovMatrix) * inv_data * GA).diagonal();
+    cur_fluxes = (tmp1 * tmp2).array().real(); // TODO: Check for infinity
+    Q_ASSERT(abs(cur_fluxes(0)) > epsilon);
+    cur_fluxes /= cur_fluxes(0);
+
+    for (int j = 0; j < cur_fluxes.size(); j++)
+      cur_fluxes(j) = std::max<float>(cur_fluxes(j), 0.0f);
+
+    // 3. Noise covariance estimation
+
+    // Test for convergence
+
+    prev_gains = cur_gains;
+    prev_fluxes = cur_fluxes;
   }
 
   return i;
