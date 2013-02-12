@@ -47,16 +47,18 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
     MatrixXcf model = inModel * prev_fluxes.asDiagonal() * inModel.adjoint(); // TODO: mask
     MatrixXcf data = inData; // TODO: mask
     gainSolv(model, data, prev_gains, cur_gains);
-    //std::cout << "CUR_GAINS:\n" << cur_gains << std::endl;
-    /*
+
     MatrixXcf GA = cur_gains.asDiagonal() * inModel;
     MatrixXcf Rest = GA * prev_fluxes.asDiagonal() * GA.adjoint();
+    Rest.resize(Rest.size(), 1);
+    data.resize(1, Rest.size());
     MatrixXcf tmp(Rest);
     utils::pseudoInverse<std::complex<float> >(Rest, tmp);
-    //std::cout << "PINV:\n" << tmp << std::endl;
-    MatrixXf normg = (tmp * inData).array().sqrt().abs();
-    //std::cout << "NORM:\n" << normg << std::endl;
-    */
+    Rest = tmp.array() * data.array();
+    float normg = std::abs(std::sqrt(Rest.sum()));
+    std::cout << "GAINS:\n" << cur_gains << std::endl;
+    cur_gains = normg * cur_gains / (cur_gains(0) / abs(cur_gains(0)));
+    std::cout << "GAINS:\n" << cur_gains << std::endl;
 
     // Model source flux estimation
   }
