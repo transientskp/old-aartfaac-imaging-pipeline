@@ -10,7 +10,8 @@ CPPUNIT_TEST_SUITE_REGISTRATION(FlaggerTest);
 
 FlaggerTest::FlaggerTest():
   CppUnit::TestFixture(),
-  mFlagger(NULL)
+  mFlagger(NULL),
+  mStreamBlob(NULL)
 {
 }
 
