@@ -21,6 +21,13 @@ public:
   void run(const StreamBlob *input, StreamBlob *output);
 
 private:
+  void statCal(MatrixXcf &inData,
+               const double inTime,
+               const double inFrequency,
+               VectorXcf &outCalibrations,
+               VectorXf &outSigmas,
+               MatrixXcf &outVisibilities);
+
   int gainSolv(const MatrixXcf &inModel,
                const MatrixXcf &inData,
                const VectorXcf &inEstimatedGains,
@@ -32,6 +39,16 @@ private:
                             VectorXcf &outGains,
                             VectorXf  &outSourcePowers,
                             MatrixXcf &outNoiseCovMatrix);
+
+  MatrixXf mAntennaITRF;
+  MatrixXcf mNormalizedData;
+
+  VectorXcf mCalibrations;
+  VectorXf mSigmas;
+
+  VectorXf mRaSources;
+  VectorXf mDecSources;
+  VectorXi mEpoch;
 };
 
 PELICAN_DECLARE_MODULE(Calibrator)

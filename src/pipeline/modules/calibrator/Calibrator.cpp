@@ -4,13 +4,52 @@
 #include "../../../Constants.h"
 #include "../../../utilities/Utils.h"
 
+#include <casacore/tables/Tables/TableParse.h>
+#include <casacore/ms/MeasurementSets.h>
 #include <pelican/utility/Config.h>
 #include <QtCore>
 #include <QDebug>
 
+extern char *gTableName;
+
 Calibrator::Calibrator(const ConfigNode &inConfig):
   AbstractModule(inConfig)
 {
+  casa::MeasurementSet ms(gTableName);
+  casa::ROMSColumns msc(ms);
+
+  mAntennaITRF.resize(NUM_ANTENNAS, 3);
+  for (int a = 0; a < NUM_ANTENNAS; a++)
+  {
+    mAntennaITRF(a, 0) = msc.antenna().position()(a)(casa::IPosition(1,0));
+    mAntennaITRF(a, 1) = msc.antenna().position()(a)(casa::IPosition(1,1));
+    mAntennaITRF(a, 2) = msc.antenna().position()(a)(casa::IPosition(1,2));
+  }
+
+  mRaSources.resize(4);
+  mDecSources.resize(4);
+
+  // Cassiopeia A
+  mRaSources(0)   = 6.1138f;
+  mDecSources(0)  = 1.0219f;
+
+  // Cygnus A
+  mRaSources(1)   = 5.2262f;
+  mDecSources(1)  = 0.7086f;
+
+  // Tauras A
+  mRaSources(2)   = 1.4464f;
+  mDecSources(2)  = 0.3835f;
+
+  // Virgo A
+  mRaSources(3)   = 3.2651f;
+  mDecSources(3)  = 0.2211f;
+
+  mEpoch.resize(4);
+  mEpoch.setZero();
+  mEpoch.array() += 1;
+
+  mNormalizedData.resize(NUM_ANTENNAS, NUM_ANTENNAS);
 }
 
 Calibrator::~Calibrator()
@@ -19,9 +58,54 @@ Calibrator::~Calibrator()
 
 void Calibrator::run(const StreamBlob *input, StreamBlob *output)
 {
-  Q_UNUSED(input);
-  Q_UNUSED(output);
+  double time = input->mMJDTime / 86400.0 + 2400000.5;
+  mNormalizedData = input->mXX;
+
+  // Whitening of the array covariance matrix for DOA estimation
+  float sqrt_dot = mNormalizedData.diagonal().norm();
+  mNormalizedData.array() /= sqrt_dot;
+
+  // Initial calibration
+  statCal(mNormalizedData, time, input->mFrequency, mCalibrations, mSigmas, output->mXX);
 }
+
+void Calibrator::statCal(MatrixXcf &inData,
+                         const double inTime,
+                         const double inFrequency,
+                         VectorXcf &outCalibrations,
+                         VectorXf &outSigmas,
+                         MatrixXcf &outVisibilities)
+{
+  static const Vector3f normal(0.598753f, 0.072099f, 0.797682f);
+  static const float lightspeed = 299792458.0f;
+
+  MatrixXf src_pos(mRaSources.rows(), 3);
+  utils::radec2itrf<float>(mRaSources, mDecSources, mEpoch, inTime, src_pos);
+
+  //VectorXf up = src_pos * normal;
+  std::complex<float> i1(0.0f, 1.0f);
+  i1 *= 2.0f * M_PI * inFrequency / lightspeed;
+  MatrixXcf A = (i1 * mAntennaITRF * src_pos.transpose()).array().exp();
+
+  MatrixXcf KA(A.rows()*A.rows(), A.cols());
+  utils::khatrirao<std::complex<float> >(A.conjugate(), A, KA);
+
+  MatrixXf AA = (A.adjoint() * A).array().abs().pow(2.0f);
+  MatrixXf AAi(AA.rows(), AA.cols());
+  utils::pseudoInverse<float>(AA, AAi);
+
+  MatrixXcf data(inData);
+  data.resize(inData.rows()*inData.cols(), 1);
+  VectorXf flux = (AAi * KA.adjoint() * data).array().real();
+  flux.array() /= flux(0);
+
+  std::cout << flux << std::endl;
+
+  walsCalibration(A, inData, flux, outCalibrations, outSigmas, outVisibilities);
+  outCalibrations.array() /= 1.0f;
+  outCalibrations.adjointInPlace();
+}
+
 
 int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
                                 const MatrixXcf &inData,   					// Rhat
@@ -136,15 +220,13 @@ int Calibrator::gainSolv(const MatrixXcf &inModel,
   Q_ASSERT(inModel.rows() == inEstimatedGains.rows());
   Q_ASSERT(inEstimatedGains.rows() == outGains.rows());
 
-  static int n = inModel.rows();
-
-  Q_ASSERT(n == inModel.rows());
+  int n = inModel.rows();
 
   // allocate once
-  static MatrixXcf data_normalised(n, n);
-  static MatrixXcf data_calibrated(n, n);
-  static VectorXcf estimated_calibration(n);
-  static VectorXcf tmp(n);
+  MatrixXcf data_normalised(n, n);
+  MatrixXcf data_calibrated(n, n);
+  VectorXcf estimated_calibration(n);
+  VectorXcf tmp(n);
 
   static const int max_iterations = 100;
   static const float epsilon = 1e-6f;
