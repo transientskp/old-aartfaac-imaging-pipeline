@@ -11,7 +11,8 @@ CPPUNIT_TEST_SUITE_REGISTRATION(CalibratorTest);
 
 CalibratorTest::CalibratorTest():
   CppUnit::TestFixture(),
-  mCalibrator(NULL)
+  mCalibrator(NULL),
+  mStreamBlob(NULL)
 {
 }
 
@@ -25,11 +26,22 @@ void CalibratorTest::setUp()
     "</Calibrator>"
   );
   mCalibrator = new Calibrator(config);
+  mStreamBlob = new StreamBlob();
+  mStreamBlob->mXX = MatrixXcf::Random(NUM_ANTENNAS, NUM_ANTENNAS);
+  mStreamBlob->mXX.array() + mStreamBlob->mXX.transpose().array();
+  mStreamBlob->mMJDTime = 4.83793e+09;
+  mStreamBlob->mFrequency = 5.97565e+07;
 }
 
 void CalibratorTest::tearDown()
 {
   delete mCalibrator;
+  delete mStreamBlob;
+}
+
+void CalibratorTest::calibrate()
+{
+  mCalibrator->run(mStreamBlob, mStreamBlob);
 }
 
 void CalibratorTest::gainSolve()
