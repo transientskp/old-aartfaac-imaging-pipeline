@@ -21,7 +21,7 @@ public:
   void run(const StreamBlob *input, StreamBlob *output);
 
 private:
-  void statCal(MatrixXcf &inData,
+  void statCal(const MatrixXcf &inData,
                const double inTime,
                const double inFrequency,
                VectorXcf &outCalibrations,

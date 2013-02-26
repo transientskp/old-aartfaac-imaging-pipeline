@@ -69,7 +69,7 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
   statCal(mNormalizedData, time, input->mFrequency, mCalibrations, mSigmas, output->mXX);
 }
 
-void Calibrator::statCal(MatrixXcf &inData,
+void Calibrator::statCal(const MatrixXcf &inData,
                          const double inTime,
                          const double inFrequency,
                          VectorXcf &outCalibrations,
@@ -98,8 +98,6 @@ void Calibrator::statCal(MatrixXcf &inData,
   data.resize(inData.rows()*inData.cols(), 1);
   VectorXf flux = (AAi * KA.adjoint() * data).array().real();
   flux.array() /= flux(0);
-
-  std::cout << flux << std::endl;
 
   walsCalibration(A, inData, flux, outCalibrations, outSigmas, outVisibilities);
   outCalibrations.array() /= 1.0f;
@@ -140,12 +138,13 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
 
     MatrixXcf GA = cur_gains.asDiagonal() * inModel;
     MatrixXcf Rest = GA * prev_fluxes.asDiagonal() * GA.adjoint();
+
     Rest.resize(Rest.size(), 1);
-    data.resize(1, Rest.size());
-    MatrixXcf tmp(Rest);
-    utils::pseudoInverse<std::complex<float> >(Rest, tmp);
-    Rest = tmp.array() * data.array();
-    float normg = std::abs(std::sqrt(Rest.sum()));
+    data.resize(Rest.size(), 1);
+
+    MatrixXcf X(Rest.rows(), Rest.cols());
+    utils::pseudoInverse<std::complex<float> >(Rest, X);
+    float normg = std::abs(std::sqrt((X.array() * data.array()).sum()));
     cur_gains = normg * cur_gains / (cur_gains(0) / abs(cur_gains(0)));
 
     // =========================================
@@ -183,10 +182,10 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
       cur_theta(j+prev_gains.size()) = std::complex<float>(cur_fluxes(j), 0.0f);
     }
 
-    tmp.resize(prev_theta.rows(), prev_theta.cols());
+    MatrixXcf tmp(prev_theta.rows(), prev_theta.cols());
     utils::pseudoInverse<std::complex<float> >(prev_theta, tmp);
-    tmp2 = tmp.transpose().array() * cur_theta.array();
-    float sum = abs(tmp2.sum() - 1.0f);
+    std::complex<float> x = (tmp.array() * cur_theta.array()).sum();
+    float sum = abs(x - 1.0f);
     if (sum < epsilon)
     {
       qDebug("[%s] Convergence after %d iterations", __FUNCTION__, i);

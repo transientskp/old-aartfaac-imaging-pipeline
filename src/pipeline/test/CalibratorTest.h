@@ -10,8 +10,8 @@ class CalibratorTest : public CppUnit::TestFixture
 {
 public:
   CPPUNIT_TEST_SUITE(CalibratorTest);
-  CPPUNIT_TEST(gainSolve);
-  CPPUNIT_TEST(walsCalibration);
+  //CPPUNIT_TEST(gainSolve);
+  //CPPUNIT_TEST(walsCalibration);
   CPPUNIT_TEST(calibrate);
   CPPUNIT_TEST_SUITE_END();
 
