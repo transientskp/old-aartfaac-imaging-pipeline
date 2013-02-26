@@ -30,6 +30,13 @@ void pseudoInverse(const Matrix<T, Dynamic, Dynamic> &inA, Matrix<T, Dynamic, Dy
 {
   Q_ASSERT(outI.rows() == inA.rows());
   Q_ASSERT(outI.cols() == inA.cols());
+  Q_ASSERT(inA.rows() >= inA.cols());
+
+  if (inA.cols() == 1)
+  {
+    outI = (inA.adjoint().array() / (inA.array() * inA.array()).sum()).transpose();
+    return;
+  }
 
   static JacobiSVD<Matrix<T, Dynamic, Dynamic> > svd;
   svd.compute(inA, ComputeFullU | ComputeFullV);

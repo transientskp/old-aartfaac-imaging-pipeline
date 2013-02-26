@@ -45,6 +45,14 @@ void UtilitiesTest::pseudoinv()
   CPPUNIT_ASSERT_DOUBLES_EQUAL(eye(0,1).real(), 0.0, 1e-6);
   CPPUNIT_ASSERT_DOUBLES_EQUAL(eye(1,0).real(), 0.0, 1e-6);
   }
+
+  {
+  MatrixXf M = MatrixXf::Random(3,1);
+  MatrixXf I(3,1);
+
+  utils::pseudoInverse<float>(M, I);
+  CPPUNIT_ASSERT_DOUBLES_EQUAL((I.array() * M.array()).sum(), 1.0, 1e-6);
+  }
 }
 
 void UtilitiesTest::precession()
