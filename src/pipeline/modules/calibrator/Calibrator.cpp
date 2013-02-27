@@ -90,7 +90,7 @@ void Calibrator::statCal(const MatrixXcf &inData,
   MatrixXcf KA(A.rows()*A.rows(), A.cols());
   utils::khatrirao<std::complex<float> >(A.conjugate(), A, KA);
 
-  MatrixXf AA = (A.adjoint() * A).array().abs().pow(2.0f);
+  MatrixXf AA = (A.adjoint() * A).array().abs().square();
   MatrixXf AAi(AA.rows(), AA.cols());
   utils::pseudoInverse<float>(AA, AAi);
 

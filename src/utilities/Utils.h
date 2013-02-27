@@ -34,7 +34,7 @@ void pseudoInverse(const Matrix<T, Dynamic, Dynamic> &inA, Matrix<T, Dynamic, Dy
 
   if (inA.cols() == 1)
   {
-    outI = (inA.adjoint().array() / (inA.array() * inA.array()).sum()).transpose();
+    outI = (inA.adjoint().array() / inA.squaredNorm()).transpose();
     return;
   }
 
