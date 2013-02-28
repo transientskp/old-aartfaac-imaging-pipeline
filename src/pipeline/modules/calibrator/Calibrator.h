@@ -24,6 +24,7 @@ private:
   void statCal(const MatrixXcf &inData,
                const double inTime,
                const double inFrequency,
+               MatrixXf &ioMask,
                VectorXcf &outCalibrations,
                VectorXf &outSigmas,
                MatrixXcf &outVisibilities);
@@ -36,6 +37,7 @@ private:
   int walsCalibration(const MatrixXcf &inModel,
                       const MatrixXcf &inData,
                       const VectorXf  &inFluxes,
+                      const MatrixXf  &inMask,
                             VectorXcf &outGains,
                             VectorXf  &outSourcePowers,
                             MatrixXcf &outNoiseCovMatrix);
