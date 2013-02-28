@@ -98,7 +98,7 @@ void Calibrator::statCal(const MatrixXcf &inData,
 
   std::complex<float> i1(0.0f, 1.0f);
   i1 *= 2.0f * M_PI * inFrequency / lightspeed;
-  MatrixXcf A = (i1 * mAntennaITRF * in_range_src_pos.transpose()).array().exp();
+  MatrixXcf A = (-i1 * (mAntennaITRF * in_range_src_pos.transpose())).array().exp();
 
   MatrixXcf KA(A.rows()*A.rows(), A.cols());
   utils::khatrirao<std::complex<float> >(A.conjugate(), A, KA);
@@ -111,6 +111,7 @@ void Calibrator::statCal(const MatrixXcf &inData,
   data.resize(inData.rows()*inData.cols(), 1);
   VectorXf flux = (AAi * KA.adjoint() * data).array().real();
   flux.array() /= flux(0);
+  flux = (flux.array() < 0.0f).select(0.0f, flux);
 
   walsCalibration(A, inData, flux, ioMask, outCalibrations, outSigmas, outVisibilities);
   outCalibrations = (1.0f/outCalibrations.array()).conjugate();
