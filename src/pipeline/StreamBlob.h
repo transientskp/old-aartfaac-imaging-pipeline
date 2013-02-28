@@ -36,7 +36,7 @@ public:
 
   Eigen::MatrixXf mSkyMap;
 
-  std::vector<int> mFlagged;
+  Eigen::MatrixXf mMask; ///< Masks invalid entries as 1, otherwise 0
 
   double mMJDTime;
   double mFrequency;

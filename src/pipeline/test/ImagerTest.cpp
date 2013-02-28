@@ -48,7 +48,7 @@ void ImagerTest::fftShift()
 
 void ImagerTest::gridding()
 {
-  std::vector<int> flagged(2, 0);
+  Eigen::MatrixXf M(2,2); M.setZero();
   Eigen::MatrixXcf C(2, 2);
   Eigen::MatrixXcf G(4, 4);
   Eigen::MatrixXf X(2, 2), Y(2, 2);
@@ -63,7 +63,7 @@ void ImagerTest::gridding()
 
   Y = X.transpose();
 
-  mImager->gridding(C, X, Y, flagged, G);
+  mImager->gridding(C, X, Y, M, G);
 
   std::complex<float> c_sum = C.sum();
   std::complex<float> g_sum = G.sum();

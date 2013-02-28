@@ -19,7 +19,7 @@ StreamBlob::StreamBlob()
   mYX.resize(NUM_ANTENNAS, NUM_ANTENNAS);
 
   mSkyMap.resize(mHeight, mWidth);
-  mFlagged.resize(NUM_ANTENNAS);
+  mMask.resize(NUM_ANTENNAS, NUM_ANTENNAS);
 
   reset();
 }
@@ -29,12 +29,12 @@ void StreamBlob::reset()
   mMJDTime = -1.0;
   mChannelId = 0;
   mFrequency = 0.0f;
-  mFlagged.assign(NUM_ANTENNAS, 0);
   mSkyMap.setZero();
   mXX.setZero();
   mYY.setZero();
   mXY.setZero();
   mYX.setZero();
+  mMask.setIdentity();
 }
 
 void StreamBlob::serialise(QIODevice &out) const
@@ -61,7 +61,6 @@ void StreamBlob::serialise(QIODevice &out) const
       stream << mYX(a1, a2).real();
       stream << mYX(a1, a2).imag();
     }
-    stream << mFlagged[a1];
   }
 }
 
@@ -89,7 +88,6 @@ void StreamBlob::deserialise(QIODevice &in, QSysInfo::Endian)
       stream >> mYX(a1, a2).real();
       stream >> mYX(a1, a2).imag();
     }
-    stream >> mFlagged[a1];
   }
 
   setMJDTime(mMJDTime);

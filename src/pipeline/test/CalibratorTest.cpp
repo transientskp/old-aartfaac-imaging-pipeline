@@ -74,6 +74,7 @@ void CalibratorTest::gainSolve()
 
 void CalibratorTest::walsCalibration()
 {
+  /*
   const int n = 3;
   VectorXcf antennas(n);
   antennas << std::complex<float>(10.0f, 20.0f),
@@ -104,4 +105,5 @@ void CalibratorTest::walsCalibration()
   mCalibrator->walsCalibration(model, data, fluxes, est_gains, source_powers, cov_matrix);
 
   //std::cout << "MODEL:\n" << model << std::endl;
+  */
 }

@@ -86,7 +86,7 @@ Imager::~Imager()
 void Imager::run(const StreamBlob *input, StreamBlob *output)
 {
   // Splat the image on a grid
-  gridding(input->mXX, mUCoords, mVCoords, input->mFlagged, mGridded);
+  gridding(input->mXX, mUCoords, mVCoords, input->mMask, mGridded);
 
   // Perform fft
   fftShift(mGridded);
@@ -122,7 +122,7 @@ void Imager::fftShift(MatrixXcf &ioMatrix)
   }
 }
 
-void Imager::gridding(const MatrixXcf &inCorrelations, const MatrixXf &inX, const MatrixXf &inY, const std::vector<int> &inFlagged, MatrixXcf &outGridded)
+void Imager::gridding(const MatrixXcf &inCorrelations, const MatrixXf &inX, const MatrixXf &inY, const MatrixXf &inMask, MatrixXcf &outGridded)
 {
 
   Q_ASSERT(inCorrelations.rows() == inCorrelations.cols());
@@ -134,17 +134,15 @@ void Imager::gridding(const MatrixXcf &inCorrelations, const MatrixXf &inX, cons
 
   outGridded.setZero();
 
-  Q_ASSERT(inCorrelations.rows() == static_cast<int>(inFlagged.size()));
+  Q_ASSERT(inCorrelations.rows() == inMask.rows());
+  Q_ASSERT(inCorrelations.cols() == inMask.cols());
 
   int N = inCorrelations.rows();
   for (int a1 = 0; a1 < N; a1++)
   {
-    if (inFlagged[a1])
-      continue;
-
     for (int a2 = 0; a2 < N; a2++)
     {
-      if (inFlagged[a2])
+      if (inMask(a1,a2) == 1.0f)
         continue;
 
       const std::complex<float> &corr = inCorrelations(a1, a2);

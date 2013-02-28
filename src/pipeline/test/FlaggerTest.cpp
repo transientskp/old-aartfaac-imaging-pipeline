@@ -44,13 +44,7 @@ void FlaggerTest::tearDown()
 void FlaggerTest::flag()
 {
   mFlagger->run(mStreamBlob, mStreamBlob);
-
-  for (int i = 0; i < NUM_ANTENNAS; i++)
-  {
-    if (i == 10)
-      CPPUNIT_ASSERT_EQUAL(mStreamBlob->mFlagged[i], 1);
-    else
-      CPPUNIT_ASSERT_EQUAL(mStreamBlob->mFlagged[i], 0);
-  }
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(mStreamBlob->mMask.col(10).sum(), NUM_ANTENNAS, 1e-5f);
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(mStreamBlob->mMask.row(10).sum(), NUM_ANTENNAS, 1e-5f);
 }
 

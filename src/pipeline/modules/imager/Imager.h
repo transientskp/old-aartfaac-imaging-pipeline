@@ -23,7 +23,7 @@ public:
   void run(const StreamBlob *input, StreamBlob *output);
 
 private:
-  void gridding(const MatrixXcf &inCorrelations, const MatrixXf &inX, const MatrixXf &inY, const std::vector<int> &inFlagged, MatrixXcf &outGridded);
+  void gridding(const MatrixXcf &inCorrelations, const MatrixXf &inX, const MatrixXf &inY, const MatrixXf &inMask, MatrixXcf &outGridded);
   void fftShift(MatrixXcf &ioMatrix);
 
   MatrixXf mUCoords;

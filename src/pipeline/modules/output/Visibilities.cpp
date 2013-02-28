@@ -134,7 +134,7 @@ void Visibilities::sendStream(const QString &inStreamName, const DataBlob *inDat
     flags(IPosition(2, 1, 0)) = false;
     flags(IPosition(2, 2, 0)) = false;
     flags(IPosition(2, 3, 0)) = false;
-    if (blob->mFlagged[a1] || blob->mFlagged[a2])
+    if (blob->mMask(a1,a2) == 1.0f)
     {
       flags(IPosition(2, 0, 0)) = true;
       flags(IPosition(2, 1, 0)) = true;
