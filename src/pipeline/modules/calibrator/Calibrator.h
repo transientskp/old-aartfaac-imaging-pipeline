@@ -44,6 +44,10 @@ private:
 
   MatrixXf mAntennaITRF;
   MatrixXcf mNormalizedData;
+  MatrixXf mUCoords;
+  MatrixXf mVCoords;
+  MatrixXf mUVDist;
+  MatrixXf mSpatialFilterMask;
 
   VectorXcf mCalibrations;
   VectorXf mSigmas;

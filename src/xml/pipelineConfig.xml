@@ -25,6 +25,11 @@
         <deviation multiplier="4.0"/>
       </Flagger>
 
+      <Calibrator>
+        <uvw path="/home/fhuizing/Workspace/Aartfaac/data/uvloc/uvw_merged.txt"/>
+        <lba type="1"/> <!-- 0 = LBA_INNER, 1 = LBA_OUTER -->
+      </Calibrator>
+
       <Imager>
         <output path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
         <uvw path="/home/fhuizing/Workspace/Aartfaac/data/uvloc/uvw_merged.txt"/>

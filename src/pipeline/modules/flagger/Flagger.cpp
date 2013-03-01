@@ -56,5 +56,6 @@ void Flagger::run(const StreamBlob *input, StreamBlob *output)
       output->mMask.row(a).setOnes();
     }
   }
+
 }
 

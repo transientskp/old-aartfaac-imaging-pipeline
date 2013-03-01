@@ -2,6 +2,7 @@
 
 #include "../../StreamBlob.h"
 #include "../../../Constants.h"
+#include "../../../utilities/UVWParser.h"
 #include "../../../utilities/Utils.h"
 
 #include <casacore/tables/Tables/TableParse.h>
@@ -25,6 +26,31 @@ Calibrator::Calibrator(const ConfigNode &inConfig):
     mAntennaITRF(a, 1) = msc.antenna().position()(a)(casa::IPosition(1,1));
     mAntennaITRF(a, 2) = msc.antenna().position()(a)(casa::IPosition(1,2));
   }
+
+  mUCoords.resize(NUM_ANTENNAS, NUM_ANTENNAS);
+  mVCoords.resize(NUM_ANTENNAS, NUM_ANTENNAS);
+  mUVDist.resize(NUM_ANTENNAS, NUM_ANTENNAS);
+  mSpatialFilterMask.resize(NUM_ANTENNAS, NUM_ANTENNAS);
+  QString uvw_file_name = inConfig.getOption("uvw", "path");
+  UVWParser::Type lba_type = UVWParser::Type(inConfig.getOption("lba", "type").toInt());
+  UVWParser uvw_parser(uvw_file_name);
+  for (int a1 = 0; a1 < NUM_ANTENNAS; a1++)
+  {
+    for (int a2 = 0; a2 < NUM_ANTENNAS; a2++)
+    {
+      casa::String a1_name = msc.antenna().name()(a1);
+      casa::String a2_name = msc.antenna().name()(a2);
+
+      UVWParser::UVW uvw = uvw_parser.GetUVW(a1_name.c_str(),
+                                             a2_name.c_str(),
+                                             lba_type);
+
+      mUCoords(a1, a2) = uvw.uvw[0];
+      mVCoords(a1, a2) = uvw.uvw[1];
+    }
+  }
+
+  mUVDist = (mUCoords.array().square() + mVCoords.array().square()).sqrt();
 
   mRaSources.resize(4);
   mDecSources.resize(4);
@@ -57,6 +83,15 @@ Calibrator::~Calibrator()
 
 void Calibrator::run(const StreamBlob *input, StreamBlob *output)
 {
+  static const float min_restriction = 10.0f;                    ///< avoid vis. below this wavelengths
+  static const float max_restriction = 60.0f;                    ///< avoid vis. above this much meters
+  static const float lightspeed = 299792458.0f;                  ///< Speed of light in m/s
+  const float uvdist_cutoff = std::min<float>(min_restriction*float(lightspeed/input->mFrequency), max_restriction);
+
+  for (int a1 = 0; a1 < NUM_ANTENNAS; a1++)
+    for (int a2 = 0; a2 < NUM_ANTENNAS; a2++)
+      mSpatialFilterMask(a1,a2) = mUVDist(a1,a2) < uvdist_cutoff ? 1.0f : 0.0f;
+
   double time = input->mMJDTime / 86400.0 + 2400000.5;
   mNormalizedData = input->mXX;
 
@@ -81,8 +116,6 @@ void Calibrator::statCal(const MatrixXcf &inData,
 {
   static const Vector3f normal(0.598753f, 0.072099f, 0.797682f); ///< Normal to CS002 (central antenna)
   static const float lightspeed = 299792458.0f;                  ///< Speed of light in m/s
-  //static const float min_restriction = 10.0f;                    ///< avoid vis. below this wavelengths
-  //static const float max_restriction = 60.0f;                    ///< avoid vis. above this much meters
 
   MatrixXf src_pos(mRaSources.rows(), 3);
   utils::radec2itrf<float>(mRaSources, mDecSources, mEpoch, inTime, src_pos);
