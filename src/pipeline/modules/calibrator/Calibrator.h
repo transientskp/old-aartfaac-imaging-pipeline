@@ -37,7 +37,7 @@ private:
   int walsCalibration(const MatrixXcf &inModel,
                       const MatrixXcf &inData,
                       const VectorXf  &inFluxes,
-                      const MatrixXf  &inMask,
+                      const MatrixXf  &inInvMask,
                             VectorXcf &outGains,
                             VectorXf  &outSourcePowers,
                             MatrixXcf &outNoiseCovMatrix);

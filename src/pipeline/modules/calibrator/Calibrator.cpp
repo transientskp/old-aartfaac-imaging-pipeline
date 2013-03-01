@@ -140,8 +140,8 @@ void Calibrator::statCal(const MatrixXcf &inData,
   MatrixXf AAi(AA.rows(), AA.cols());
   utils::pseudoInverse<float>(AA, AAi);
 
-  MatrixXf mask = (ioMask.array() > mSpatialFilterMask.array()).select(ioMask, mSpatialFilterMask);
-  MatrixXcf data = inData.array() * (1 - mask.array());
+  MatrixXf mask = 1 - (ioMask.array() > mSpatialFilterMask.array()).select(ioMask, mSpatialFilterMask).array();
+  MatrixXcf data = inData.array() * mask.array();
   data.resize(inData.rows()*inData.cols(), 1);
   VectorXf flux = (AAi * KA.adjoint() * data).array().real();
   flux.array() /= flux(0);
@@ -155,7 +155,7 @@ void Calibrator::statCal(const MatrixXcf &inData,
 int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
                                 const MatrixXcf &inData,   					// Rhat
                                 const VectorXf  &inFluxes, 					// sigmas
-                                const MatrixXf  &inMask,            // mask
+                                const MatrixXf  &inInvMask,         // mask
                                       VectorXcf &outGains,          // g
                                       VectorXf  &outSourcePowers,   // sigmas
                                       MatrixXcf &outNoiseCovMatrix) // Sigma_n
