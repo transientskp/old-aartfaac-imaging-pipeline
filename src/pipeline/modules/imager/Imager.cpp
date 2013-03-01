@@ -142,7 +142,7 @@ void Imager::gridding(const MatrixXcf &inCorrelations, const MatrixXf &inX, cons
   {
     for (int a2 = 0; a2 < N; a2++)
     {
-      if (inMask(a1,a2) == 1.0f)
+      if (inMask(a1,a2) > 0.5f)
         continue;
 
       const std::complex<float> &corr = inCorrelations(a1, a2);
