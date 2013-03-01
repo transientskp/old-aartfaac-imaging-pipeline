@@ -8,7 +8,6 @@ set (EMULATOR_SOURCES
   src/emulator/stream/StreamEmulator.cpp
   src/emulator/service/ServiceUdpPacket.h
   src/emulator/service/ServiceEmulator.cpp
-  src/utilities/halfprecision.c
   src/utilities/Logger.cpp
 )
 
@@ -27,7 +26,6 @@ set (PIPELINE_SOURCES
   src/pipeline/modules/output/TiffStorage.cpp
   src/pipeline/modules/output/CasaImageStorage.cpp
   src/pipeline/modules/output/Visibilities.cpp
-  src/utilities/halfprecision.c
   src/utilities/Utils.cpp
   src/utilities/UVWParser.cpp
   src/utilities/Logger.cpp
@@ -54,7 +52,6 @@ set (emulatortest_SOURCES
   src/emulator/test/UniboardEmulatorTest.cpp
   src/emulator/stream/StreamEmulator.cpp
   src/emulator/service/ServiceEmulator.cpp
-  src/utilities/halfprecision.c
 )
 
 set (pipelinetest_SOURCES

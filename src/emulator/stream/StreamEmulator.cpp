@@ -5,8 +5,6 @@
 #include <pelican/utility/ConfigNode.h>
 #include <casacore/ms/MeasurementSets.h>
 
-extern "C" void singles2halfp(void *target, void *source, int numel);
-
 StreamEmulator::StreamEmulator(const pelican::ConfigNode &inConfigNode)
   : AbstractUdpEmulator(inConfigNode)
 {
@@ -74,11 +72,8 @@ void StreamEmulator::getPacketData(char *&outData, unsigned long &outSize)
 
     for (cIter = data_array.begin(); cIter != data_array.end(); ++cIter)
     {
-      singles2halfp(static_cast<quint16 *>(&correlation.polarizations[j++]),
-                    static_cast<void *>(&(*cIter).real()), 1);
-
-      singles2halfp(static_cast<quint16 *>(&correlation.polarizations[j++]),
-                    static_cast<void *>(&(*cIter).imag()), 1);
+      correlation.polarizations[j++] = (*cIter).real();
+      correlation.polarizations[j++] = (*cIter).imag();
     }
 
     mUdpPacket.mHeader.correlations++;

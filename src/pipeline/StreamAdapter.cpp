@@ -4,8 +4,6 @@
 
 #include <complex>
 
-extern "C" void halfp2singles(void *target, void *source, int numel);
-
 // Construct the example adapter.
 StreamAdapter::StreamAdapter(const ConfigNode &config)
   : AbstractStreamAdapter(config)
@@ -24,7 +22,6 @@ void StreamAdapter::deserialise(QIODevice *inDevice)
 
   StreamUdpPacket packet;
   quint64 bytes_read = 0;
-  std::complex<float> polarizations[4];
   bool is_touched = false;
 
   for (quint32 i = 0; i < num_packets; i++)
@@ -45,19 +42,12 @@ void StreamAdapter::deserialise(QIODevice *inDevice)
     {
       StreamUdpPacket::Correlation &correlation = packet.mCorrelations[j];
 
-      for (quint32 k = 0; k < 8; k += 2)
-      {
-        halfp2singles(static_cast<float *>(&polarizations[k / 2].real()),
-                      static_cast<void *>(&correlation.polarizations[k]), 1);
-        halfp2singles(static_cast<float *>(&polarizations[k / 2].imag()),
-                      static_cast<void *>(&correlation.polarizations[k + 1]), 1);
-      }
-
       blob->addSample(correlation.a1, correlation.a2,
-                      polarizations[0],
-                      polarizations[1],
-                      polarizations[2],
-                      polarizations[3]);
+                      correlation.polarizations[0],
+                      correlation.polarizations[1],
+                      correlation.polarizations[2],
+                      correlation.polarizations[3]
+                      );
     }
   }
 }
