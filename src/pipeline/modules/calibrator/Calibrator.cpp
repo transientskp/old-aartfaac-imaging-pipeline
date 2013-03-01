@@ -140,13 +140,14 @@ void Calibrator::statCal(const MatrixXcf &inData,
   MatrixXf AAi(AA.rows(), AA.cols());
   utils::pseudoInverse<float>(AA, AAi);
 
-  MatrixXcf data(inData);
+  MatrixXf mask = (ioMask.array() > mSpatialFilterMask.array()).select(ioMask, mSpatialFilterMask);
+  MatrixXcf data = inData.array() * (1 - mask.array());
   data.resize(inData.rows()*inData.cols(), 1);
   VectorXf flux = (AAi * KA.adjoint() * data).array().real();
   flux.array() /= flux(0);
   flux = (flux.array() < 0.0f).select(0.0f, flux);
 
-  walsCalibration(A, inData, flux, ioMask, outCalibrations, outSigmas, outVisibilities);
+  walsCalibration(A, inData, flux, mask, outCalibrations, outSigmas, outVisibilities);
   outCalibrations = (1.0f/outCalibrations.array()).conjugate();
 }
 
