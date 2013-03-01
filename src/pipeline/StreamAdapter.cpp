@@ -23,6 +23,7 @@ void StreamAdapter::deserialise(QIODevice *inDevice)
   StreamUdpPacket packet;
   quint64 bytes_read = 0;
   bool is_touched = false;
+  std::complex<float> polarizations[4];
 
   for (quint32 i = 0; i < num_packets; i++)
   {
@@ -42,11 +43,16 @@ void StreamAdapter::deserialise(QIODevice *inDevice)
     {
       StreamUdpPacket::Correlation &correlation = packet.mCorrelations[j];
 
+      for (quint32 k = 0; k < 8; k+=2)
+      {
+        polarizations[k/2].real() = correlation.polarizations[k];
+        polarizations[k/2].imag() = correlation.polarizations[k+1];
+      }
       blob->addSample(correlation.a1, correlation.a2,
-                      correlation.polarizations[0],
-                      correlation.polarizations[1],
-                      correlation.polarizations[2],
-                      correlation.polarizations[3]
+                      polarizations[0],
+                      polarizations[1],
+                      polarizations[2],
+                      polarizations[3]
                       );
     }
   }
