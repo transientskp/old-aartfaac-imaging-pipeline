@@ -40,11 +40,11 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
   // Create image
   mImager->run(data, data);
 
-  // Output to stream(s), see modules/output
-  dataOutput(data, "post");
-
   float time = (mTimer.elapsed() / 1000.0f);
 
-  qDebug("Processed `%s' in %0.3f sec",
-          qPrintable(data->mDateTime.toString("hh:mm:ss")), time);
+  qDebug("Processed `%s' @ %0.3f Hz in %0.3f sec",
+          qPrintable(data->mDateTime.toString("hh:mm:ss")), data->mFrequency, time);
+
+  // Output to stream(s), see modules/output
+  dataOutput(data, "post");
 }
