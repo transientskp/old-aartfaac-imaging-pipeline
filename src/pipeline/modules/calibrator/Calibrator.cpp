@@ -160,13 +160,12 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
                                       VectorXf  &outSourcePowers,   // sigmas
                                       MatrixXcf &outNoiseCovMatrix) // Sigma_n
 {
-  static const int max_iterations = 10;
-  static const float epsilon = 1e-10f;
+  static const int max_iterations = 50;
+  static const float epsilon = 1e-3f;
 
   Q_ASSERT(outNoiseCovMatrix.rows() == inData.rows());
   Q_ASSERT(outNoiseCovMatrix.cols() == inData.cols());
 
-  //MatrixXf inv_mask = 1.0f - inMask.array();
   outNoiseCovMatrix.setZero();
   VectorXcf cur_gains(inData.rows());
   VectorXcf prev_gains(inData.rows());
@@ -175,26 +174,40 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
   VectorXf cur_fluxes(inFluxes.rows());
   VectorXf prev_fluxes(inFluxes);
 
+
+  int n = (inInvMask.array() > 0.5f).count();
+  MatrixXcf rest(n, 1);
+  MatrixXcf data(n, 1);
+  MatrixXcf pinv(n, 1);
   int i;
   for (i = 1; i <= max_iterations; i++)
   {
     // ======================================================
     // ==== 1. Per sensor gain estimation using gainSolv ====
     // ======================================================
-    MatrixXcf model = (inModel * prev_fluxes.asDiagonal() * inModel.adjoint());//.array() * inv_mask.array();
-    MatrixXcf data = inData.array();// * inv_mask.array();
-    gainSolv(model, data, prev_gains, cur_gains);
+    MatrixXcf aa = (inModel * prev_fluxes.asDiagonal() * inModel.adjoint()).array() * inInvMask.array();
+    MatrixXcf bb = inData.array() * inInvMask.array();
+    gainSolv(aa, bb, prev_gains, cur_gains);
 
     MatrixXcf GA = cur_gains.asDiagonal() * inModel;
     MatrixXcf Rest = GA * prev_fluxes.asDiagonal() * GA.adjoint();
 
-    Rest.resize(Rest.size(), 1);
-    data.resize(Rest.size(), 1);
+    Q_ASSERT(Rest.size() == inInvMask.size());
 
-    MatrixXcf X(Rest.rows(), Rest.cols());
-    // NOTE: Compute pinv(Rest) from unmasked datapoints
-    utils::pseudoInverse<std::complex<float> >(Rest, X);
-    float normg = std::abs(std::sqrt((X.array() * data.array()).sum()));
+    int j = 0, k = 0;
+    while (j < Rest.size())
+    {
+      if (inInvMask(j) > 0.5f)
+      {
+        rest(k) = Rest(j);
+        data(k) = inData(j);
+        k++;
+      }
+      j++;
+    }
+
+    utils::pseudoInverse<std::complex<float> >(rest, pinv);
+    float normg = std::abs(std::sqrt((pinv.array() * data.array()).sum()));
     cur_gains = normg * cur_gains / (cur_gains(0) / abs(cur_gains(0)));
     cur_gains = (cur_gains.array().real() == INFINITY || cur_gains.array().imag() == INFINITY).select(1, cur_gains);
 
@@ -218,7 +231,7 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
     // ========================================
     // ==== 3. Noise covariance estimation ====
     // ========================================
-    outNoiseCovMatrix = (inData - GA * cur_fluxes.asDiagonal() * GA.adjoint());//.array() * inMask.array();
+    outNoiseCovMatrix = (inData - GA * cur_fluxes.asDiagonal() * GA.adjoint()).array() * (1.0f - inInvMask.array());
 
     // =================================
     // ==== 4. Test for convergence ====
