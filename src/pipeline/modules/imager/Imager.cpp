@@ -105,21 +105,9 @@ void Imager::fftShift(MatrixXcf &ioMatrix)
   Q_ASSERT(ioMatrix.rows() % 2 == 0);
 
   int half = ioMatrix.rows() / 2;
-  int q2_i, q2_j, q3_i, q3_j, q4_i, q4_j;
-  for (int q1_i = 0; q1_i < half; q1_i++)
-  {
-    for (int q1_j = 0; q1_j < half; q1_j++)
-    {
-      q3_i = q1_i + half;
-      q3_j = q1_j + half;
-      q4_i = q1_i + half;
-      q4_j = q1_j;
-      q2_i = q1_i;
-      q2_j = q1_j + half;
-      std::swap(ioMatrix(q1_i, q1_j), ioMatrix(q3_i, q3_j));
-      std::swap(ioMatrix(q4_i, q4_j), ioMatrix(q2_i, q2_j));
-    }
-  }
+
+  ioMatrix.block(0, 0, half, half).swap(ioMatrix.block(half, half, half, half));
+  ioMatrix.block(0, half, half, half).swap(ioMatrix.block(half, 0, half, half));
 }
 
 void Imager::gridding(const MatrixXcf &inCorrelations, const MatrixXf &inX, const MatrixXf &inY, const MatrixXf &inMask, MatrixXcf &outGridded)
