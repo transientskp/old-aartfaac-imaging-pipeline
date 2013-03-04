@@ -10,7 +10,6 @@
 Flagger::Flagger(const ConfigNode &inConfig):
  AbstractModule(inConfig)
 {
-
   mAmplitudes.resize(NUM_ANTENNAS, NUM_ANTENNAS);
   mAntennas.resize(NUM_ANTENNAS);
   mSortedAntennas.resize(NUM_ANTENNAS);
@@ -52,10 +51,10 @@ void Flagger::run(const StreamBlob *input, StreamBlob *output)
     if (mAntennas(a) < (median - threshold) || mAntennas(a) > (median + threshold))
     {
       qWarning("Antenna %d is bad, flagged", a);
-      //output->mMask.col(a).setOnes();
-      //output->mMask.row(a).setOnes();
+      output->mMask.col(a).setOnes();
+      output->mMask.row(a).setOnes();
+      output->mFlagged.push_back(a);
     }
   }
-
 }
 

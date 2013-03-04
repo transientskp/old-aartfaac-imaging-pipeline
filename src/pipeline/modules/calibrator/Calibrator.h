@@ -42,6 +42,7 @@ private:
                             VectorXf  &outSourcePowers,
                             MatrixXcf &outNoiseCovMatrix);
 
+  std::vector<int> mFlagged;
   MatrixXf mAntennaITRF;
   MatrixXcf mNormalizedData;
   MatrixXf mUCoords;

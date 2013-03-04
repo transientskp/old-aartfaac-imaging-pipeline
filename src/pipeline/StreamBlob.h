@@ -37,6 +37,7 @@ public:
   Eigen::MatrixXf mSkyMap;
 
   Eigen::MatrixXf mMask; ///< Masks invalid entries as 1, otherwise 0
+  std::vector<int> mFlagged; ///< Flagged antennae
 
   double mMJDTime;
   double mFrequency;

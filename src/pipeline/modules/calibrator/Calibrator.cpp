@@ -88,6 +88,10 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
   static const float lightspeed = 299792458.0f;                  ///< Speed of light in m/s
   const float uvdist_cutoff = std::min<float>(min_restriction*float(lightspeed/input->mFrequency), max_restriction);
 
+  if (mFlagged != input->mFlagged)
+  {
+  }
+
   for (int a1 = 0; a1 < NUM_ANTENNAS; a1++)
     for (int a2 = 0; a2 < NUM_ANTENNAS; a2++)
       mSpatialFilterMask(a1,a2) = mUVDist(a1,a2) < uvdist_cutoff ? 1.0f : 0.0f;

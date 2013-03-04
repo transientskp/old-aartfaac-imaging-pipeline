@@ -35,6 +35,7 @@ void StreamBlob::reset()
   mXY.setZero();
   mYX.setZero();
   mMask.setIdentity();
+  mFlagged.clear();
 }
 
 void StreamBlob::serialise(QIODevice &out) const
