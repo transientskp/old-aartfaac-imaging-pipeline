@@ -15,8 +15,6 @@ extern char *gTableName;
 Imager::Imager(const ConfigNode &inConfig):
  AbstractModule(inConfig)
 {
-  static const float duv = 2.5f;
-  static const float nuv = 500.0f;
   mGridded.resize(IMAGE_OUTPUT_SIZE, IMAGE_OUTPUT_SIZE);
 
   mUCoords.resize(NUM_ANTENNAS, NUM_ANTENNAS);
@@ -46,8 +44,8 @@ Imager::Imager(const ConfigNode &inConfig):
                                              a2_name.c_str(),
                                              lba_type);
 
-      mUCoords(a1, a2) = uvw.uvw[0];// / duv + nuv/2.0f;
-      mVCoords(a1, a2) = uvw.uvw[1];// / duv + nuv/2.0f;
+      mUCoords(a1, a2) = uvw.uvw[0];
+      mVCoords(a1, a2) = uvw.uvw[1];
 
       minu = std::min<float>(minu, mUCoords(a1,a2));
       minv = std::min<float>(minv, mVCoords(a1,a2));
@@ -56,15 +54,16 @@ Imager::Imager(const ConfigNode &inConfig):
     }
   }
 
+
   minu = std::abs<float>(minu);
   mUCoords.array() += minu;
   mUCoords.array() /= minu + maxu;
-  mUCoords.array() *= (IMAGE_OUTPUT_SIZE - 1);
+  mUCoords.array() *= (UV_GRID_SIZE - 1);
 
   minv = std::abs<float>(minv);
   mVCoords.array() += minv;
   mVCoords.array() /= minv + maxv;
-  mVCoords.array() *= (IMAGE_OUTPUT_SIZE - 1);
+  mVCoords.array() *= (UV_GRID_SIZE - 1);
 
   // Create fftw plan
   mFFTWPlan = fftwf_plan_dft_2d(IMAGE_OUTPUT_SIZE, IMAGE_OUTPUT_SIZE,
@@ -137,8 +136,8 @@ void Imager::gridding(const MatrixXcf &inCorrelations, const MatrixXf &inX, cons
 
       const std::complex<float> &corr = inCorrelations(a1, a2);
 
-      float u = inX(a1, a2);
-      float v = inY(a1, a2);
+      float u = inX(a1, a2) + IMAGE_OUTPUT_SIZE/2 - UV_GRID_SIZE/2;
+      float v = inY(a1, a2) + IMAGE_OUTPUT_SIZE/2 - UV_GRID_SIZE/2;
 
       int w = std::floor(u);
       int e = std::ceil(u);

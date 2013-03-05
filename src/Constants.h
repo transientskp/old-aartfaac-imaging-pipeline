@@ -17,6 +17,9 @@
 #define NUM_TOTAL_ANTENNAS (NUM_ANTENNAS_PER_STATION*NUM_STATIONS)
 
 /** Skymap image resolution */
-#define IMAGE_OUTPUT_SIZE 512
+#define IMAGE_OUTPUT_SIZE 1024
+
+/** UV range in meters / 2 */
+#define UV_GRID_SIZE 294
 
 #endif // CONSTANTS_H
