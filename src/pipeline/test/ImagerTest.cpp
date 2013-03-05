@@ -56,23 +56,6 @@ void ImagerTest::gridding()
   Eigen::MatrixXf X = Eigen::MatrixXf::Random(NUM_ANTENNAS, NUM_ANTENNAS).array() * UV_GRID_SIZE;
   Eigen::MatrixXf Y = X.transpose();
 
-  /*
-  Eigen::MatrixXf M(2,2); M.setZero();
-  Eigen::MatrixXcf C(2, 2);
-  Eigen::MatrixXcf G(4, 4);
-  Eigen::MatrixXf X(2, 2), Y(2, 2);
-
-  C << std::complex<float>(1.0f, 1.0f),
-       std::complex<float>(2.0f, 2.0f),
-       std::complex<float>(1.0f, 1.0f),
-       std::complex<float>(2.0f, 2.0f);
-
-  X << 0.2f, 0.3f,
-       1.2f, 1.3f;
-
-  Y = X.transpose();
-  */
-
   mImager->gridding(acc, X, Y, mask, grid);
 
   std::complex<float> c_sum = acc.sum();
