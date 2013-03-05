@@ -20,17 +20,21 @@ Calibrator::Calibrator(const ConfigNode &inConfig):
   casa::ROMSColumns msc(ms);
 
   mAntennaITRF.resize(NUM_ANTENNAS, 3);
+  mAntennaITRFReshaped.resize(NUM_ANTENNAS, 3);
   for (int a = 0; a < NUM_ANTENNAS; a++)
   {
     mAntennaITRF(a, 0) = msc.antenna().position()(a)(casa::IPosition(1,0));
     mAntennaITRF(a, 1) = msc.antenna().position()(a)(casa::IPosition(1,1));
     mAntennaITRF(a, 2) = msc.antenna().position()(a)(casa::IPosition(1,2));
+    mAntennaITRFReshaped.row(a) = mAntennaITRF.row(a);
   }
 
+  mMask.resize(NUM_ANTENNAS, NUM_ANTENNAS);
   mUCoords.resize(NUM_ANTENNAS, NUM_ANTENNAS);
   mVCoords.resize(NUM_ANTENNAS, NUM_ANTENNAS);
   mUVDist.resize(NUM_ANTENNAS, NUM_ANTENNAS);
   mSpatialFilterMask.resize(NUM_ANTENNAS, NUM_ANTENNAS);
+  mOut.resize(NUM_ANTENNAS, NUM_ANTENNAS);
   QString uvw_file_name = inConfig.getOption("uvw", "path");
   UVWParser::Type lba_type = UVWParser::Type(inConfig.getOption("lba", "type").toInt());
   UVWParser uvw_parser(uvw_file_name);
@@ -83,31 +87,76 @@ Calibrator::~Calibrator()
 
 void Calibrator::run(const StreamBlob *input, StreamBlob *output)
 {
-  static const float min_restriction = 10.0f;                    ///< avoid vis. below this wavelengths
-  static const float max_restriction = 60.0f;                    ///< avoid vis. above this much meters
-  static const float lightspeed = 299792458.0f;                  ///< Speed of light in m/s
-  const float uvdist_cutoff = std::min<float>(min_restriction*float(lightspeed/input->mFrequency), max_restriction);
+  static const float min_restriction = 10.0f;   ///< avoid vis. below this wavelengths
+  static const float max_restriction = 60.0f;   ///< avoid vis. above this much meters
+  static const float lightspeed = 299792458.0f; ///< Speed of light in m/s
 
-  if (mFlagged != input->mFlagged)
+  float uvdist_cutoff = std::min<float>(min_restriction*float(lightspeed/input->mFrequency), max_restriction);
+
+  int num_antennas = NUM_ANTENNAS - input->mFlagged.size();
+
+  if (mFlagged.size() != input->mFlagged.size())
   {
+    mNormalizedData.resize(num_antennas, num_antennas);
+    mSpatialFilterMask.resize(num_antennas, num_antennas);
+    mMask.resize(num_antennas, num_antennas);
+    mOut.resize(num_antennas, num_antennas);
+    mAntennaITRFReshaped.resize(num_antennas, 3);
+    mCalibrations.resize(num_antennas);
+    mSigmas.resize(num_antennas);
+  }
+  mFlagged = input->mFlagged;
+
+  for (int a1 = 0, _a1 = 0; a1 < NUM_ANTENNAS; a1++)
+  {
+    if (std::find(mFlagged.begin(), mFlagged.end(), a1) != mFlagged.end())
+      continue;
+
+    mAntennaITRFReshaped.row(_a1) = mAntennaITRF.row(a1);
+
+    for (int a2 = 0, _a2 = 0; a2 < NUM_ANTENNAS; a2++)
+    {
+      if (std::find(mFlagged.begin(), mFlagged.end(), a2) != mFlagged.end())
+        continue;
+
+      mNormalizedData(_a1, _a2) = input->mXX(a1, a2);
+      mSpatialFilterMask(_a1, _a2) = mUVDist(a1, a2) < uvdist_cutoff ? 1.0f : 0.0f;
+      mMask(_a1, _a2) = input->mMask(a1, a2);
+      _a2++;
+    }
+
+    _a1++;
   }
 
-  for (int a1 = 0; a1 < NUM_ANTENNAS; a1++)
-    for (int a2 = 0; a2 < NUM_ANTENNAS; a2++)
-      mSpatialFilterMask(a1,a2) = mUVDist(a1,a2) < uvdist_cutoff ? 1.0f : 0.0f;
-
   double time = input->mMJDTime / 86400.0 + 2400000.5;
-  mNormalizedData = input->mXX;
 
   // Whitening of the array covariance matrix for DOA estimation
   float sqrt_dot = mNormalizedData.diagonal().norm();
   mNormalizedData.array() /= sqrt_dot;
 
   // Initial calibration
-  MatrixXcf out(NUM_ANTENNAS, NUM_ANTENNAS);
-  out.setZero();
-  statCal(mNormalizedData, time, input->mFrequency, output->mMask, mCalibrations, mSigmas, out);
-  output->mXX = (mCalibrations * mCalibrations.adjoint()).array() * (output->mXX.array() - out.array()).array();
+  statCal(mNormalizedData, time, input->mFrequency, mMask, mCalibrations, mSigmas, mOut);
+
+  // Reconstruct the full ACM from the reshaped matrices
+  mNormalizedData.array() *= sqrt_dot;
+  mNormalizedData = (mCalibrations * mCalibrations.adjoint()).array() * (mNormalizedData.array() - mOut.array()).array();
+
+  for (int a1 = 0, _a1 = 0; a1 < NUM_ANTENNAS; a1++)
+  {
+    if (std::find(mFlagged.begin(), mFlagged.end(), a1) != mFlagged.end())
+      continue;
+
+    for (int a2 = 0, _a2 = 0; a2 < NUM_ANTENNAS; a2++)
+    {
+      if (std::find(mFlagged.begin(), mFlagged.end(), a2) != mFlagged.end())
+        continue;
+
+      output->mXX(a1, a2) = mNormalizedData(_a1, _a2);
+      _a2++;
+    }
+
+    _a1++;
+  }
 }
 
 void Calibrator::statCal(const MatrixXcf &inData,
@@ -135,7 +184,7 @@ void Calibrator::statCal(const MatrixXcf &inData,
 
   std::complex<float> i1(0.0f, 1.0f);
   i1 *= 2.0f * M_PI * inFrequency / lightspeed;
-  MatrixXcf A = (-i1 * (mAntennaITRF * in_range_src_pos.transpose())).array().exp();
+  MatrixXcf A = (-i1 * (mAntennaITRFReshaped * in_range_src_pos.transpose())).array().exp();
 
   MatrixXcf KA(A.rows()*A.rows(), A.cols());
   utils::khatrirao<std::complex<float> >(A.conjugate(), A, KA);
@@ -189,9 +238,7 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
     // ======================================================
     // ==== 1. Per sensor gain estimation using gainSolv ====
     // ======================================================
-    MatrixXcf aa = (inModel * prev_fluxes.asDiagonal() * inModel.adjoint()).array() * inInvMask.array();
-    MatrixXcf bb = inData.array() * inInvMask.array();
-    gainSolv(aa, bb, prev_gains, cur_gains);
+    gainSolv((inModel * prev_fluxes.asDiagonal() * inModel.adjoint()).array() * inInvMask.array(), inData.array() * inInvMask.array(), prev_gains, cur_gains);
 
     MatrixXcf GA = cur_gains.asDiagonal() * inModel;
     MatrixXcf Rest = GA * prev_fluxes.asDiagonal() * GA.adjoint();

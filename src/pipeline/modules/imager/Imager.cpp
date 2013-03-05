@@ -15,6 +15,8 @@ extern char *gTableName;
 Imager::Imager(const ConfigNode &inConfig):
  AbstractModule(inConfig)
 {
+  static const float duv = 2.5f;
+  static const float nuv = 500.0f;
   mGridded.resize(IMAGE_OUTPUT_SIZE, IMAGE_OUTPUT_SIZE);
 
   mUCoords.resize(NUM_ANTENNAS, NUM_ANTENNAS);
@@ -44,8 +46,8 @@ Imager::Imager(const ConfigNode &inConfig):
                                              a2_name.c_str(),
                                              lba_type);
 
-      mUCoords(a1, a2) = uvw.uvw[0];
-      mVCoords(a1, a2) = uvw.uvw[1];
+      mUCoords(a1, a2) = uvw.uvw[0];// / duv + nuv/2.0f;
+      mVCoords(a1, a2) = uvw.uvw[1];// / duv + nuv/2.0f;
 
       minu = std::min<float>(minu, mUCoords(a1,a2));
       minv = std::min<float>(minv, mVCoords(a1,a2));

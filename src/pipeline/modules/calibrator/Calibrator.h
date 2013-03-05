@@ -42,20 +42,25 @@ private:
                             VectorXf  &outSourcePowers,
                             MatrixXcf &outNoiseCovMatrix);
 
-  std::vector<int> mFlagged;
+  /// Initialized in the constructor and const
   MatrixXf mAntennaITRF;
-  MatrixXcf mNormalizedData;
   MatrixXf mUCoords;
   MatrixXf mVCoords;
   MatrixXf mUVDist;
-  MatrixXf mSpatialFilterMask;
-
-  VectorXcf mCalibrations;
-  VectorXf mSigmas;
-
   VectorXf mRaSources;
   VectorXf mDecSources;
   VectorXi mEpoch;
+
+  /// Changed when new antenna are (un)flagged
+  std::vector<int> mFlagged;
+  MatrixXcf mNormalizedData;
+  MatrixXf mSpatialFilterMask;
+  MatrixXf mAntennaITRFReshaped;
+  MatrixXf mMask;
+  MatrixXcf mOut;
+
+  VectorXcf mCalibrations;
+  VectorXf mSigmas;
 };
 
 PELICAN_DECLARE_MODULE(Calibrator)
