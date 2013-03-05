@@ -17,6 +17,7 @@ public:
   CPPUNIT_TEST(precession);
   CPPUNIT_TEST(radec2itrf);
   CPPUNIT_TEST(pseudoinv);
+  CPPUNIT_TEST(simplex);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -30,6 +31,7 @@ public:
   void precession();
   void radec2itrf();
   void pseudoinv();
+  void simplex();
 
   UtilitiesTest();
   ~UtilitiesTest() {}
