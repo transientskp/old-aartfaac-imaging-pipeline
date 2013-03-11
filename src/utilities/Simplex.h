@@ -50,14 +50,14 @@ namespace BT
 template<class D, class OP>
 std::vector<D> Simplex(OP f,                   //target function
                        std::vector<D> init,    //initial guess of the parameters
-                       D tol = 1E8 * std::numeric_limits<D>::epsilon(), //termination criteria
+                       D tol = 1e-5, //termination criteria
                        std::vector<std::vector<D> > x =  std::vector<std::vector<D> >(),
                        //x: The Simplex
-                       int iterations = 1E5)   //iteration step number
+                       int iterations = 1e3)   //iteration step number
 {
 
   int N = init.size();                       //space dimension
-  const double a = 1.0, b = 1.0, g = 0.5, h = 0.5; //coefficients
+  const D a = 1.0, b = 1.0, g = 0.5, h = 0.5; //coefficients
   //a: reflection  -> xr
   //b: expansion   -> xe
   //g: contraction -> xc
@@ -211,12 +211,15 @@ std::vector<D> Simplex(OP f,                   //target function
 
   }//optimization is finished
 
+  #ifndef NDEBUG
   if (cnt == iterations)
     //max number of iteration achieves before tol is satisfied
   {
-    std::cout << "Iteration limit achieves, result may not be optimal" << std::endl;
+    std::cerr << "Iteration limit achieves, result may not be optimal" << std::endl;
   }
 
+  std::cout << "SIMPLEX: tolerance("<< tol <<") iterations(" << cnt << "/"<<iterations<<")" << std::endl;
+  #endif
   return x[x1];
 }
 
