@@ -232,8 +232,7 @@ void Calibrator::statCal(const MatrixXcf &inData,
   utils::khatrirao<std::complex<float> >(A.conjugate(), A, KA);
 
   MatrixXf AA = (A.adjoint() * A).array().abs().square();
-  MatrixXf AAi(AA.rows(), AA.cols());
-  utils::pseudoInverse<float>(AA, AAi);
+  MatrixXf AAi = AA.inverse();
 
   MatrixXf mask = 1 - (ioMask.array() > mSpatialFilterMask.array()).select(ioMask, mSpatialFilterMask).array();
   MatrixXcf data = inData.array() * mask.array();
@@ -281,7 +280,6 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
     // ======================================================
     MatrixXcf M = inModel * prev_fluxes.asDiagonal() * inModel.adjoint();
     gainSolv(M.array() * inInvMask.array(), inData.array() * inInvMask.array(), prev_gains, cur_gains);
-
 
     MatrixXcf GA = cur_gains.asDiagonal() * inModel;
     MatrixXcf Rest = GA * prev_fluxes.asDiagonal() * GA.adjoint();
