@@ -95,8 +95,8 @@ private:
   MatrixXf mUCoords;
   MatrixXf mVCoords;
   MatrixXf mUVDist;
-  VectorXf mRaSources;
-  VectorXf mDecSources;
+  VectorXd mRaSources;
+  VectorXd mDecSources;
   VectorXi mEpoch;
 
   /// Changed when new antenna are (un)flagged

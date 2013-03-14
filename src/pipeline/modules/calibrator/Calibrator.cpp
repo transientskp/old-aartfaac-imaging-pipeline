@@ -93,7 +93,7 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
 {
   static const float min_restriction = 10.0f;   									 ///< avoid vis. below this wavelengths
   static const float max_restriction = 60.0f;   									 ///< avoid vis. above this much meters
-  static const Vector3f normal(0.598753f, 0.072099f, 0.797682f); ///< Normal to CS002 (central antenna)
+  static const Vector3d normal(0.598753, 0.072099, 0.797682); ///< Normal to CS002 (central antenna)
 
   mFrequency = input->mFrequency;
   float uvdist_cutoff = std::min<float>(min_restriction*float(C_MS/mFrequency), max_restriction);
@@ -146,15 +146,16 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
   // ================================
   // ==== 2. Initial calibration ====
   // ================================
-  MatrixXf src_pos(mRaSources.rows(), 3);
-  utils::radec2itrf<float>(mRaSources, mDecSources, mEpoch, time, src_pos);
-  VectorXf up = src_pos * normal;
+  MatrixXd src_pos(mRaSources.rows(), 3);
+  utils::radec2itrf<double>(mRaSources, mDecSources, mEpoch, time, src_pos);
+  VectorXd up = src_pos * normal;
   mSelection.resize((up.array() > 0.0f).count(), 3);
 
   for (int i = 0, j = 0, n = src_pos.rows(); i < n; i++)
     if (up(i) > 0.0f)
     {
-      mSelection.row(j) = src_pos.row(i);
+      for (int k = 0; k < src_pos.cols(); k++)
+        mSelection(i,k) = src_pos(i,k);
       j++;
     }
 
@@ -264,10 +265,9 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
   VectorXcf cur_gains(inData.rows());
   VectorXcf prev_gains(inData.rows());
   for (int i = 0; i < inData.rows(); i++)
-    prev_gains(i) = std::complex<float>(1.0f, 1.0f);
+    prev_gains(i) = std::complex<float>(0.0f, 1.0f);
   VectorXf cur_fluxes(inFluxes.rows());
   VectorXf prev_fluxes(inFluxes);
-
 
   int n = (inInvMask.array() > 0.5f).count();
   MatrixXcf rest(n, 1);
@@ -279,7 +279,9 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
     // ======================================================
     // ==== 1. Per sensor gain estimation using gainSolv ====
     // ======================================================
-    gainSolv((inModel * prev_fluxes.asDiagonal() * inModel.adjoint()).array() * inInvMask.array(), inData.array() * inInvMask.array(), prev_gains, cur_gains);
+    MatrixXcf M = inModel * prev_fluxes.asDiagonal() * inModel.adjoint();
+    gainSolv(M.array() * inInvMask.array(), inData.array() * inInvMask.array(), prev_gains, cur_gains);
+
 
     MatrixXcf GA = cur_gains.asDiagonal() * inModel;
     MatrixXcf Rest = GA * prev_fluxes.asDiagonal() * GA.adjoint();
@@ -300,7 +302,7 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
 
     utils::pseudoInverse<std::complex<float> >(rest, pinv);
     float normg = std::abs(std::sqrt((pinv.array() * data.array()).sum()));
-    cur_gains = normg * cur_gains / (cur_gains(0) / abs(cur_gains(0)));
+    cur_gains = normg * cur_gains / (cur_gains(0) / std::abs(cur_gains(0)));
     cur_gains = (cur_gains.array().real() == INFINITY || cur_gains.array().imag() == INFINITY).select(1, cur_gains);
 
     // =========================================
@@ -308,10 +310,9 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
     // =========================================
     MatrixXcf inv_data = inData.inverse();
     GA = cur_gains.asDiagonal() * inModel;
-    MatrixXf tmp0 = (GA.adjoint() * inv_data * GA).conjugate().array().abs();
-    MatrixXf tmp1 = tmp0.cwiseProduct(tmp0).inverse();
-    MatrixXcf tmp2 = (GA.adjoint() * inv_data * (inData - outNoiseCovMatrix) * inv_data * GA).diagonal();
-    cur_fluxes = (tmp1 * tmp2).array().real();
+    MatrixXf lhs = (GA.adjoint() * inv_data * GA).conjugate().array().abs().square();
+    MatrixXcf rhs = (GA.adjoint() * inv_data * (inData - outNoiseCovMatrix) * inv_data * GA).diagonal();
+    cur_fluxes = (lhs.inverse() * rhs).array().real();
 
     if ((cur_fluxes.array() == INFINITY).any())
       cur_fluxes = prev_fluxes;
