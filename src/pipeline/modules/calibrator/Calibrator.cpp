@@ -155,7 +155,7 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
     if (up(i) > 0.0f)
     {
       for (int k = 0; k < src_pos.cols(); k++)
-        mSelection(i,k) = src_pos(i,k);
+        mSelection(j,k) = src_pos(i,k);
       j++;
     }
 
@@ -232,12 +232,11 @@ void Calibrator::statCal(const MatrixXcf &inData,
   utils::khatrirao<std::complex<float> >(A.conjugate(), A, KA);
 
   MatrixXf AA = (A.adjoint() * A).array().abs().square();
-  MatrixXf AAi = AA.inverse();
 
   MatrixXf mask = 1 - (ioMask.array() > mSpatialFilterMask.array()).select(ioMask, mSpatialFilterMask).array();
   MatrixXcf data = inData.array() * mask.array();
   data.resize(inData.rows()*inData.cols(), 1);
-  VectorXf flux = (AAi * KA.adjoint() * data).array().real();
+  VectorXf flux = (AA.inverse() * KA.adjoint() * data).array().real();
   flux.array() /= flux(0);
   flux = (flux.array() < 0.0f).select(0.0f, flux);
 
