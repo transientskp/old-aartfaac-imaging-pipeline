@@ -147,7 +147,7 @@ void precessionMatrix(const double inJD, Matrix<T, 3, 3> &outM)
 }
 
 template<typename Derived>
-void toOctaveStderr(const DenseBase<Derived> &M, const char *name)
+void matrix2stderr(const DenseBase<Derived> &M, const char *name)
 {
   if (M.size() == 0)
     return;
