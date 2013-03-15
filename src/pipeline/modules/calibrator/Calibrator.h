@@ -24,36 +24,36 @@ public:
   void run(const StreamBlob *input, StreamBlob *output);
 
 private:
-  void statCal(const MatrixXcf &inData,
+  void statCal(const MatrixXcd &inData,
                const double inFrequency,
-                     MatrixXf &ioMask,
-                     VectorXcf &outCalibrations,
-                     VectorXf &outSigmas,
-                     MatrixXcf &outVisibilities);
+                     MatrixXd &ioMask,
+                     VectorXcd &outCalibrations,
+                     VectorXd &outSigmas,
+                     MatrixXcd &outVisibilities);
 
-  int gainSolv(const MatrixXcf &inModel,
-               const MatrixXcf &inData,
-               const VectorXcf &inEstimatedGains,
-                     VectorXcf &outGains);
+  int gainSolv(const MatrixXcd &inModel,
+               const MatrixXcd &inData,
+               const VectorXcd &inEstimatedGains,
+                     VectorXcd &outGains);
 
-  int walsCalibration(const MatrixXcf &inModel,
-                      const MatrixXcf &inData,
-                      const VectorXf  &inFluxes,
-                      const MatrixXf  &inInvMask,
-                            VectorXcf &outGains,
-                            VectorXf  &outSourcePowers,
-                            MatrixXcf &outNoiseCovMatrix);
+  int walsCalibration(const MatrixXcd &inModel,
+                      const MatrixXcd &inData,
+                      const VectorXd  &inFluxes,
+                      const MatrixXd  &inInvMask,
+                            VectorXcd &outGains,
+                            VectorXd  &outSourcePowers,
+                            MatrixXcd &outNoiseCovMatrix);
 
-  void wsfSrcPos(const MatrixXcf &inData,
-                 const MatrixXcf &inSigma1,
-                 const VectorXcf &inGains,
+  void wsfSrcPos(const MatrixXcd &inData,
+                 const MatrixXcd &inSigma1,
+                 const VectorXcd &inGains,
                  const double inFreq,
-                       MatrixXf &ioPositions);
+                       MatrixXd &ioPositions);
 
   class WSFCost
   {
   public:
-    WSFCost(const MatrixXcf &inW, const MatrixXcf &inG, const double inFreq, const MatrixXf &inP):
+    WSFCost(const MatrixXcd &inW, const MatrixXcd &inG, const double inFreq, const MatrixXd &inP):
       W(inW),
       G(inG),
       freq(inFreq),
@@ -61,12 +61,12 @@ private:
     {
     }
 
-    float operator()(vector<float> theta)
+    double operator()(vector<double> theta)
     {
       const int nsrc = theta.size() / 2;
       const int nelem = P.rows();
 
-      MatrixXf src_pos(nsrc, 3);
+      MatrixXd src_pos(nsrc, 3);
       for (int i = 0; i < nsrc; i++)
       {
         src_pos(i, 0) = cosf(theta[i]) * cosf(theta[i+nsrc]);
@@ -74,42 +74,42 @@ private:
         src_pos(i, 2) = sinf(theta[i]+nsrc);
       }
 
-      std::complex<float> i1(0.0f, 1.0f);
-      i1 *= 2.0f * M_PI * freq / C_MS;
-      MatrixXcf T = (-i1 * (P * src_pos.transpose())).array().exp();
-      MatrixXcf A = G * T;
-      MatrixXcf eye(nelem, nelem); eye.setIdentity();
-      MatrixXcf PAperp = eye.array() - (A * (A.adjoint() * A).inverse() * A.adjoint()).array();
+      std::complex<double> i1(0.0, 1.0);
+      i1 *= 2.0 * M_PI * freq / C_MS;
+      MatrixXcd T = (-i1 * (P * src_pos.transpose())).array().exp();
+      MatrixXcd A = G * T;
+      MatrixXcd eye(nelem, nelem); eye.setIdentity();
+      MatrixXcd PAperp = eye.array() - (A * (A.adjoint() * A).inverse() * A.adjoint()).array();
       return (PAperp * W).trace().real();
     }
 
   private:
-    const MatrixXcf &W;
-    const MatrixXcf &G;
+    const MatrixXcd &W;
+    const MatrixXcd &G;
     const double freq;
-    const MatrixXf &P;
+    const MatrixXd &P;
   };
 
   /// Initialized in the constructor and const
-  MatrixXf mAntennaITRF;
-  MatrixXf mUCoords;
-  MatrixXf mVCoords;
-  MatrixXf mUVDist;
+  MatrixXd mAntennaITRF;
+  MatrixXd mUCoords;
+  MatrixXd mVCoords;
+  MatrixXd mUVDist;
   VectorXd mRaSources;
   VectorXd mDecSources;
   VectorXi mEpoch;
 
   /// Changed when new antenna are (un)flagged
   std::vector<int> mFlagged;
-  MatrixXf mSpatialFilterMask;
-  MatrixXf mAntennaITRFReshaped;
-  MatrixXf mMask;
-  MatrixXf mSelection;
-  MatrixXcf mNormalizedData;
-  MatrixXcf mNoiseCovMatrix;
+  MatrixXd mSpatialFilterMask;
+  MatrixXd mAntennaITRFReshaped;
+  MatrixXd mMask;
+  MatrixXd mSelection;
+  MatrixXcd mNormalizedData;
+  MatrixXcd mNoiseCovMatrix;
 
-  VectorXcf mGains;
-  VectorXf mFluxes;
+  VectorXcd mGains;
+  VectorXd mFluxes;
   double mFrequency;
 };
 

@@ -91,12 +91,12 @@ Calibrator::~Calibrator()
 
 void Calibrator::run(const StreamBlob *input, StreamBlob *output)
 {
-  static const float min_restriction = 10.0f;   									 ///< avoid vis. below this wavelengths
-  static const float max_restriction = 60.0f;   									 ///< avoid vis. above this much meters
+  static const double min_restriction = 10.0;   									 ///< avoid vis. below this wavelengths
+  static const double max_restriction = 60.0;   									 ///< avoid vis. above this much meters
   static const Vector3d normal(0.598753, 0.072099, 0.797682); ///< Normal to CS002 (central antenna)
 
   mFrequency = input->mFrequency;
-  float uvdist_cutoff = std::min<float>(min_restriction*float(C_MS/mFrequency), max_restriction);
+  double uvdist_cutoff = std::min<double>(min_restriction*(C_MS/mFrequency), max_restriction);
 
   // =====================================
   // ==== 0. Prepare/Reshape matrices ====
@@ -127,7 +127,7 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
         continue;
 
       mNormalizedData(_a1, _a2) = input->mXX(a1, a2);
-      mSpatialFilterMask(_a1, _a2) = mUVDist(a1, a2) < uvdist_cutoff ? 1.0f : 0.0f;
+      mSpatialFilterMask(_a1, _a2) = mUVDist(a1, a2) < uvdist_cutoff ? 1.0 : 0.0;
       mMask(_a1, _a2) = input->mMask(a1, a2);
       _a2++;
     }
@@ -140,8 +140,7 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
   // ========================================================================
   // ==== 1. Whitening of the array covariance matrix for DOA estimation ====
   // ========================================================================
-  float sqrt_dot = mNormalizedData.diagonal().norm();
-  mNormalizedData.array() /= sqrt_dot;
+  mNormalizedData.array() /= (mNormalizedData.diagonal() * mNormalizedData.diagonal().transpose()).array().sqrt();
 
   // ================================
   // ==== 2. Initial calibration ====
@@ -149,10 +148,10 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
   MatrixXd src_pos(mRaSources.rows(), 3);
   utils::radec2itrf<double>(mRaSources, mDecSources, mEpoch, time, src_pos);
   VectorXd up = src_pos * normal;
-  mSelection.resize((up.array() > 0.0f).count(), 3);
+  mSelection.resize((up.array() > 0.0).count(), 3);
 
   for (int i = 0, j = 0, n = src_pos.rows(); i < n; i++)
-    if (up(i) > 0.0f)
+    if (up(i) > 0.0)
     {
       for (int k = 0; k < src_pos.cols(); k++)
         mSelection(j,k) = src_pos(i,k);
@@ -160,15 +159,16 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
     }
 
   statCal(mNormalizedData, mFrequency, mMask, mGains, mFluxes, mNoiseCovMatrix);
+  utils::matrix2stderr(mFluxes, "fluxes");
 
   // ====================================
   // ==== 3. WSF Position Estimation ====
   // ====================================
   Q_ASSERT(mSelection.rows() == mFluxes.rows());
-  MatrixXf selection((mFluxes.array() > 0.01f).count(), 3);
-  VectorXf fluxes(selection.rows());
+  MatrixXd selection((mFluxes.array() > 0.01).count(), 3);
+  VectorXd fluxes(selection.rows());
   for (int i = 0, j = 0, n = selection.rows(); i < n; i++)
-    if (mFluxes(i) > 0.01f)
+    if (mFluxes(i) > 0.01)
     {
       selection.row(j) = mSelection.row(i);
       fluxes(j) = mFluxes(i);
@@ -180,12 +180,12 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
   // ==============================
   // ==== 4. Final calibration ====
   // ==============================
-  std::complex<float> i1(0.0f, 1.0f);
-  i1 *= 2.0f * M_PI * mFrequency / C_MS;
-  MatrixXcf A = (-i1 * (mAntennaITRFReshaped * selection.transpose())).array().exp();
-  MatrixXf inv_mask = (mNoiseCovMatrix.array().abs() > 0.0f).select(MatrixXf::Zero(mNoiseCovMatrix.rows(), mNoiseCovMatrix.cols()), 1.0f);
+  std::complex<double> i1(0.0, 1.0);
+  i1 *= 2.0 * M_PI * mFrequency / C_MS;
+  MatrixXcd A = (-i1 * (mAntennaITRFReshaped * selection.transpose())).array().exp();
+  MatrixXd inv_mask = (mNoiseCovMatrix.array().abs() > 0.0).select(MatrixXd::Zero(mNoiseCovMatrix.rows(), mNoiseCovMatrix.cols()), 1.0);
   walsCalibration(A, mNormalizedData, fluxes, inv_mask, mGains, mFluxes, mNoiseCovMatrix);
-  mGains = (1.0f/mGains.array());
+  mGains = (1.0/mGains.array());
   mGains.adjointInPlace();
   mNormalizedData = (mGains * mGains.adjoint()).array() * (mNormalizedData.array() - mNoiseCovMatrix.array()).array();
 
@@ -193,8 +193,8 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
   // ===============================
   // ==== 5. A-team subtraction ====
   // ===============================
-  //MatrixXcf ATeam = A * mFluxes.asDiagonal() * A.adjoint();
-  //mNormalizedData.array() -= ATeam.array();
+  MatrixXcd ATeam = A * mFluxes.asDiagonal() * A.adjoint();
+  mNormalizedData.array() -= ATeam.array();
 
   // ================================================================
   // ==== 6. Reconstruct the full ACM from the reshaped matrices ====
@@ -217,78 +217,78 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
   }
 }
 
-void Calibrator::statCal(const MatrixXcf &inData,
+void Calibrator::statCal(const MatrixXcd &inData,
                          const double inFrequency,
-                         MatrixXf &ioMask,
-                         VectorXcf &outCalibrations,
-                         VectorXf &outSigmas,
-                         MatrixXcf &outVisibilities)
+                         MatrixXd &ioMask,
+                         VectorXcd &outCalibrations,
+                         VectorXd &outSigmas,
+                         MatrixXcd &outVisibilities)
 {
-  std::complex<float> i1(0.0f, 1.0f);
-  i1 *= 2.0f * M_PI * inFrequency / C_MS;
-  MatrixXcf A = (-i1 * (mAntennaITRFReshaped * mSelection.transpose())).array().exp();
+  std::complex<double> i1(0.0, 1.0);
+  i1 *= 2.0 * M_PI * inFrequency / C_MS;
+  MatrixXcd A = (-i1 * (mAntennaITRFReshaped * mSelection.transpose())).array().exp();
 
-  MatrixXcf KA(A.rows()*A.rows(), A.cols());
-  utils::khatrirao<std::complex<float> >(A.conjugate(), A, KA);
+  MatrixXcd KA(A.rows()*A.rows(), A.cols());
+  utils::khatrirao<std::complex<double> >(A.conjugate(), A, KA);
 
-  MatrixXf AA = (A.adjoint() * A).array().abs().square();
+  MatrixXd AA = (A.adjoint() * A).array().abs().square();
 
-  MatrixXf mask = 1 - (ioMask.array() > mSpatialFilterMask.array()).select(ioMask, mSpatialFilterMask).array();
-  MatrixXcf data = inData.array() * mask.array();
+  MatrixXd mask = 1 - (ioMask.array() > mSpatialFilterMask.array()).select(ioMask, mSpatialFilterMask).array();
+  MatrixXcd data = inData.array() * mask.array();
   data.resize(inData.rows()*inData.cols(), 1);
-  VectorXf flux = (AA.inverse() * KA.adjoint() * data).array().real();
+  VectorXd flux = (AA.inverse() * KA.adjoint() * data).array().real();
   flux.array() /= flux(0);
-  flux = (flux.array() < 0.0f).select(0.0f, flux);
+  flux = (flux.array() < 0.0).select(0.0, flux);
 
   walsCalibration(A, inData, flux, mask, outCalibrations, outSigmas, outVisibilities);
-  outCalibrations = (1.0f/outCalibrations.array()).conjugate();
+  outCalibrations = (1.0/outCalibrations.array()).conjugate();
 }
 
 
-int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
-                                const MatrixXcf &inData,   					// Rhat
-                                const VectorXf  &inFluxes, 					// sigmas
-                                const MatrixXf  &inInvMask,         // mask
-                                      VectorXcf &outGains,          // g
-                                      VectorXf  &outSourcePowers,   // sigmas
-                                      MatrixXcf &outNoiseCovMatrix) // Sigma_n
+int Calibrator::walsCalibration(const MatrixXcd &inModel,  					// A
+                                const MatrixXcd &inData,   					// Rhat
+                                const VectorXd  &inFluxes, 					// sigmas
+                                const MatrixXd  &inInvMask,         // mask
+                                      VectorXcd &outGains,          // g
+                                      VectorXd  &outSourcePowers,   // sigmas
+                                      MatrixXcd &outNoiseCovMatrix) // Sigma_n
 {
   static const int max_iterations = 50;
-  static const float epsilon = 1e-3f;
+  static const double epsilon = 1e-3;
 
   Q_ASSERT(outNoiseCovMatrix.rows() == inData.rows());
   Q_ASSERT(outNoiseCovMatrix.cols() == inData.cols());
 
   outNoiseCovMatrix.setZero();
-  VectorXcf cur_gains(inData.rows());
-  VectorXcf prev_gains(inData.rows());
+  VectorXcd cur_gains(inData.rows());
+  VectorXcd prev_gains(inData.rows());
   for (int i = 0; i < inData.rows(); i++)
-    prev_gains(i) = std::complex<float>(0.0f, 1.0f);
-  VectorXf cur_fluxes(inFluxes.rows());
-  VectorXf prev_fluxes(inFluxes);
+    prev_gains(i) = std::complex<double>(0.0, 1.0);
+  VectorXd cur_fluxes(inFluxes.rows());
+  VectorXd prev_fluxes(inFluxes);
 
-  int n = (inInvMask.array() > 0.5f).count();
-  MatrixXcf rest(n, 1);
-  MatrixXcf data(n, 1);
-  MatrixXcf pinv(n, 1);
+  int n = (inInvMask.array() > 0.5).count();
+  MatrixXcd rest(n, 1);
+  MatrixXcd data(n, 1);
+  MatrixXcd pinv(n, 1);
   int i;
   for (i = 1; i <= max_iterations; i++)
   {
     // ======================================================
     // ==== 1. Per sensor gain estimation using gainSolv ====
     // ======================================================
-    MatrixXcf M = inModel * prev_fluxes.asDiagonal() * inModel.adjoint();
+    MatrixXcd M = inModel * prev_fluxes.asDiagonal() * inModel.adjoint();
     gainSolv(M.array() * inInvMask.array(), inData.array() * inInvMask.array(), prev_gains, cur_gains);
 
-    MatrixXcf GA = cur_gains.asDiagonal() * inModel;
-    MatrixXcf Rest = GA * prev_fluxes.asDiagonal() * GA.adjoint();
+    MatrixXcd GA = cur_gains.asDiagonal() * inModel;
+    MatrixXcd Rest = GA * prev_fluxes.asDiagonal() * GA.adjoint();
 
     Q_ASSERT(Rest.size() == inInvMask.size());
 
     int j = 0, k = 0;
     while (j < Rest.size())
     {
-      if (inInvMask(j) > 0.5f)
+      if (inInvMask(j) > 0.5)
       {
         rest(k) = Rest(j);
         data(k) = inData(j);
@@ -297,37 +297,39 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
       j++;
     }
 
-    utils::pseudoInverse<std::complex<float> >(rest, pinv);
-    float normg = std::abs(std::sqrt((pinv.array() * data.array()).sum()));
+    utils::pseudoInverse<std::complex<double> >(rest, pinv);
+    MatrixXcd Y = pinv.transpose() * data;
+    Q_ASSERT(Y.size() == 1);
+    double normg = std::abs(std::sqrt(Y(0)));
     cur_gains = normg * cur_gains / (cur_gains(0) / std::abs(cur_gains(0)));
     cur_gains = (cur_gains.array().real() == INFINITY || cur_gains.array().imag() == INFINITY).select(1, cur_gains);
 
     // =========================================
     // ==== 2. Model source flux estimation ====
     // =========================================
-    MatrixXcf inv_data = inData.inverse();
+    MatrixXcd inv_data = inData.inverse();
     GA = cur_gains.asDiagonal() * inModel;
-    MatrixXf lhs = (GA.adjoint() * inv_data * GA).conjugate().array().abs().square();
-    MatrixXcf rhs = (GA.adjoint() * inv_data * (inData - outNoiseCovMatrix) * inv_data * GA).diagonal();
+    MatrixXd lhs = (GA.adjoint() * inv_data * GA).conjugate().array().abs().square();
+    MatrixXcd rhs = (GA.adjoint() * inv_data * (inData - outNoiseCovMatrix) * inv_data * GA).diagonal();
     cur_fluxes = (lhs.inverse() * rhs).array().real();
 
     if ((cur_fluxes.array() == INFINITY).any())
       cur_fluxes = prev_fluxes;
 
-    Q_ASSERT(cur_fluxes(0) != 0.0f);
+    Q_ASSERT(cur_fluxes(0) != 0.0);
     cur_fluxes /= cur_fluxes(0);
-    cur_fluxes = (cur_fluxes.array() >= 0.0f).select(cur_fluxes, 0.0f);
+    cur_fluxes = (cur_fluxes.array() >= 0.0).select(cur_fluxes, 0.0);
 
     // ========================================
     // ==== 3. Noise covariance estimation ====
     // ========================================
-    outNoiseCovMatrix = (inData - GA * cur_fluxes.asDiagonal() * GA.adjoint()).array() * (1.0f - inInvMask.array());
+    outNoiseCovMatrix = (inData - GA * cur_fluxes.asDiagonal() * GA.adjoint()).array() * (1.0 - inInvMask.array());
 
     // =================================
     // ==== 4. Test for convergence ====
     // =================================
-    MatrixXcf prev_theta(prev_gains.size() + prev_fluxes.size(), 1);
-    MatrixXcf cur_theta(cur_gains.size() + cur_fluxes.size(), 1);
+    MatrixXcd prev_theta(prev_gains.size() + prev_fluxes.size(), 1);
+    MatrixXcd cur_theta(cur_gains.size() + cur_fluxes.size(), 1);
     for (int j = 0; j < prev_gains.size(); j++)
     {
       prev_theta(j) = prev_gains(j);
@@ -335,15 +337,17 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
     }
     for (int j = 0; j < prev_fluxes.size(); j++)
     {
-      prev_theta(j+prev_gains.size()) = std::complex<float>(prev_fluxes(j), 0.0f);
-      cur_theta(j+prev_gains.size()) = std::complex<float>(cur_fluxes(j), 0.0f);
+      prev_theta(j+prev_gains.size()) = std::complex<double>(prev_fluxes(j), 0.0);
+      cur_theta(j+prev_gains.size()) = std::complex<double>(cur_fluxes(j), 0.0);
     }
 
-    MatrixXcf tmp(prev_theta.rows(), prev_theta.cols());
-    utils::pseudoInverse<std::complex<float> >(prev_theta, tmp);
-    std::complex<float> x = (tmp.array() * cur_theta.array()).sum();
-    float sum = abs(x - 1.0f);
-    if (sum < epsilon)
+    MatrixXcd pinv(prev_theta.rows(), prev_theta.cols());
+    utils::pseudoInverse<std::complex<double> >(prev_theta, pinv);
+    MatrixXcd X = pinv.transpose() * cur_theta;
+    Q_ASSERT(X.size() == 1);
+
+    double x = std::abs(X(0) - 1.0);
+    if (x < epsilon)
     {
       qDebug("[%s] Convergence after %d iterations", __FUNCTION__, i);
       break;
@@ -365,10 +369,10 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
   return i;
 }
 
-int Calibrator::gainSolv(const MatrixXcf &inModel,
-                         const MatrixXcf &inData,
-                         const VectorXcf &inEstimatedGains,
-                               VectorXcf &outGains)
+int Calibrator::gainSolv(const MatrixXcd &inModel,
+                         const MatrixXcd &inData,
+                         const VectorXcd &inEstimatedGains,
+                               VectorXcd &outGains)
 {
   Q_ASSERT(inModel.rows() == inModel.cols());
   Q_ASSERT(inData.rows() == inData.cols());
@@ -379,13 +383,13 @@ int Calibrator::gainSolv(const MatrixXcf &inModel,
   int n = inModel.rows();
 
   // allocate once
-  MatrixXcf data_normalised(n, n);
-  MatrixXcf data_calibrated(n, n);
-  VectorXcf estimated_calibration(n);
-  VectorXcf tmp(n);
+  MatrixXcd data_normalised(n, n);
+  MatrixXcd data_calibrated(n, n);
+  VectorXcd estimated_calibration(n);
+  VectorXcd tmp(n);
 
   static const int max_iterations = 100;
-  static const float epsilon = 1e-6f;
+  static const double epsilon = 1e-6;
 
   for (int i = 0; i < n; i++)
   {
@@ -402,7 +406,7 @@ int Calibrator::gainSolv(const MatrixXcf &inModel,
     for (int j = 0; j < n; j++)
     {
       estimated_calibration(j) = data_normalised.col(j).dot(data_calibrated.col(j));
-      outGains(j) = 1.0f / std::conj(estimated_calibration(j));
+      outGains(j) = 1.0 / std::conj(estimated_calibration(j));
     }
 
     if (i % 2 == 1)
@@ -411,10 +415,10 @@ int Calibrator::gainSolv(const MatrixXcf &inModel,
     {
       // Update gains and check for convergence
       estimated_calibration = outGains;
-      outGains = (outGains.array() + tmp.array()) / 2.0f;
-      float gains_normal = outGains.norm();
+      outGains = (outGains.array() + tmp.array()) / 2.0;
+      double gains_normal = outGains.norm();
       tmp = outGains.array() - estimated_calibration.array();
-      float delta_gains_normal = tmp.norm();
+      double delta_gains_normal = tmp.norm();
       if (delta_gains_normal / gains_normal <= epsilon)
       {
         qDebug("[%s] Convergence after %d iterations", __FUNCTION__, i);
@@ -433,25 +437,26 @@ int Calibrator::gainSolv(const MatrixXcf &inModel,
   return i;
 }
 
-VectorXf gEigenValuesAbs;
+VectorXd gEigenValuesAbs;
 bool EigenSorter(const int a, const int b)
 {
   return gEigenValuesAbs(a) > gEigenValuesAbs(b);
 }
 
-void Calibrator::wsfSrcPos(const MatrixXcf &inData,
-                           const MatrixXcf &inSigma1,
-                           const VectorXcf &inGains,
+void Calibrator::wsfSrcPos(const MatrixXcd &inData,
+                           const MatrixXcd &inSigma1,
+                           const VectorXcd &inGains,
                            const double inFreq,
-                                 MatrixXf &ioPositions)
+                                 MatrixXd &ioPositions)
 {
   int nsrc = ioPositions.rows();
-  VectorXf elevation = ioPositions.col(2).array().asin();
-  VectorXf azimuth = ioPositions.col(1).array() / ioPositions.col(0).array();
+  VectorXd elevation = ioPositions.col(2).array().asin();
+  VectorXd azimuth = ioPositions.col(1).array() / ioPositions.col(0).array();
   for (int i = 0; i < nsrc; i++)
     azimuth(i) = atan(azimuth(i));
 
-  ComplexEigenSolver<MatrixXcf> solver(inData);
+  ComplexEigenSolver<MatrixXcd> solver(inData);
+
   gEigenValuesAbs = solver.eigenvalues().array().abs();
   std::vector<int> indices(gEigenValuesAbs.size());
   for (int i = 0, n = indices.size(); i < n; i++)
@@ -459,8 +464,8 @@ void Calibrator::wsfSrcPos(const MatrixXcf &inData,
 
   std::sort(indices.begin(), indices.end(), EigenSorter);
 
-  MatrixXcf Es(solver.eigenvectors().rows(), nsrc);
-  MatrixXcf eigenvalues_abs(nsrc, nsrc);
+  MatrixXcd Es(solver.eigenvectors().rows(), nsrc);
+  MatrixXcd eigenvalues_abs(nsrc, nsrc);
   eigenvalues_abs.setZero();
   for (int i = 0; i < nsrc; i++)
   {
@@ -468,15 +473,14 @@ void Calibrator::wsfSrcPos(const MatrixXcf &inData,
     Es.col(i) = solver.eigenvectors().col(indices[i]);
   }
 
-  MatrixXcf eye(nsrc, nsrc); eye.setIdentity();
-  MatrixXcf A = (eigenvalues_abs.array() - (inSigma1.diagonal().mean() * eye).array());
-  MatrixXcf W = (A * A).array() / eigenvalues_abs.array();
-  W = (W.array() != W.array()).select(0, W); // IEEE way of checking for NANs
-  MatrixXcf EsWEs = Es * W * Es.adjoint();
-  MatrixXcf T = (inGains.array().inverse());
-  MatrixXcf G = T.conjugate().asDiagonal().toDenseMatrix();
+  MatrixXcd eye(nsrc, nsrc); eye.setIdentity();
+  MatrixXcd A = (eigenvalues_abs.array() - (inSigma1.diagonal().mean() * eye).array());
+  MatrixXcd W = (A * A).array() / eigenvalues_abs.array();
+  MatrixXcd EsWEs = Es * W * Es.adjoint();
+  MatrixXcd T = (inGains.array().inverse());
+  MatrixXcd G = T.conjugate().asDiagonal().toDenseMatrix();
   WSFCost wsf_cost(EsWEs, G, inFreq, mAntennaITRFReshaped);
-  vector<float> init(nsrc*2);
+  vector<double> init(nsrc*2);
   for (int i = 0; i < nsrc; i++)
   {
     init[i] = azimuth(i);
