@@ -119,18 +119,20 @@ void UtilitiesTest::radec2itrf()
   VectorXi epoch(4);
   epoch << 1, 0, 1, 0;
 
+  double time = 70415.71996231399;
+
   MatrixXd itrf(4,3);
-  utils::radec2itrf<double>(ra, dec, epoch, 0.0, itrf);
+  utils::radec2itrf<double>(ra, dec, epoch, time, itrf);
 
   MatrixXd A(4,3);
-  A <<  0.14208f,  0.14783f,  0.97875f,
-        0.84192f, -0.44482f,  0.30545f,
-        0.46940f, -0.23295f, -0.85170f,
-       -0.19254f, -0.75409f, -0.62791f;
+  A << -0.1544349016871255, -0.1255864604850933, 0.9799887254880607,
+       -0.8299218264791488, 0.4764017192305966, 0.2902949600796489,
+       -0.4550525241190757, 0.2320855566768256, -0.8596880217118683,
+       0.2211356581631649, 0.7362197855203525, -0.6395931895330891;
 
   for (int i = 0; i < 4; i++)
     for (int j = 0; j < 3; j++)
-      CPPUNIT_ASSERT_DOUBLES_EQUAL(A(i,j), itrf(i,j), 1e-6);
+      CPPUNIT_ASSERT_DOUBLES_EQUAL(A(i,j), itrf(i,j), 1e-11);
 }
 
 void UtilitiesTest::kronecker()

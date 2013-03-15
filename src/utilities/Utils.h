@@ -146,6 +146,11 @@ void precessionMatrix(const double inJD, Matrix<T, 3, 3> &outM)
           s2*s3, -s3*c2*c1 - s1*c3, c3*c1 - s3*c2*s1;
 }
 
+
+/**
+ * @brief
+ * Prints a matrix to stderr in the octave readable format
+ */
 template<typename Derived>
 void matrix2stderr(const DenseBase<Derived> &M, const char *name, const int precision=30)
 {
