@@ -98,41 +98,39 @@ void UtilitiesTest::pseudoinv()
 
 void UtilitiesTest::precession()
 {
-  Matrix3f M;
-  utils::precessionMatrix<float>(0.0, M);
-  Matrix3f A;
+  Matrix3d M;
+  utils::precessionMatrix<double>(0.0, M);
+  Matrix3d A;
   A << -0.041394f, 0.907724f, 0.417520f,
        -0.912267f, 0.136094f,-0.386324f,
        -0.407498f,-0.396881f, 0.822454f;
 
   for (int i = 0; i < 3; i++)
     for (int j = 0; j < 3; j++)
-      CPPUNIT_ASSERT_DOUBLES_EQUAL(A(i,j), M(i,j), 1e-5);
+      CPPUNIT_ASSERT_DOUBLES_EQUAL(A(i,j), M(i,j), 1e-6);
 }
 
 void UtilitiesTest::radec2itrf()
 {
-  VectorXf ra(4);
+  VectorXd ra(4);
   ra << 1.0f, 2.0f, 3.0f, 4.0f;
-  VectorXf dec(4);
+  VectorXd dec(4);
   dec << 2.0f, 3.0f, 4.0f, 5.0f;
   VectorXi epoch(4);
   epoch << 1, 0, 1, 0;
 
-  MatrixXf itrf(4,3);
-  utils::radec2itrf<float>(ra, dec, epoch, 0.0, itrf);
+  MatrixXd itrf(4,3);
+  utils::radec2itrf<double>(ra, dec, epoch, 0.0, itrf);
 
-  MatrixXf A(4,3);
+  MatrixXd A(4,3);
   A <<  0.14208f,  0.14783f,  0.97875f,
         0.84192f, -0.44482f,  0.30545f,
         0.46940f, -0.23295f, -0.85170f,
        -0.19254f, -0.75409f, -0.62791f;
 
-  // NOTE: c++'s cos() gives other values then octave's cos()
-  //       therefore, precision of assert is lowered.
   for (int i = 0; i < 4; i++)
     for (int j = 0; j < 3; j++)
-      CPPUNIT_ASSERT_DOUBLES_EQUAL(A(i,j), itrf(i,j), 1e-2);
+      CPPUNIT_ASSERT_DOUBLES_EQUAL(A(i,j), itrf(i,j), 1e-6);
 }
 
 void UtilitiesTest::kronecker()
@@ -182,7 +180,7 @@ void UtilitiesTest::polyval()
   VectorXd P(3);
   P << 0.0, 1.0, 0.0;
   double ans = utils::polyval<double>(P, 5.0);
-  CPPUNIT_ASSERT_DOUBLES_EQUAL(5.0, ans, 1e-5);
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(5.0, ans, 1e-6);
   }
 }
 
@@ -206,5 +204,5 @@ void UtilitiesTest::sph2cart()
 
   for (int i = 0; i < 3; i++)
     for (int j = 0; j < 3; j++)
-      CPPUNIT_ASSERT_DOUBLES_EQUAL(D(i,j), C(i,j), 1e-5);
+      CPPUNIT_ASSERT_DOUBLES_EQUAL(D(i,j), C(i,j), 1e-6);
 }
