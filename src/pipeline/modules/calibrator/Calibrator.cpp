@@ -64,20 +64,20 @@ Calibrator::Calibrator(const ConfigNode &inConfig):
   mFluxes.resize(4);
 
   // Cassiopeia A (11000 flux)
-  mRaSources(0)   = 6.1138f;
-  mDecSources(0)  = 1.0219f;
+  mRaSources(0)   = 6.113786558863104;
+  mDecSources(0)  = 1.021919365863547;
 
   // Cygnus A (8100 flux)
-  mRaSources(1)   = 5.2262f;
-  mDecSources(1)  = 0.7086f;
+  mRaSources(1)   = 5.226192095556169;
+  mDecSources(1)  = 0.7086036763096979;
 
   // Tauras A (1420 flux)
-  mRaSources(2)   = 1.4464f;
-  mDecSources(2)  = 0.3835f;
+  mRaSources(2)   = 1.446441617590301;
+  mDecSources(2)  = 0.3835070143048873;
 
   // Virgo A (970 flux)
-  mRaSources(3)   = 3.2651f;
-  mDecSources(3)  = 0.2211f;
+  mRaSources(3)   = 3.265074698168392;
+  mDecSources(3)  = 0.221104127406815;
 
   mEpoch.resize(4);
   mEpoch.setOnes();
