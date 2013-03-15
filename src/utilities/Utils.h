@@ -4,6 +4,7 @@
 #include <QtCore>
 #include <eigen3/Eigen/Dense>
 #include <iostream>
+#include <typeinfo>
 
 using namespace Eigen;
 
@@ -145,6 +146,28 @@ void precessionMatrix(const double inJD, Matrix<T, 3, 3> &outM)
           s2*s3, -s3*c2*c1 - s1*c3, c3*c1 - s3*c2*s1;
 }
 
+template<typename Derived>
+void toOctaveStderr(const DenseBase<Derived> &M, const char *name)
+{
+  if (M.size() == 0)
+    return;
+
+  const char *type = (typeid(M(0,0)) == typeid(std::complex<float>) || typeid(M(0,0)) == typeid(std::complex<double>)) ? "complex matrix" : "matrix";
+  std::cerr << "# name: " << name << std::endl;
+  std::cerr << "# type: " << type << std::endl;
+  std::cerr << "# rows: " << M.rows() << std::endl;
+  std::cerr << "# columns: " << M.cols() << std::endl;
+
+  std::cerr.unsetf(std::ios::floatfield);
+  std::cerr.precision(25);
+  for (int i = 0; i < M.rows(); i++)
+  {
+    for (int j = 0; j < M.cols(); j++)
+      std::cerr << M(i,j) << "\t";
+    std::cerr << std::endl;
+  }
+}
+
 /**
  * @brief
  * Conversion from source positions in radec to ITRF coordinates
@@ -186,7 +209,7 @@ void radec2itrf(const Matrix<T, Dynamic, 1> &inRa,
   T gmst = (inJD - floor(inJD) - 0.5) * 86400.0 * 1.002737811906 + polyval<T>(pc, tu);
   gmst = (gmst / 86400.0) * 2.0 * M_PI;
 
-  // NOTE: c++'s cos() gives other values then octave's cos()
+
   tmp_mat << cos(gmst),-sin(gmst), 0.0,
              sin(gmst), cos(gmst), 0.0,
                    0.0,       0.0, 1.0;
