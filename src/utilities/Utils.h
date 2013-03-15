@@ -147,25 +147,31 @@ void precessionMatrix(const double inJD, Matrix<T, 3, 3> &outM)
 }
 
 template<typename Derived>
-void matrix2stderr(const DenseBase<Derived> &M, const char *name)
+void matrix2stderr(const DenseBase<Derived> &M, const char *name, const int precision=30)
 {
   if (M.size() == 0)
     return;
 
-  const char *type = (typeid(M(0,0)) == typeid(std::complex<float>) || typeid(M(0,0)) == typeid(std::complex<double>)) ? "complex matrix" : "matrix";
+  const char *type = (
+                      typeid(M(0,0)) == typeid(std::complex<float>) ||
+                      typeid(M(0,0)) == typeid(std::complex<double>)
+                     ) ? "complex matrix" : "matrix";
+
   std::cerr << "# name: " << name << std::endl;
   std::cerr << "# type: " << type << std::endl;
   std::cerr << "# rows: " << M.rows() << std::endl;
   std::cerr << "# columns: " << M.cols() << std::endl;
 
   std::cerr.unsetf(std::ios::floatfield);
-  std::cerr.precision(25);
+  std::cerr.precision(precision);
   for (int i = 0; i < M.rows(); i++)
   {
     for (int j = 0; j < M.cols(); j++)
       std::cerr << M(i,j) << "\t";
     std::cerr << std::endl;
   }
+
+  std::cerr << std::endl << std::endl;
 }
 
 /**
