@@ -159,7 +159,6 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
     }
 
   statCal(mNormalizedData, mFrequency, mMask, mGains, mFluxes, mNoiseCovMatrix);
-  utils::matrix2stderr(mFluxes, "fluxes");
 
   // ====================================
   // ==== 3. WSF Position Estimation ====
@@ -465,19 +464,21 @@ void Calibrator::wsfSrcPos(const MatrixXcd &inData,
   std::sort(indices.begin(), indices.end(), EigenSorter);
 
   MatrixXcd Es(solver.eigenvectors().rows(), nsrc);
-  MatrixXcd eigenvalues_abs(nsrc, nsrc);
+  MatrixXd eigenvalues_abs(nsrc, nsrc);
   eigenvalues_abs.setZero();
   for (int i = 0; i < nsrc; i++)
   {
-    eigenvalues_abs(i,i).real() = gEigenValuesAbs(indices[i]);
+    eigenvalues_abs(i,i) = gEigenValuesAbs(indices[i]);
     Es.col(i) = solver.eigenvectors().col(indices[i]);
   }
 
-  MatrixXcd eye(nsrc, nsrc); eye.setIdentity();
-  MatrixXcd A = (eigenvalues_abs.array() - (inSigma1.diagonal().mean() * eye).array());
-  MatrixXcd W = (A * A).array() / eigenvalues_abs.array();
+  MatrixXd eye(nsrc, nsrc); eye.setIdentity();
+  MatrixXd S = inSigma1.diagonal().array().real();
+  MatrixXd A = (eigenvalues_abs.array() - (S.mean() * eye).array());
+  MatrixXd W = (A * A).array() / eigenvalues_abs.array();
+  W = (W.array() != W.array()).select(0,W);
   MatrixXcd EsWEs = Es * W * Es.adjoint();
-  MatrixXcd T = (inGains.array().inverse());
+  MatrixXcd T = 1.0 / inGains.array();
   MatrixXcd G = T.conjugate().asDiagonal().toDenseMatrix();
   WSFCost wsf_cost(EsWEs, G, inFreq, mAntennaITRFReshaped);
   vector<double> init(nsrc*2);
@@ -487,7 +488,7 @@ void Calibrator::wsfSrcPos(const MatrixXcd &inData,
     init[i+nsrc] = elevation(i);
   }
 
-  init = BT::Simplex(wsf_cost, init);
+  init = BT::Simplex(wsf_cost, init, 1e-3);
 
   for (int i = 0; i < nsrc; i++)
   {

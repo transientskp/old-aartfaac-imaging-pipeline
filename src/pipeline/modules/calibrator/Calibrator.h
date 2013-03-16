@@ -7,6 +7,7 @@
 #include <vector>
 #include <cmath>
 #include "../../../Constants.h"
+#include "../../../utilities/Utils.h"
 
 using namespace pelican;
 using namespace Eigen;
@@ -69,9 +70,9 @@ private:
       MatrixXd src_pos(nsrc, 3);
       for (int i = 0; i < nsrc; i++)
       {
-        src_pos(i, 0) = cosf(theta[i]) * cosf(theta[i+nsrc]);
-        src_pos(i, 1) = sinf(theta[i]) * cosf(theta[i+nsrc]);
-        src_pos(i, 2) = sinf(theta[i]+nsrc);
+        src_pos(i, 0) = cos(theta[i]) * cos(theta[i+nsrc]);
+        src_pos(i, 1) = sin(theta[i]) * cos(theta[i+nsrc]);
+        src_pos(i, 2) = sin(theta[i+nsrc]);
       }
 
       std::complex<double> i1(0.0, 1.0);
@@ -80,7 +81,7 @@ private:
       MatrixXcd A = G * T;
       MatrixXcd eye(nelem, nelem); eye.setIdentity();
       MatrixXcd PAperp = eye.array() - (A * (A.adjoint() * A).inverse() * A.adjoint()).array();
-      return (PAperp * W).trace().real();
+      return (PAperp * W).trace().real(); 
     }
 
   private:
