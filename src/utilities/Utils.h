@@ -146,6 +146,33 @@ void precessionMatrix(const double inJD, Matrix<T, 3, 3> &outM)
           s2*s3, -s3*c2*c1 - s1*c3, c3*c1 - s3*c2*s1;
 }
 
+/**
+ * @brief
+ * Prints an std::vector to stderr in the octave readable format
+ */
+template<typename Derived>
+void vector2stderr(const std::vector<Derived> &V, const char *name, const int precision=30)
+{
+  if (V.size() == 0)
+    return;
+
+  const char *type = (
+                      typeid(V[0]) == typeid(std::complex<float>) ||
+                      typeid(V[0]) == typeid(std::complex<double>)
+                     ) ? "complex matrix" : "matrix";
+
+  std::cerr << "# name: " << name << std::endl;
+  std::cerr << "# type: " << type << std::endl;
+  std::cerr << "# rows: " << V.size() << std::endl;
+  std::cerr << "# columns: 1" << std::endl;
+
+  std::cerr.unsetf(std::ios::floatfield);
+  std::cerr.precision(precision);
+  for (int i = 0; i < V.size(); i++)
+    std::cerr << V[i] << "\t";
+
+  std::cerr << std::endl << std::endl;
+}
 
 /**
  * @brief
@@ -158,8 +185,8 @@ void matrix2stderr(const DenseBase<Derived> &M, const char *name, const int prec
     return;
 
   const char *type = (
-                      typeid(M(0,0)) == typeid(std::complex<float>) ||
-                      typeid(M(0,0)) == typeid(std::complex<double>)
+                      typeid(M(0)) == typeid(std::complex<float>) ||
+                      typeid(M(0)) == typeid(std::complex<double>)
                      ) ? "complex matrix" : "matrix";
 
   std::cerr << "# name: " << name << std::endl;
