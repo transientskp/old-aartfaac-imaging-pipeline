@@ -449,10 +449,13 @@ void Calibrator::wsfSrcPos(const MatrixXcd &inData,
                                  MatrixXd &ioPositions)
 {
   int nsrc = ioPositions.rows();
-  VectorXd elevation = ioPositions.col(2).array().asin();
-  VectorXd azimuth = ioPositions.col(1).array() / ioPositions.col(0).array();
+  std::vector<double> init(nsrc*2);
   for (int i = 0; i < nsrc; i++)
-    azimuth(i) = atan(azimuth(i));
+  {
+    init[i] = atan(ioPositions(i,1) / ioPositions(i,0));
+    init[i+nsrc] = asin(ioPositions(i,2));
+  }
+  utils::vector2stderr(init, "theta_cpp0");
 
   ComplexEigenSolver<MatrixXcd> solver(inData);
 
@@ -480,13 +483,8 @@ void Calibrator::wsfSrcPos(const MatrixXcd &inData,
   MatrixXcd EsWEs = Es * W * Es.adjoint();
   MatrixXcd T = 1.0 / inGains.array();
   MatrixXcd G = T.conjugate().asDiagonal().toDenseMatrix();
+
   WSFCost wsf_cost(EsWEs, G, inFreq, mAntennaITRFReshaped);
-  vector<double> init(nsrc*2);
-  for (int i = 0; i < nsrc; i++)
-  {
-    init[i] = azimuth(i);
-    init[i+nsrc] = elevation(i);
-  }
 
   init = BT::Simplex(wsf_cost, init, 1e-3);
 
