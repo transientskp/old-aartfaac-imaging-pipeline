@@ -22,14 +22,13 @@ Calibrator::Calibrator(const ConfigNode &inConfig):
   casa::ROMSColumns msc(ms);
 
   mAntennaITRF.resize(NUM_ANTENNAS, 3);
-  mAntennaITRFReshaped.resize(NUM_ANTENNAS, 3);
   for (int a = 0; a < NUM_ANTENNAS; a++)
   {
     mAntennaITRF(a, 0) = msc.antenna().position()(a)(casa::IPosition(1,0));
     mAntennaITRF(a, 1) = msc.antenna().position()(a)(casa::IPosition(1,1));
     mAntennaITRF(a, 2) = msc.antenna().position()(a)(casa::IPosition(1,2));
-    mAntennaITRFReshaped.row(a) = mAntennaITRF.row(a);
   }
+  mAntennaITRFReshaped = mAntennaITRF;
 
   mMask.resize(NUM_ANTENNAS, NUM_ANTENNAS);
   mUCoords.resize(NUM_ANTENNAS, NUM_ANTENNAS);
@@ -158,7 +157,6 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
     }
 
   statCal(mNormalizedData, mFrequency, mMask, mGains, mFluxes, mNoiseCovMatrix);
-
   // ====================================
   // ==== 3. WSF Position Estimation ====
   // ====================================
@@ -190,8 +188,8 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
   // ===============================
   // ==== 5. A-team subtraction ====
   // ===============================
-  //MatrixXcd ATeam = A * mFluxes.asDiagonal() * A.adjoint();
-  //mNormalizedData.array() -= ATeam.array();
+  MatrixXcd ATeam = A * mFluxes.asDiagonal() * A.adjoint();
+  mNormalizedData.array() -= ATeam.array();
 
   // ================================================================
   // ==== 6. Reconstruct the full ACM from the reshaped matrices ====
