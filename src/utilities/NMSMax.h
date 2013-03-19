@@ -79,9 +79,8 @@ Matrix<D, Dynamic, 1> Simplex(
   }
 
   static const D dirn = -1;
+  static How how = INITIAL;
   int n = x.size();
-  How how = INITIAL;
-  (void) how;
 
   VecX x0 = x;
   MatX V(n, n+1);
@@ -89,7 +88,7 @@ Matrix<D, Dynamic, 1> Simplex(
   VecX f(n + 1);
   f(0) = dirn * fun(x);
   V.col(0) = x0;
-#if !defined(NDEBUG) && defined(NM_TRACE)
+#ifdef NM_TRACE
   D fmax_old = f(0);
 #endif
 
@@ -121,9 +120,9 @@ Matrix<D, Dynamic, 1> Simplex(
     if (k > iterations)
       break;
 
-#if !defined(NDEBUG) && defined(NM_TRACE)
+#ifdef NM_TRACE
     D fmax = f(0);
-    qDebug("Iter: %d how = %s, nf = %d, f = %9.4e (%2.1f%%)\n", 
+    qDebug("Iter: %d how = %s, nf = %d, f = %9.4e (%2.1f%%)", 
       k, HowStr[how].c_str(), 
       nf, 
       fmax, 
@@ -211,9 +210,9 @@ Matrix<D, Dynamic, 1> Simplex(
 
 #ifndef NDEBUG
   if (k >= iterations)
-    qWarning("[SIMPLEX] Max iterations %d exceeded.\n", iterations);
+    qWarning("[%s] Max iterations %d exceeded.\n", __FUNCTION__, iterations);
   else
-    qDebug("[SIMPLEX] f = %9.4e iters = %d/%d f(x) calls = %d\n", fun(x), k, iterations, nf);
+    qDebug("[%s] f = %9.4e iters = %d/%d f(x) calls = %d\n", __FUNCTION__, fun(x), k, iterations, nf);
 #endif
 
   return x;

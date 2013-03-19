@@ -16,6 +16,7 @@ option (ENABLE_TESTS "Enable/disable test framework" ON)
 option (ENABLE_OPENMP "Enable/disable openmp" OFF)
 option (ENABLE_PROFILING "Enable/disable profiling" OFF)
 option (ENABLE_LOFARSTMAN "Enable/disable lofarstman linking" OFF)
+option (ENABLE_NM_TRACE "Enable/disable simplex trace" OFF)
 
 if (NOT CMAKE_BUILD_TYPE)
   set (CMAKE_BUILD_TYPE "RelWithDebInfo")
@@ -34,6 +35,10 @@ if (ENABLE_LOFARSTMAN)
   find_package (Lofar REQUIRED)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--no-as-needed")
 endif (ENABLE_LOFARSTMAN)
+
+if (ENABLE_NM_TRACE)
+  add_definitions(-DNM_TRACE)
+endif (ENABLE_NM_TRACE)
 
 # === Project version
 execute_process (
@@ -153,4 +158,5 @@ message (STATUS "   ENABLE_TESTS          ${ENABLE_TESTS}")
 message (STATUS "   ENABLE_OPENMP         ${ENABLE_OPENMP}")
 message (STATUS "   ENABLE_PROFILING      ${ENABLE_PROFILING}")
 message (STATUS "   ENABLE_LOFARSTMAN     ${ENABLE_LOFARSTMAN}")
+message (STATUS "   ENABLE_NM_TRACE       ${ENABLE_NM_TRACE}")
 message (STATUS "")

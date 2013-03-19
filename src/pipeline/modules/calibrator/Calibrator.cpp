@@ -15,47 +15,59 @@
 extern char *gTableName;
 
 
+static const Vector3d normal(0.598753, 0.072099, 0.797682); ///< Normal to CS002 (central antenna)
 Calibrator::Calibrator(const ConfigNode &inConfig):
   AbstractModule(inConfig)
 {
   casa::MeasurementSet ms(gTableName);
   casa::ROMSColumns msc(ms);
 
+  QString pos_itrf_file = inConfig.getOption("positrf", "path");
+  QFile file(pos_itrf_file);
+
+  if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    qFatal("Failed opening %s", qPrintable(pos_itrf_file));
+
+  QTextStream ts(&file);
   mAntennaITRF.resize(NUM_ANTENNAS, 3);
-  for (int a = 0; a < NUM_ANTENNAS; a++)
+
+  QStringList list;
+  bool success;
+  int idx = 0;
+  while (!ts.atEnd())
   {
-    mAntennaITRF(a, 0) = msc.antenna().position()(a)(casa::IPosition(1,0));
-    mAntennaITRF(a, 1) = msc.antenna().position()(a)(casa::IPosition(1,1));
-    mAntennaITRF(a, 2) = msc.antenna().position()(a)(casa::IPosition(1,2));
+    QString line = ts.readLine();
+    if (line.at(0) == '#' || line.size() == 0)
+      continue;
+
+    list = line.split(" ");
+    for (int i = 0; i < 3; i++)
+    {
+      mAntennaITRF(idx, i) = list.at(i).toDouble(&success);
+      Q_ASSERT(success);
+    }
+    idx++;
   }
+  Q_ASSERT(idx == NUM_ANTENNAS);
   mAntennaITRFReshaped = mAntennaITRF;
 
   mMask.resize(NUM_ANTENNAS, NUM_ANTENNAS);
   mUCoords.resize(NUM_ANTENNAS, NUM_ANTENNAS);
   mVCoords.resize(NUM_ANTENNAS, NUM_ANTENNAS);
-  mUVDist.resize(NUM_ANTENNAS, NUM_ANTENNAS);
+  mWCoords.resize(NUM_ANTENNAS, NUM_ANTENNAS);
   mSpatialFilterMask.resize(NUM_ANTENNAS, NUM_ANTENNAS);
   mNoiseCovMatrix.resize(NUM_ANTENNAS, NUM_ANTENNAS);
-  QString uvw_file_name = inConfig.getOption("uvw", "path");
-  UVWParser::Type lba_type = UVWParser::Type(inConfig.getOption("lba", "type").toInt());
-  UVWParser uvw_parser(uvw_file_name);
   for (int a1 = 0; a1 < NUM_ANTENNAS; a1++)
   {
     for (int a2 = 0; a2 < NUM_ANTENNAS; a2++)
     {
-      casa::String a1_name = msc.antenna().name()(a1);
-      casa::String a2_name = msc.antenna().name()(a2);
-
-      UVWParser::UVW uvw = uvw_parser.GetUVW(a1_name.c_str(),
-                                             a2_name.c_str(),
-                                             lba_type);
-
-      mUCoords(a1, a2) = uvw.uvw[0];
-      mVCoords(a1, a2) = uvw.uvw[1];
+      mUCoords(a1, a2) = mAntennaITRF(a1,0) - mAntennaITRF(a2,0);
+      mVCoords(a1, a2) = mAntennaITRF(a1,1) - mAntennaITRF(a2,1);
+      mWCoords(a1, a2) = mAntennaITRF(a1,2) - mAntennaITRF(a2,2);
     }
   }
 
-  mUVDist = (mUCoords.array().square() + mVCoords.array().square()).sqrt();
+  mUVDist = (mUCoords.array().square() + mVCoords.array().square() + mWCoords.array().square()).sqrt();
 
   mRaSources.resize(4);
   mDecSources.resize(4);
@@ -91,10 +103,9 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
 {
   static const double min_restriction = 10.0;   									 ///< avoid vis. below this wavelengths
   static const double max_restriction = 60.0;   									 ///< avoid vis. above this much meters
-  static const Vector3d normal(0.598753, 0.072099, 0.797682); ///< Normal to CS002 (central antenna)
 
   mFrequency = input->mFrequency;
-  double uvdist_cutoff = std::min<double>(min_restriction*(C_MS/mFrequency), max_restriction);
+  double uvdist_cutoff = std::min(min_restriction*(C_MS/mFrequency), max_restriction);
 
   // =====================================
   // ==== 0. Prepare/Reshape matrices ====
@@ -157,6 +168,10 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
     }
 
   statCal(mNormalizedData, mFrequency, mMask, mGains, mFluxes, mNoiseCovMatrix);
+  utils::matrix2stderr(mGains, "cal1_cpp");
+  utils::matrix2stderr(mFluxes, "sigmas1_cpp");
+  utils::matrix2stderr(mNoiseCovMatrix, "Sigman1_cpp");
+
   // ====================================
   // ==== 3. WSF Position Estimation ====
   // ====================================
@@ -182,6 +197,11 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
   walsCalibration(A, mNormalizedData, fluxes, inv_mask, mGains, mFluxes, mNoiseCovMatrix);
   mGains = (1.0/mGains.array());
   mGains.adjointInPlace();
+
+  utils::matrix2stderr(mGains, "cal2_cpp");
+  utils::matrix2stderr(mFluxes, "sigmas2_cpp");
+  utils::matrix2stderr(mNoiseCovMatrix, "Sigman2_cpp");
+
   mNormalizedData = (mGains * mGains.adjoint()).array() * (mNormalizedData.array() - mNoiseCovMatrix.array()).array();
 
 
@@ -472,7 +492,7 @@ void Calibrator::wsfSrcPos(const MatrixXcd &inData,
 
   WSFCost wsf_cost(EsWEs, G, inFreq, mAntennaITRFReshaped);
 
-  init = NM::Simplex(wsf_cost, init, 1e-3);
+  init = NM::Simplex(wsf_cost, init, 1e-4);
 
   ioPositions.col(0) = init.head(nsrc).array().cos() * init.tail(nsrc).array().cos();
   ioPositions.col(1) = init.head(nsrc).array().sin() * init.tail(nsrc).array().cos();

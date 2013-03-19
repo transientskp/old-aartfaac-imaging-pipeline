@@ -26,6 +26,7 @@ private:
   void gridding(const MatrixXcf &inCorrelations, const MatrixXf &inX, const MatrixXf &inY, const MatrixXf &inMask, MatrixXcf &outGridded);
   void fftShift(MatrixXcf &ioMatrix);
 
+  MatrixXd mAntennaITRF;
   MatrixXf mUCoords;
   MatrixXf mVCoords;
 

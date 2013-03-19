@@ -22,13 +22,33 @@ Imager::Imager(const ConfigNode &inConfig):
   mUCoords.setZero();
   mVCoords.setZero();
 
-  QString uvw_file_name = inConfig.getOption("uvw", "path");
-  UVWParser::Type lba_type = UVWParser::Type(inConfig.getOption("lba", "type").toInt());
+  QString pos_itrf_file = inConfig.getOption("positrf", "path");
+  QFile file(pos_itrf_file);
 
-  UVWParser uvw_parser(uvw_file_name);
+  if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    qFatal("Failed opening %s", qPrintable(pos_itrf_file));
 
-  casa::MeasurementSet ms(gTableName);
-  casa::ROMSColumns msc(ms);
+  QTextStream ts(&file);
+  mAntennaITRF.resize(NUM_ANTENNAS, 3);
+
+  QStringList list;
+  bool success;
+  int idx = 0;
+  while (!ts.atEnd())
+  {
+    QString line = ts.readLine();
+    if (line.at(0) == '#' || line.size() == 0)
+      continue;
+
+    list = line.split(" ");
+    for (int i = 0; i < 3; i++)
+    {
+      mAntennaITRF(idx, i) = list.at(i).toDouble(&success);
+      Q_ASSERT(success);
+    }
+    idx++;
+  }
+  Q_ASSERT(idx == NUM_ANTENNAS);
 
   float minu = std::numeric_limits<float>::max(), maxu = std::numeric_limits<float>::min();
   float minv = std::numeric_limits<float>::max(), maxv = std::numeric_limits<float>::min();
@@ -37,15 +57,8 @@ Imager::Imager(const ConfigNode &inConfig):
   {
     for (int a2 = 0; a2 < NUM_ANTENNAS; a2++)
     {
-      casa::String a1_name = msc.antenna().name()(a1);
-      casa::String a2_name = msc.antenna().name()(a2);
-
-      UVWParser::UVW uvw = uvw_parser.GetUVW(a1_name.c_str(),
-                                             a2_name.c_str(),
-                                             lba_type);
-
-      mUCoords(a1, a2) = uvw.uvw[0];
-      mVCoords(a1, a2) = uvw.uvw[1];
+      mUCoords(a1, a2) = mAntennaITRF(a1,0) - mAntennaITRF(a2,0);
+      mVCoords(a1, a2) = mAntennaITRF(a1,1) - mAntennaITRF(a2,1);
 
       minu = std::min<float>(minu, mUCoords(a1,a2));
       minv = std::min<float>(minv, mVCoords(a1,a2));

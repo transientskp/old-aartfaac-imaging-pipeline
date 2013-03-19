@@ -26,13 +26,15 @@
       </Flagger>
 
       <Calibrator>
-        <uvw path="/home/fhuizing/Workspace/Aartfaac/data/uvloc/uvw_merged.txt"/>
+        <uvw path="../data/uvw_merged.txt"/>
+        <positrf path="../data/posITRF.dat"/>
         <lba type="1"/> <!-- 0 = LBA_INNER, 1 = LBA_OUTER -->
       </Calibrator>
 
       <Imager>
         <output path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
-        <uvw path="/home/fhuizing/Workspace/Aartfaac/data/uvloc/uvw_merged.txt"/>
+        <positrf path="../data/posITRF.dat"/>
+        <uvw path="../data/uvw_merged.txt"/>
         <lba type="1"/> <!-- 0 = LBA_INNER, 1 = LBA_OUTER -->
       </Imager>
     </modules>
@@ -41,7 +43,7 @@
       <streamers>
         <Visibilities active="false">
           <output path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
-          <uvw path="/home/fhuizing/Workspace/Aartfaac/data/uvloc/uvw_merged.txt"/>
+          <uvw path="../data/uvw_merged.txt"/>
           <lba type="1"/> <!-- 0 = LBA_INNER, 1 = LBA_OUTER -->
         </Visibilities>
         <TiffStorage active="false">

@@ -76,10 +76,10 @@ private:
       i1 *= 2.0 * M_PI * freq / C_MS;
       MatrixXcd T = (-i1 * (P * src_pos.transpose())).array().exp();
       MatrixXcd A = G * T;
-      MatrixXcd eye = MatrixXcd::Identity(nelem, nelem);
-      MatrixXcd PAperp = eye.array() - (A * (A.adjoint() * A).inverse() * A.adjoint()).array();
+      MatrixXcd PAperp = MatrixXcd::Identity(nelem, nelem).array() - (A * (A.adjoint() * A).inverse() * A.adjoint()).array();
 
-      return (PAperp * W).trace().real(); 
+      double cost = (PAperp * W).trace().real(); 
+      return cost;
     }
 
   private:
@@ -93,6 +93,7 @@ private:
   MatrixXd mAntennaITRF;
   MatrixXd mUCoords;
   MatrixXd mVCoords;
+  MatrixXd mWCoords;
   MatrixXd mUVDist;
   VectorXd mRaSources;
   VectorXd mDecSources;
