@@ -62,25 +62,23 @@ private:
     {
     }
 
-    double operator()(vector<double> theta)
+    double operator()(const VectorXd &theta)
     {
       const int nsrc = theta.size() / 2;
       const int nelem = P.rows();
 
       MatrixXd src_pos(nsrc, 3);
-      for (int i = 0; i < nsrc; i++)
-      {
-        src_pos(i, 0) = cos(theta[i]) * cos(theta[i+nsrc]);
-        src_pos(i, 1) = sin(theta[i]) * cos(theta[i+nsrc]);
-        src_pos(i, 2) = sin(theta[i+nsrc]);
-      }
+      src_pos.col(0) = theta.head(nsrc).array().cos() * theta.tail(nsrc).array().cos();
+      src_pos.col(1) = theta.head(nsrc).array().sin() * theta.tail(nsrc).array().cos();
+      src_pos.col(2) = theta.tail(nsrc).array().sin();
 
       std::complex<double> i1(0.0, 1.0);
       i1 *= 2.0 * M_PI * freq / C_MS;
       MatrixXcd T = (-i1 * (P * src_pos.transpose())).array().exp();
       MatrixXcd A = G * T;
-      MatrixXcd eye(nelem, nelem); eye.setIdentity();
+      MatrixXcd eye = MatrixXcd::Identity(nelem, nelem);
       MatrixXcd PAperp = eye.array() - (A * (A.adjoint() * A).inverse() * A.adjoint()).array();
+
       return (PAperp * W).trace().real(); 
     }
 

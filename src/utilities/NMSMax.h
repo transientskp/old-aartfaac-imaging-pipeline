@@ -57,7 +57,7 @@ VectorXi sort(Matrix<D, Dynamic, 1> &V)
 
 template<typename D, class F>
 Matrix<D, Dynamic, 1> Simplex(
-  const F &fun,                      // target function
+        F &fun,                      // target function
         Matrix<D, Dynamic, 1> x,     // initial params
   const D tolerance = 1e-5,          // termination criteria
   const int iterations = 1e3         // max iterations

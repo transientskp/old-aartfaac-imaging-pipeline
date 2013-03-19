@@ -4,9 +4,8 @@
 #include "../../../Constants.h"
 #include "../../../utilities/UVWParser.h"
 #include "../../../utilities/Utils.h"
-#include "../../../utilities/Simplex.h"
+#include "../../../utilities/NMSMax.h"
 
-#include <algorithm>
 #include <casacore/tables/Tables/TableParse.h>
 #include <casacore/ms/MeasurementSets.h>
 #include <pelican/utility/Config.h>
@@ -175,7 +174,6 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
     }
 
   wsfSrcPos(mNormalizedData, mNoiseCovMatrix, mGains, mFrequency, selection);
-
   // ==============================
   // ==== 4. Final calibration ====
   // ==============================
@@ -192,8 +190,8 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
   // ===============================
   // ==== 5. A-team subtraction ====
   // ===============================
-  MatrixXcd ATeam = A * mFluxes.asDiagonal() * A.adjoint();
-  mNormalizedData.array() -= ATeam.array();
+  //MatrixXcd ATeam = A * mFluxes.asDiagonal() * A.adjoint();
+  //mNormalizedData.array() -= ATeam.array();
 
   // ================================================================
   // ==== 6. Reconstruct the full ACM from the reshaped matrices ====
@@ -436,11 +434,6 @@ int Calibrator::gainSolv(const MatrixXcd &inModel,
   return i;
 }
 
-VectorXd gEigenValuesAbs;
-bool EigenSorter(const int a, const int b)
-{
-  return gEigenValuesAbs(a) > gEigenValuesAbs(b);
-}
 
 void Calibrator::wsfSrcPos(const MatrixXcd &inData,
                            const MatrixXcd &inSigma1,
@@ -449,36 +442,31 @@ void Calibrator::wsfSrcPos(const MatrixXcd &inData,
                                  MatrixXd &ioPositions)
 {
   int nsrc = ioPositions.rows();
-  std::vector<double> init(nsrc*2);
+  VectorXd init(nsrc*2);
   for (int i = 0; i < nsrc; i++)
   {
-    init[i] = atan(ioPositions(i,1) / ioPositions(i,0));
-    init[i+nsrc] = asin(ioPositions(i,2));
+    init(i) = atan(ioPositions(i,1) / ioPositions(i,0));
+    init(i + nsrc) = asin(ioPositions(i,2));
   }
-  utils::vector2stderr(init, "theta_cpp0");
 
   ComplexEigenSolver<MatrixXcd> solver(inData);
 
-  gEigenValuesAbs = solver.eigenvalues().array().abs();
-  std::vector<int> indices(gEigenValuesAbs.size());
-  for (int i = 0, n = indices.size(); i < n; i++)
-    indices[i] = i;
-
-  std::sort(indices.begin(), indices.end(), EigenSorter);
+  VectorXd eigenvalues_abs = solver.eigenvalues().array().abs();
+  VectorXi I = NM::sort(eigenvalues_abs);
 
   MatrixXcd Es(solver.eigenvectors().rows(), nsrc);
-  MatrixXd eigenvalues_abs(nsrc, nsrc);
-  eigenvalues_abs.setZero();
+  MatrixXd eigenmat_abs(nsrc, nsrc);
+  eigenmat_abs.setZero();
   for (int i = 0; i < nsrc; i++)
   {
-    eigenvalues_abs(i,i) = gEigenValuesAbs(indices[i]);
-    Es.col(i) = solver.eigenvectors().col(indices[i]);
+    eigenmat_abs(i,i) = eigenvalues_abs(i);
+    Es.col(i) = solver.eigenvectors().col(I(i));
   }
 
-  MatrixXd eye(nsrc, nsrc); eye.setIdentity();
+  MatrixXd eye = MatrixXd::Identity(nsrc, nsrc);
   MatrixXd S = inSigma1.diagonal().array().real();
-  MatrixXd A = (eigenvalues_abs.array() - (S.mean() * eye).array());
-  MatrixXd W = (A * A).array() / eigenvalues_abs.array();
+  MatrixXd A = (eigenmat_abs.array() - (S.mean() * eye).array());
+  MatrixXd W = (A * A).array() / eigenmat_abs.array();
   W = (W.array() != W.array()).select(0,W);
   MatrixXcd EsWEs = Es * W * Es.adjoint();
   MatrixXcd T = 1.0 / inGains.array();
@@ -486,12 +474,9 @@ void Calibrator::wsfSrcPos(const MatrixXcd &inData,
 
   WSFCost wsf_cost(EsWEs, G, inFreq, mAntennaITRFReshaped);
 
-  init = BT::Simplex(wsf_cost, init, 1e-3);
+  init = NM::Simplex(wsf_cost, init, 1e-3);
 
-  for (int i = 0; i < nsrc; i++)
-  {
-    ioPositions(i, 0) = cosf(init[i]) * cosf(init[i+nsrc]);
-    ioPositions(i, 1) = sinf(init[i]) * cosf(init[i+nsrc]);
-    ioPositions(i, 2) = sinf(init[i+nsrc]);
-  }
+  ioPositions.col(0) = init.head(nsrc).array().cos() * init.tail(nsrc).array().cos();
+  ioPositions.col(1) = init.head(nsrc).array().sin() * init.tail(nsrc).array().cos();
+  ioPositions.col(2) = init.tail(nsrc).array().sin();
 }
