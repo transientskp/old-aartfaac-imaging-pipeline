@@ -1,6 +1,6 @@
 #include "UtilitiesTest.h"
 #include "../Utils.h"
-#include "../Simplex.h"
+#include "../NMSMax.h"
 #include <complex>
 #include <cmath>
 #include <vector>
@@ -21,41 +21,37 @@ void UtilitiesTest::tearDown()
 {
 }
 
-double f(std::vector<double> &x)
+double f(const VectorXd &x)
 {
   return pow( pow(x[0],2) + pow(x[1],2) + pow(x[2],2), 2 ) - pow(x[0]-3*x[1],2) + pow(x[2]-2, 2);
 }
 
 void UtilitiesTest::simplex()
 {
-  std::vector<double> init, output;
-  init.push_back(1.23);
-  init.push_back(10.96);
-  init.push_back(1.0);
+  VectorXd init(3), output(3);
+  init << 1.23, 10.96, 1.0;
 
-  using BT::Simplex;
+  using NM::Simplex;
   output = Simplex(f, init);
-
-  CPPUNIT_ASSERT_EQUAL(3ul, output.size());
 
   double d_x0, d_x1, d_x2;
 
   // df/dx0
-  d_x0 = 2.0*(pow(output[0], 2.0)+pow(output[1], 2.0)+pow(output[2], 2.0));
-  d_x0 *= 2.0*output[0];
-  d_x0 -= 2.0*(output[0]-3.0*output[1]);
+  d_x0 = 2.0*(pow(output(0), 2.0)+pow(output(1), 2.0)+pow(output(2), 2.0));
+  d_x0 *= 2.0*output(0);
+  d_x0 -= 2.0*(output(0)-3.0*output(1));
   CPPUNIT_ASSERT_DOUBLES_EQUAL(0.0, d_x0, 1e-3);
 
   // df/dx1
-  d_x1 = 2.0*(pow(output[0], 2.0)+pow(output[1], 2.0)+pow(output[2], 2.0));
-  d_x1 *= 2.0*output[1];
-  d_x1 += 6.0*(output[0]-3.0*output[1]);
+  d_x1 = 2.0*(pow(output(0), 2.0)+pow(output(1), 2.0)+pow(output(2), 2.0));
+  d_x1 *= 2.0*output(1);
+  d_x1 += 6.0*(output[0]-3.0*output(1));
   CPPUNIT_ASSERT_DOUBLES_EQUAL(0.0, d_x1, 1e-3);
 
   // df/dx2
-  d_x2 = 2.0*(pow(output[0], 2.0)+pow(output[1], 2.0)+pow(output[2], 2.0));
-  d_x2 *= 2.0*output[2];
-  d_x2 += 2.0*(output[2]-2.0);
+  d_x2 = 2.0*(pow(output(0), 2.0)+pow(output(1), 2.0)+pow(output(2), 2.0));
+  d_x2 *= 2.0*output(2);
+  d_x2 += 2.0*(output(2)-2.0);
   CPPUNIT_ASSERT_DOUBLES_EQUAL(0.0, d_x2, 1e-3);
 }
 

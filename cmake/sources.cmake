@@ -26,7 +26,7 @@ set (PIPELINE_SOURCES
   src/pipeline/modules/output/TiffStorage.cpp
   src/pipeline/modules/output/CasaImageStorage.cpp
   src/pipeline/modules/output/Visibilities.cpp
-  src/utilities/Simplex.h
+  src/utilities/NMSMax.h
   src/utilities/Utils.cpp
   src/utilities/UVWParser.cpp
   src/utilities/Logger.cpp
@@ -66,7 +66,7 @@ set (pipelinetest_SOURCES
   src/pipeline/modules/flagger/Flagger.cpp
   src/utilities/Utils.cpp
   src/utilities/UVWParser.cpp
-  src/utilities/Simplex.h
+  src/utilities/NMSMax.h
 )
 
 set (servertest_SOURCES
