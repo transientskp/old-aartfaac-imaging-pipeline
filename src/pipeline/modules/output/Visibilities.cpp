@@ -1,13 +1,15 @@
 #include "Visibilities.h"
 #include "../../StreamBlob.h"
-#include "../../../utilities/UVWParser.h"
+#include "../../../utilities/AntennaPositions.h"
 #include "../../../Constants.h"
+
+#include <eigen3/Eigen/Dense>
 
 #include <QtCore>
 
 std::vector<int> Visibilities::sUpperTriangleIndices;
-std::vector<Array<Double> > Visibilities::sUVWCoordinates;
-Array<Float> Visibilities::sWeightSpectrum;
+std::vector<casa::Array<casa::Double> > Visibilities::sUVWCoordinates;
+casa::Array<casa::Float> Visibilities::sWeightSpectrum;
 double Visibilities::sExposure;
 
 extern char *gTableName;
@@ -15,17 +17,12 @@ extern char *gTableName;
 Visibilities::Visibilities(const ConfigNode &inConfigNode)
   : AbstractOutputStream(inConfigNode)
 {
-  mPath = inConfigNode.getOption("output", "path", "./");
-  QString uvw_file_name = inConfigNode.getOption("uvw", "path");
-  UVWParser::Type lba_type = UVWParser::Type(inConfigNode.getOption("lba", "type").toInt());
-
-  UVWParser uvw_parser(uvw_file_name);
   mTableName = gTableName;
 
   if (sUpperTriangleIndices.empty())
   {
-    MeasurementSet ms(mTableName);
-    ROMSColumns msc(ms);
+    casa::MeasurementSet ms(mTableName);
+    casa::ROMSColumns msc(ms);
 
     sExposure = msc.exposure()(0);
     sWeightSpectrum = msc.weightSpectrum()(0);
@@ -35,18 +32,12 @@ Visibilities::Visibilities(const ConfigNode &inConfigNode)
     {
       for (int a1 = 0; a1 < (a2 + 1); a1++)
       {
-        Array<Double> uvw(IPosition(1, 3));
+        casa::Array<casa::Double> uvw(casa::IPosition(1, 3));
 
-        String a1_name = msc.antenna().name()(a1);
-        String a2_name = msc.antenna().name()(a2);
-
-        UVWParser::UVW my_uvw = uvw_parser.GetUVW(a1_name.c_str(),
-                                                  a2_name.c_str(),
-                                                  lba_type);
-
-        uvw(IPosition(1,0)) = Double(my_uvw.uvw[0]);
-        uvw(IPosition(1,1)) = Double(my_uvw.uvw[1]);
-        uvw(IPosition(1,2)) = Double(my_uvw.uvw[2]);
+        Eigen::Vector3d p = ANT_UVW(a1, a2);
+        uvw(casa::IPosition(1,0)) = casa::Double(p(0));
+        uvw(casa::IPosition(1,1)) = casa::Double(p(1));
+        uvw(casa::IPosition(1,2)) = casa::Double(p(2));
 
         sUVWCoordinates.push_back(uvw);
         sUpperTriangleIndices.push_back(a1 * NUM_ANTENNAS + a2);
@@ -74,18 +65,18 @@ void Visibilities::sendStream(const QString &inStreamName, const DataBlob *inDat
     return;
   }
 
-  String out_name = qPrintable(mPath + "/" +
+  casa::String out_name = qPrintable(mPath + "/" +
                     QString::number(blob->mFrequency) +
                     "_" + blob->mDateTime.toString("dd-MM-yyyy_hh-mm-ss") + ".ms");
-  String cmd("select from " + mTableName + " where TIME=0 giving " + out_name + " as plain");
+  casa::String cmd("select from " + mTableName + " where TIME=0 giving " + out_name + " as plain");
 
-  Table table = tableCommand(cmd);
+  casa::Table table = casa::tableCommand(cmd);
   table.reopenRW();
-  MeasurementSet ms(table);
-  MSColumns msc(ms);
-  Array<Complex> data(IPosition(2, 4, 1));
-  Array<Bool> flags(IPosition(2, 4, 1));
-  Array<Float> ones(IPosition(1, 4));
+  casa::MeasurementSet ms(table);
+  casa::MSColumns msc(ms);
+  casa::Array<casa::Complex> data(casa::IPosition(2, 4, 1));
+  casa::Array<casa::Bool> flags(casa::IPosition(2, 4, 1));
+  casa::Array<casa::Float> ones(casa::IPosition(1, 4));
   ones.set(1.0);
 
   // The following data table columns hold the default MS values:
@@ -122,24 +113,24 @@ void Visibilities::sendStream(const QString &inStreamName, const DataBlob *inDat
     msc.timeCentroid().put(i, blob->mMJDTime);
 
     // Update DATA column
-    data(IPosition(2, 0, 0)) = blob->mXX(a1, a2);
-    data(IPosition(2, 1, 0)) = blob->mYY(a1, a2);
-    data(IPosition(2, 2, 0)) = blob->mXY(a1, a2);
-    data(IPosition(2, 3, 0)) = blob->mYX(a1, a2);
+    data(casa::IPosition(2, 0, 0)) = blob->mXX(a1, a2);
+    data(casa::IPosition(2, 1, 0)) = blob->mYY(a1, a2);
+    data(casa::IPosition(2, 2, 0)) = blob->mXY(a1, a2);
+    data(casa::IPosition(2, 3, 0)) = blob->mYX(a1, a2);
     msc.data().put(i, data);
 
     // Update FLAG column
     // TODO: Perform flagging per polarization
-    flags(IPosition(2, 0, 0)) = false;
-    flags(IPosition(2, 1, 0)) = false;
-    flags(IPosition(2, 2, 0)) = false;
-    flags(IPosition(2, 3, 0)) = false;
+    flags(casa::IPosition(2, 0, 0)) = false;
+    flags(casa::IPosition(2, 1, 0)) = false;
+    flags(casa::IPosition(2, 2, 0)) = false;
+    flags(casa::IPosition(2, 3, 0)) = false;
     if (blob->mMask(a1,a2) > 0.5f)
     {
-      flags(IPosition(2, 0, 0)) = true;
-      flags(IPosition(2, 1, 0)) = true;
-      flags(IPosition(2, 2, 0)) = true;
-      flags(IPosition(2, 3, 0)) = true;
+      flags(casa::IPosition(2, 0, 0)) = true;
+      flags(casa::IPosition(2, 1, 0)) = true;
+      flags(casa::IPosition(2, 2, 0)) = true;
+      flags(casa::IPosition(2, 3, 0)) = true;
     }
     msc.flag().put(i, flags);
 

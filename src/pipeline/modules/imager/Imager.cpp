@@ -1,16 +1,12 @@
 #include "Imager.h"
 
 #include "../../StreamBlob.h"
-#include "../../../utilities/UVWParser.h"
+#include "../../../utilities/AntennaPositions.h"
 #include "../../../Constants.h"
 
-#include <casacore/tables/Tables/TableParse.h>
-#include <casacore/ms/MeasurementSets.h>
 #include <pelican/utility/Config.h>
 #include <QtCore>
 #include <limits>
-
-extern char *gTableName;
 
 Imager::Imager(const ConfigNode &inConfig):
  AbstractModule(inConfig)
@@ -22,34 +18,6 @@ Imager::Imager(const ConfigNode &inConfig):
   mUCoords.setZero();
   mVCoords.setZero();
 
-  QString pos_itrf_file = inConfig.getOption("positrf", "path");
-  QFile file(pos_itrf_file);
-
-  if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-    qFatal("Failed opening %s", qPrintable(pos_itrf_file));
-
-  QTextStream ts(&file);
-  mAntennaITRF.resize(NUM_ANTENNAS, 3);
-
-  QStringList list;
-  bool success;
-  int idx = 0;
-  while (!ts.atEnd())
-  {
-    QString line = ts.readLine();
-    if (line.at(0) == '#' || line.size() == 0)
-      continue;
-
-    list = line.split(" ");
-    for (int i = 0; i < 3; i++)
-    {
-      mAntennaITRF(idx, i) = list.at(i).toDouble(&success);
-      Q_ASSERT(success);
-    }
-    idx++;
-  }
-  Q_ASSERT(idx == NUM_ANTENNAS);
-
   float minu = std::numeric_limits<float>::max(), maxu = std::numeric_limits<float>::min();
   float minv = std::numeric_limits<float>::max(), maxv = std::numeric_limits<float>::min();
 
@@ -57,8 +25,11 @@ Imager::Imager(const ConfigNode &inConfig):
   {
     for (int a2 = 0; a2 < NUM_ANTENNAS; a2++)
     {
-      mUCoords(a1, a2) = mAntennaITRF(a1,0) - mAntennaITRF(a2,0);
-      mVCoords(a1, a2) = mAntennaITRF(a1,1) - mAntennaITRF(a2,1);
+      Vector3d p1 = ANT_XYZ(a1);
+      Vector3d p2 = ANT_XYZ(a2);
+
+      mUCoords(a1, a2) = p1(0) - p2(0);
+      mVCoords(a1, a2) = p1(1) - p2(1);
 
       minu = std::min<float>(minu, mUCoords(a1,a2));
       minv = std::min<float>(minv, mVCoords(a1,a2));

@@ -17,6 +17,12 @@ public:
   Vector3d GetITRF(const int a);
   Vector3d GetUVW(const int a1, const int a2);
 
+  MatrixXd& GetAllU() { return mUCoords; }
+  MatrixXd& GetAllV() { return mVCoords; }
+  MatrixXd& GetAllW() { return mWCoords; }
+
+  MatrixXd& GetAllITRF() { return mAntennaITRF; }
+
 private:
   MatrixXd mAntennaITRF; ///< ITRF positions (a1,...,an)
   MatrixXd mUCoords;     ///< a1_x - a2_x;
@@ -24,9 +30,13 @@ private:
   MatrixXd mWCoords;     ///< a1_z - a2_z;
 };
 
-static const AntennaPositions ap("../data/posITRF.dat");
+static AntennaPositions ap("../data/posITRF.dat");
 
-#define UVW(a, b) ap.GetUVW(a, b)
-#define ITRF(a) ap.GetITRF(a)
+#define ANT_UVW(a, b) ap.GetUVW(a, b)
+#define ANT_U() ap.GetAllU()
+#define ANT_V() ap.GetAllV()
+#define ANT_W() ap.GetAllW()
+#define ANT_ITRF() ap.GetAllITRF()
+#define ANT_XYZ(a) ap.GetITRF(a)
 
 #endif // ANTENNA_POSITONS_H

@@ -90,10 +90,6 @@ private:
   };
 
   /// Initialized in the constructor and const
-  MatrixXd mAntennaITRF;
-  MatrixXd mUCoords;
-  MatrixXd mVCoords;
-  MatrixXd mWCoords;
   MatrixXd mUVDist;
   VectorXd mRaSources;
   VectorXd mDecSources;

@@ -9,7 +9,6 @@ StreamAdapter::StreamAdapter(const ConfigNode &config)
   : AbstractStreamAdapter(config)
 {
   mMaxPacketSamples = MAX_CORRELATIONS;
-  mAntennae = config.getOption("antennae", "amount").toUInt();
   mPacketSize = sizeof(StreamUdpPacket);
 }
 

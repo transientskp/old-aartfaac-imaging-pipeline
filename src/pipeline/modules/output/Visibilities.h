@@ -8,10 +8,7 @@
 #include <vector>
 
 
-using namespace casa;
 using namespace pelican;
-
-class UVWParser;
 
 class Visibilities : public AbstractOutputStream
 {
@@ -28,10 +25,10 @@ protected:
 
 private:
   QString mPath; ///< Path to store visibilities at
-  String mTableName; ///< MS input table name
+  casa::String mTableName; ///< MS input table name
   static std::vector<int> sUpperTriangleIndices;
-  static std::vector<Array<Double> > sUVWCoordinates;
-  static Array<Float> sWeightSpectrum;
+  static std::vector<casa::Array<casa::Double> > sUVWCoordinates;
+  static casa::Array<casa::Float> sWeightSpectrum;
   static double sExposure;
 };
 

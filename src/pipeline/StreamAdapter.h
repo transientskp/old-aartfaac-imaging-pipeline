@@ -16,7 +16,6 @@ public:
 
 private:
   quint32 mMaxPacketSamples;
-  quint32 mAntennae;
   qint64 mPacketSize;
 };
 

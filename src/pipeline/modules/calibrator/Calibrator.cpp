@@ -2,72 +2,26 @@
 
 #include "../../StreamBlob.h"
 #include "../../../Constants.h"
-#include "../../../utilities/UVWParser.h"
+#include "../../../utilities/AntennaPositions.h"
 #include "../../../utilities/Utils.h"
 #include "../../../utilities/NMSMax.h"
 
-#include <casacore/tables/Tables/TableParse.h>
-#include <casacore/ms/MeasurementSets.h>
 #include <pelican/utility/Config.h>
 #include <QtCore>
 #include <QDebug>
 
-extern char *gTableName;
 
-
-static const Vector3d normal(0.598753, 0.072099, 0.797682); ///< Normal to CS002 (central antenna)
 Calibrator::Calibrator(const ConfigNode &inConfig):
   AbstractModule(inConfig)
 {
-  casa::MeasurementSet ms(gTableName);
-  casa::ROMSColumns msc(ms);
-
-  QString pos_itrf_file = inConfig.getOption("positrf", "path");
-  QFile file(pos_itrf_file);
-
-  if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-    qFatal("Failed opening %s", qPrintable(pos_itrf_file));
-
-  QTextStream ts(&file);
-  mAntennaITRF.resize(NUM_ANTENNAS, 3);
-
-  QStringList list;
-  bool success;
-  int idx = 0;
-  while (!ts.atEnd())
-  {
-    QString line = ts.readLine();
-    if (line.at(0) == '#' || line.size() == 0)
-      continue;
-
-    list = line.split(" ");
-    for (int i = 0; i < 3; i++)
-    {
-      mAntennaITRF(idx, i) = list.at(i).toDouble(&success);
-      Q_ASSERT(success);
-    }
-    idx++;
-  }
-  Q_ASSERT(idx == NUM_ANTENNAS);
-  mAntennaITRFReshaped = mAntennaITRF;
+  mAntennaITRFReshaped = ANT_ITRF();
 
   mMask.resize(NUM_ANTENNAS, NUM_ANTENNAS);
-  mUCoords.resize(NUM_ANTENNAS, NUM_ANTENNAS);
-  mVCoords.resize(NUM_ANTENNAS, NUM_ANTENNAS);
-  mWCoords.resize(NUM_ANTENNAS, NUM_ANTENNAS);
   mSpatialFilterMask.resize(NUM_ANTENNAS, NUM_ANTENNAS);
   mNoiseCovMatrix.resize(NUM_ANTENNAS, NUM_ANTENNAS);
-  for (int a1 = 0; a1 < NUM_ANTENNAS; a1++)
-  {
-    for (int a2 = 0; a2 < NUM_ANTENNAS; a2++)
-    {
-      mUCoords(a1, a2) = mAntennaITRF(a1,0) - mAntennaITRF(a2,0);
-      mVCoords(a1, a2) = mAntennaITRF(a1,1) - mAntennaITRF(a2,1);
-      mWCoords(a1, a2) = mAntennaITRF(a1,2) - mAntennaITRF(a2,2);
-    }
-  }
 
-  mUVDist = (mUCoords.array().square() + mVCoords.array().square() + mWCoords.array().square()).sqrt();
+  MatrixXd u = ANT_U(), v = ANT_V(), w = ANT_W();
+  mUVDist = (u.array().square() + v.array().square() + w.array().square()).sqrt();
 
   mRaSources.resize(4);
   mDecSources.resize(4);
@@ -101,8 +55,9 @@ Calibrator::~Calibrator()
 
 void Calibrator::run(const StreamBlob *input, StreamBlob *output)
 {
-  static const double min_restriction = 10.0;   									 ///< avoid vis. below this wavelengths
-  static const double max_restriction = 60.0;   									 ///< avoid vis. above this much meters
+  static const double min_restriction = 10.0;                 ///< avoid vis. below this wavelength
+  static const double max_restriction = 60.0;                 ///< avoid vis. above this much meters
+  static const Vector3d normal(0.598753, 0.072099, 0.797682); ///< Normal to CS002 (central antenna)
 
   mFrequency = input->mFrequency;
   double uvdist_cutoff = std::min(min_restriction*(C_MS/mFrequency), max_restriction);
@@ -128,7 +83,7 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
     if (std::find(mFlagged.begin(), mFlagged.end(), a1) != mFlagged.end())
       continue;
 
-    mAntennaITRFReshaped.row(_a1) = mAntennaITRF.row(a1);
+    mAntennaITRFReshaped.row(_a1) = ANT_ITRF().row(a1);
 
     for (int a2 = 0, _a2 = 0; a2 < NUM_ANTENNAS; a2++)
     {
