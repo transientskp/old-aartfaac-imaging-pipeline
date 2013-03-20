@@ -78,7 +78,7 @@ void Imager::run(const StreamBlob *input, StreamBlob *output)
   fftwf_execute(mFFTWPlan);
   fftShift(mGridded);
 
-  // Copy real part to skymap and flip over vert axis
+  // Copy real part to skymap and mask beyond the horizon
   float dl = (C_MS/(input->mFrequency*IMAGE_OUTPUT_SIZE*2.5));
   for (int i = 0; i < IMAGE_OUTPUT_SIZE; i++)
   {
