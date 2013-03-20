@@ -79,9 +79,19 @@ void Imager::run(const StreamBlob *input, StreamBlob *output)
   fftShift(mGridded);
 
   // Copy real part to skymap and flip over vert axis
+  float dl = (C_MS/(input->mFrequency*IMAGE_OUTPUT_SIZE*2.5));
   for (int i = 0; i < IMAGE_OUTPUT_SIZE; i++)
+  {
+    float l = dl*(i-IMAGE_OUTPUT_SIZE/2);
     for (int j = 0; j < IMAGE_OUTPUT_SIZE; j++)
-      output->mSkyMap(i,j) = mGridded(i,IMAGE_OUTPUT_SIZE-j-1).real();
+    {
+      float m = dl*(j-IMAGE_OUTPUT_SIZE/2);
+      if (l*l + m*m < 1)
+        output->mSkyMap(i,j) = mGridded(i,j).real();
+      else
+        output->mSkyMap(i,j) = 0.0;
+    }
+  }
 }
 
 void Imager::fftShift(MatrixXcf &ioMatrix)
