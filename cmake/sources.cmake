@@ -29,6 +29,7 @@ set (PIPELINE_SOURCES
   src/utilities/NMSMax.h
   src/utilities/Utils.cpp
   src/utilities/UVWParser.cpp
+  src/utilities/AntennaPositions.cpp
   src/utilities/Logger.cpp
 )
 
