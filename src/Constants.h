@@ -23,6 +23,6 @@
 #define UV_GRID_SIZE 294
 
 /** Speed of light in meters per second */
-#define C_MS 299792458.0f
+#define C_MS 299792458.0
 
 #endif // CONSTANTS_H
