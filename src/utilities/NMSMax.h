@@ -90,6 +90,8 @@ Matrix<D, Dynamic, 1> Simplex(
   V.col(0) = x0;
 #ifdef NM_TRACE
   D fmax_old = f(0);
+#else // suppress warning on unused variable
+  (void) how;
 #endif
 
   // Setup initial regular shaped simplex
