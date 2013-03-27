@@ -2,6 +2,7 @@
 
 #include "../../StreamBlob.h"
 #include "../../../utilities/AntennaPositions.h"
+#include "../../../utilities/Utils.h"
 #include "../../../Constants.h"
 
 #include <pelican/utility/Config.h>
@@ -9,7 +10,8 @@
 #include <limits>
 
 Imager::Imager(const ConfigNode &inConfig):
- AbstractModule(inConfig)
+ AbstractModule(inConfig),
+ mDuv(2.5f)
 {
   mGridded.resize(IMAGE_OUTPUT_SIZE, IMAGE_OUTPUT_SIZE);
 
@@ -17,9 +19,6 @@ Imager::Imager(const ConfigNode &inConfig):
   mVCoords.resize(NUM_ANTENNAS, NUM_ANTENNAS);
   mUCoords.setZero();
   mVCoords.setZero();
-
-  float minu = std::numeric_limits<float>::max(), maxu = std::numeric_limits<float>::min();
-  float minv = std::numeric_limits<float>::max(), maxv = std::numeric_limits<float>::min();
 
   for (int a1 = 0; a1 < NUM_ANTENNAS; a1++)
   {
@@ -30,24 +29,8 @@ Imager::Imager(const ConfigNode &inConfig):
 
       mUCoords(a1, a2) = p1(0) - p2(0);
       mVCoords(a1, a2) = p1(1) - p2(1);
-
-      minu = std::min<float>(minu, mUCoords(a1,a2));
-      minv = std::min<float>(minv, mVCoords(a1,a2));
-      maxu = std::max<float>(maxu, mUCoords(a1,a2));
-      maxv = std::max<float>(maxv, mVCoords(a1,a2));
     }
   }
-
-
-  minu = std::abs<float>(minu);
-  mUCoords.array() += minu;
-  mUCoords.array() /= minu + maxu;
-  mUCoords.array() *= (UV_GRID_SIZE - 1);
-
-  minv = std::abs<float>(minv);
-  mVCoords.array() += minv;
-  mVCoords.array() /= minv + maxv;
-  mVCoords.array() *= (UV_GRID_SIZE - 1);
 
   // Create fftw plan
   mFFTWPlan = fftwf_plan_dft_2d(IMAGE_OUTPUT_SIZE, IMAGE_OUTPUT_SIZE,
@@ -75,21 +58,23 @@ void Imager::run(const StreamBlob *input, StreamBlob *output)
 
   // Perform fft
   fftShift(mGridded);
+  mGridded.reverseInPlace();
+  mGridded = mGridded.array().conjugate();
   fftwf_execute(mFFTWPlan);
   fftShift(mGridded);
 
   // Copy real part to skymap and mask beyond the horizon
-  float dl = (C_MS/(input->mFrequency*IMAGE_OUTPUT_SIZE*2.5));
+  float dl = C_MS/ (input->mFrequency * IMAGE_OUTPUT_SIZE * mDuv);
   for (int i = 0; i < IMAGE_OUTPUT_SIZE; i++)
   {
     float l = dl*(i-IMAGE_OUTPUT_SIZE/2);
     for (int j = 0; j < IMAGE_OUTPUT_SIZE; j++)
     {
       float m = dl*(j-IMAGE_OUTPUT_SIZE/2);
-      if (l*l + m*m < 1)
-        output->mSkyMap(IMAGE_OUTPUT_SIZE-1-i,j) = mGridded(i,j).real();
+      if (l*l + m*m < 1.0f)
+        output->mSkyMap(i,j) = mGridded(i,j).real();
       else
-        output->mSkyMap(IMAGE_OUTPUT_SIZE-1-i,j) = 0.0;
+        output->mSkyMap(i,j) = 0.0;
     }
   }
 }
@@ -130,8 +115,8 @@ void Imager::gridding(const MatrixXcf &inCorrelations, const MatrixXf &inX, cons
 
       const std::complex<float> &corr = inCorrelations(a1, a2);
 
-      float u = inX(a1, a2) + IMAGE_OUTPUT_SIZE/2 - UV_GRID_SIZE/2;
-      float v = inY(a1, a2) + IMAGE_OUTPUT_SIZE/2 - UV_GRID_SIZE/2;
+      float u = inX(a1, a2) / mDuv + IMAGE_OUTPUT_SIZE / 2 - 1;
+      float v = inY(a1, a2) / mDuv + IMAGE_OUTPUT_SIZE / 2 - 1;
 
       int w = std::floor(u);
       int e = std::ceil(u);

@@ -31,6 +31,7 @@ private:
   MatrixXf mVCoords;
 
   MatrixXcf mGridded;
+  float mDuv;
 
   fftwf_plan mFFTWPlan;
 };

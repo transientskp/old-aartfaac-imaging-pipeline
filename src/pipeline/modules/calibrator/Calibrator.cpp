@@ -105,7 +105,7 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
   // ==== 1. Whitening of the array covariance matrix for DOA estimation ====
   // ========================================================================
   mNormalizedData.array() /= (mNormalizedData.diagonal() * mNormalizedData.diagonal().transpose()).array().sqrt();
-  utils::matrix2stderr(mNormalizedData, "acc_cpp");
+
   // ================================
   // ==== 2. Initial calibration ====
   // ================================
@@ -123,9 +123,6 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
     }
 
   statCal(mNormalizedData, mFrequency, mMask, mGains, mFluxes, mNoiseCovMatrix);
-  utils::matrix2stderr(mGains, "cal1_cpp");
-  utils::matrix2stderr(mFluxes, "sigmas1_cpp");
-  utils::matrix2stderr(mNoiseCovMatrix, "Sigman1_cpp");
 
   // ====================================
   // ==== 3. WSF Position Estimation ====
@@ -152,13 +149,7 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
   walsCalibration(A, mNormalizedData, fluxes, inv_mask, mGains, mFluxes, mNoiseCovMatrix);
   mGains = (1.0/mGains.array());
   mGains.adjointInPlace();
-
-  utils::matrix2stderr(mGains, "cal2_cpp");
-  utils::matrix2stderr(mFluxes, "sigmas2_cpp");
-  utils::matrix2stderr(mNoiseCovMatrix, "Sigman2_cpp");
-
   mNormalizedData = (mGains.transpose().adjoint() * mGains.transpose()).array() * (mNormalizedData.array() - mNoiseCovMatrix.array()).array();
-
 
   // ===============================
   // ==== 5. A-team subtraction ====
@@ -471,5 +462,5 @@ double Calibrator::WSFCost::operator()(const VectorXd &theta)
     MatrixXcd PAperp = MatrixXcd::Identity(nelem, nelem).array() - (A * (A.adjoint() * A).inverse() * A.adjoint()).array();
 
     return (PAperp * W).trace().real();
-  }
+}
 
