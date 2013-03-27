@@ -87,9 +87,9 @@ void Imager::run(const StreamBlob *input, StreamBlob *output)
     {
       float m = dl*(j-IMAGE_OUTPUT_SIZE/2);
       if (l*l + m*m < 1)
-        output->mSkyMap(i,j) = mGridded(i,j).real();
+        output->mSkyMap(IMAGE_OUTPUT_SIZE-1-i,j) = mGridded(i,j).real();
       else
-        output->mSkyMap(i,j) = 0.0;
+        output->mSkyMap(IMAGE_OUTPUT_SIZE-1-i,j) = 0.0;
     }
   }
 }
