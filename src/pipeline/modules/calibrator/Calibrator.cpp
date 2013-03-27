@@ -105,7 +105,7 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
   // ==== 1. Whitening of the array covariance matrix for DOA estimation ====
   // ========================================================================
   mNormalizedData.array() /= (mNormalizedData.diagonal() * mNormalizedData.diagonal().transpose()).array().sqrt();
-
+  utils::matrix2stderr(mNormalizedData, "acc_cpp");
   // ================================
   // ==== 2. Initial calibration ====
   // ================================
@@ -157,7 +157,7 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
   utils::matrix2stderr(mFluxes, "sigmas2_cpp");
   utils::matrix2stderr(mNoiseCovMatrix, "Sigman2_cpp");
 
-  mNormalizedData = (mGains * mGains.adjoint()).array() * (mNormalizedData.array() - mNoiseCovMatrix.array()).array();
+  mNormalizedData = (mGains.transpose().adjoint() * mGains.transpose()).array() * (mNormalizedData.array() - mNoiseCovMatrix.array()).array();
 
 
   // ===============================
@@ -453,3 +453,23 @@ void Calibrator::wsfSrcPos(const MatrixXcd &inData,
   ioPositions.col(1) = init.head(nsrc).array().sin() * init.tail(nsrc).array().cos();
   ioPositions.col(2) = init.tail(nsrc).array().sin();
 }
+
+double Calibrator::WSFCost::operator()(const VectorXd &theta)
+{
+    const int nsrc = theta.size() / 2;
+    const int nelem = P.rows();
+
+    MatrixXd src_pos(nsrc, 3);
+    src_pos.col(0) = theta.head(nsrc).array().cos() * theta.tail(nsrc).array().cos();
+    src_pos.col(1) = theta.head(nsrc).array().sin() * theta.tail(nsrc).array().cos();
+    src_pos.col(2) = theta.tail(nsrc).array().sin();
+
+    std::complex<double> i1(0.0, 1.0);
+    i1 *= 2.0 * M_PI * freq / C_MS;
+    MatrixXcd T = (-i1 * (P * src_pos.transpose())).array().exp();
+    MatrixXcd A = G * T;
+    MatrixXcd PAperp = MatrixXcd::Identity(nelem, nelem).array() - (A * (A.adjoint() * A).inverse() * A.adjoint()).array();
+
+    return (PAperp * W).trace().real();
+  }
+
