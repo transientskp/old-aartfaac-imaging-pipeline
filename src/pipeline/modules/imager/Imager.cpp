@@ -64,7 +64,7 @@ void Imager::run(const StreamBlob *input, StreamBlob *output)
   fftShift(mGridded);
 
   // Copy real part to skymap and mask beyond the horizon
-  float dl = C_MS/ (input->mFrequency * IMAGE_OUTPUT_SIZE * mDuv);
+  float dl = C_MS / (input->mFrequency * IMAGE_OUTPUT_SIZE * mDuv);
   for (int i = 0; i < IMAGE_OUTPUT_SIZE; i++)
   {
     float l = dl*(i-IMAGE_OUTPUT_SIZE/2);

@@ -25,36 +25,36 @@ public:
   void run(const StreamBlob *input, StreamBlob *output);
 
 private:
-  void statCal(const MatrixXcd &inData,
+  void statCal(const MatrixXcf &inData,
                const double inFrequency,
-                     MatrixXd &ioMask,
-                     VectorXcd &outCalibrations,
-                     VectorXd &outSigmas,
-                     MatrixXcd &outVisibilities);
+                     MatrixXf &ioMask,
+                     VectorXcf &outCalibrations,
+                     VectorXf &outSigmas,
+                     MatrixXcf &outVisibilities);
 
-  int gainSolv(const MatrixXcd &inModel,
-               const MatrixXcd &inData,
-               const VectorXcd &inEstimatedGains,
-                     VectorXcd &outGains);
+  int gainSolv(const MatrixXcf &inModel,
+               const MatrixXcf &inData,
+               const VectorXcf &inEstimatedGains,
+                     VectorXcf &outGains);
 
-  int walsCalibration(const MatrixXcd &inModel,
-                      const MatrixXcd &inData,
-                      const VectorXd  &inFluxes,
-                      const MatrixXd  &inInvMask,
-                            VectorXcd &outGains,
-                            VectorXd  &outSourcePowers,
-                            MatrixXcd &outNoiseCovMatrix);
+  int walsCalibration(const MatrixXcf &inModel,
+                      const MatrixXcf &inData,
+                      const VectorXf  &inFluxes,
+                      const MatrixXf  &inInvMask,
+                            VectorXcf &outGains,
+                            VectorXf  &outSourcePowers,
+                            MatrixXcf &outNoiseCovMatrix);
 
-  void wsfSrcPos(const MatrixXcd &inData,
-                 const MatrixXcd &inSigma1,
-                 const VectorXcd &inGains,
+  void wsfSrcPos(const MatrixXcf &inData,
+                 const MatrixXcf &inSigma1,
+                 const VectorXcf &inGains,
                  const double inFreq,
                        MatrixXd &ioPositions);
 
   class WSFCost
   {
   public:
-    WSFCost(const MatrixXcd &inW, const MatrixXcd &inG, const double inFreq, const MatrixXd &inP):
+    WSFCost(const MatrixXcf &inW, const MatrixXcf &inG, const double inFreq, const MatrixXd &inP):
       W(inW),
       G(inG),
       freq(inFreq),
@@ -62,11 +62,11 @@ private:
     {
     }
 
-    double operator()(const VectorXd &theta);
+    float operator()(const VectorXd &theta);
 
   private:
-    const MatrixXcd &W;
-    const MatrixXcd &G;
+    const MatrixXcf &W;
+    const MatrixXcf &G;
     const double freq;
     const MatrixXd &P;
   };
@@ -79,15 +79,15 @@ private:
 
   /// Changed when new antenna are (un)flagged
   std::vector<int> mFlagged;
-  MatrixXd mSpatialFilterMask;
+  MatrixXf mSpatialFilterMask;
   MatrixXd mAntennaITRFReshaped;
-  MatrixXd mMask;
+  MatrixXf mMask;
   MatrixXd mSelection;
-  MatrixXcd mNormalizedData;
-  MatrixXcd mNoiseCovMatrix;
+  MatrixXcf mNormalizedData;
+  MatrixXcf mNoiseCovMatrix;
 
-  VectorXcd mGains;
-  VectorXd mFluxes;
+  VectorXcf mGains;
+  VectorXf mFluxes;
   double mFrequency;
 };
 
