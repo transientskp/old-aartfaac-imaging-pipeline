@@ -47,5 +47,4 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
 
   // Output to stream(s), see modules/output
   dataOutput(data, "post");
-  exit(1);
 }

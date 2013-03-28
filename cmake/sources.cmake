@@ -28,7 +28,6 @@ set (PIPELINE_SOURCES
   src/pipeline/modules/output/Visibilities.cpp
   src/utilities/NMSMax.h
   src/utilities/Utils.cpp
-  src/utilities/UVWParser.cpp
   src/utilities/AntennaPositions.cpp
   src/utilities/Logger.cpp
 )
@@ -66,6 +65,7 @@ set (pipelinetest_SOURCES
   src/pipeline/modules/calibrator/Calibrator.cpp
   src/pipeline/modules/flagger/Flagger.cpp
   src/utilities/Utils.cpp
+  src/utilities/AntennaPositions.cpp
   src/utilities/UVWParser.cpp
   src/utilities/NMSMax.h
 )
