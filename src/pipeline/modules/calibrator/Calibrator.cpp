@@ -412,7 +412,7 @@ void Calibrator::wsfSrcPos(const MatrixXcf &inData,
     init(i + nsrc) = asin(ioPositions(i,2));
   }
 
-  ComplexEigenSolver<MatrixXcf> solver(inData);
+  SelfAdjointEigenSolver<MatrixXcf> solver(inData);
 
   VectorXf eigenvalues_abs = solver.eigenvalues().array().abs();
   VectorXi I = NM::sort(eigenvalues_abs);
