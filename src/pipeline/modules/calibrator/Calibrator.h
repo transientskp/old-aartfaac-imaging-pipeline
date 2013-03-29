@@ -54,21 +54,23 @@ private:
   class WSFCost
   {
   public:
-    WSFCost(const MatrixXcf &inW, const MatrixXcf &inG, const double inFreq, const MatrixXd &inP):
-      W(inW),
-      G(inG),
-      freq(inFreq),
-      P(inP)
-    {
-    }
+    WSFCost(const MatrixXcf &inW, const MatrixXcf &inG, const double inFreq, const MatrixXd &inP, const int n);
 
     float operator()(const VectorXd &theta);
 
   private:
     const MatrixXcf &W;
     const MatrixXcf &G;
-    const double freq;
     const MatrixXd &P;
+    const double freq;
+    const int nsrc;
+
+    MatrixXd src_pos;
+    MatrixXcf T;
+    MatrixXcf A;
+    MatrixXcf Eye;
+    MatrixXcf PAperp;
+    std::complex<double> i1;
   };
 
   /// Initialized in the constructor and const

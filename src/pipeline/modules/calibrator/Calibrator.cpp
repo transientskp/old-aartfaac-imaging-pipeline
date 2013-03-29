@@ -435,7 +435,7 @@ void Calibrator::wsfSrcPos(const MatrixXcf &inData,
   MatrixXcf T = 1.0f / inGains.array();
   MatrixXcf G = T.conjugate().asDiagonal().toDenseMatrix();
 
-  WSFCost wsf_cost(EsWEs, G, inFreq, mAntennaITRFReshaped);
+  WSFCost wsf_cost(EsWEs, G, inFreq, mAntennaITRFReshaped, nsrc);
 
   init = NM::Simplex(wsf_cost, init, 1e-4);
 
@@ -444,21 +444,31 @@ void Calibrator::wsfSrcPos(const MatrixXcf &inData,
   ioPositions.col(2) = init.tail(nsrc).array().sin();
 }
 
+Calibrator::WSFCost::WSFCost(const MatrixXcf &inW, const MatrixXcf &inG, const double inFreq, const MatrixXd &inP, const int n):
+  W(inW),
+  G(inG),
+  P(inP),
+  freq(inFreq),
+  nsrc(n),
+  i1(0.0, 1.0)
+{
+  i1 *= 2.0 * M_PI * freq / C_MS;
+  T.resize(P.rows(), nsrc);
+  A.resize(G.rows(), nsrc);
+  src_pos.resize(nsrc, 3);
+  PAperp.resize(P.rows(), P.rows());
+  Eye = MatrixXcf::Identity(P.rows(), P.rows());
+}
+
 float Calibrator::WSFCost::operator()(const VectorXd &theta)
 {
-    const int nsrc = theta.size() / 2;
-    const int nelem = P.rows();
-
-    MatrixXd src_pos(nsrc, 3);
     src_pos.col(0) = theta.head(nsrc).array().cos() * theta.tail(nsrc).array().cos();
     src_pos.col(1) = theta.head(nsrc).array().sin() * theta.tail(nsrc).array().cos();
     src_pos.col(2) = theta.tail(nsrc).array().sin();
 
-    std::complex<double> i1(0.0, 1.0);
-    i1 *= 2.0 * M_PI * freq / C_MS;
-    MatrixXcf T = (-i1 * (P * src_pos.transpose())).array().exp().cast<std::complex<float> >();
-    MatrixXcf A = G * T;
-    MatrixXcf PAperp = MatrixXcf::Identity(nelem, nelem).array() - (A * (A.adjoint() * A).inverse() * A.adjoint()).array();
+    T = (-i1 * (P * src_pos.transpose())).array().exp().cast<std::complex<float> >();
+    A = G * T;
+    PAperp = Eye.array() - (A * (A.adjoint() * A).inverse() * A.adjoint()).array();
 
     return (PAperp * W).trace().real();
 }
