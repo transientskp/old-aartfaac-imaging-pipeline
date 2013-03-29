@@ -141,10 +141,10 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
   // ==============================
   // ==== 4. Final calibration ====
   // ==============================
-  std::complex<float> i1(0.0, 1.0);
+  std::complex<double> i1(0.0, 1.0);
   i1 *= 2.0 * M_PI * mFrequency / C_MS;
   MatrixXcf A = (-i1 * (mAntennaITRFReshaped * selection.transpose())).array().exp().cast<std::complex<float> >();
-  MatrixXf inv_mask = (mNoiseCovMatrix.array().abs() > 0.0).select(MatrixXf::Zero(mNoiseCovMatrix.rows(), mNoiseCovMatrix.cols()), 1.0);
+  MatrixXf inv_mask = (mNoiseCovMatrix.array().abs() > 0.0).select(MatrixXf::Zero(mNoiseCovMatrix.rows(), mNoiseCovMatrix.cols()), 1.0f);
   walsCalibration(A, mNormalizedData, fluxes, inv_mask, mGains, mFluxes, mNoiseCovMatrix);
   mGains = (1.0/mGains.array());
   mGains.adjointInPlace();
@@ -184,7 +184,7 @@ void Calibrator::statCal(const MatrixXcf &inData,
                          VectorXf &outSigmas,
                          MatrixXcf &outVisibilities)
 {
-  std::complex<float> i1(0.0, 1.0);
+  std::complex<double> i1(0.0, 1.0);
   i1 *= 2.0 * M_PI * inFrequency / C_MS;
   MatrixXcf A = (-i1 * (mAntennaITRFReshaped * mSelection.transpose())).array().exp().cast<std::complex<float> >();
 
@@ -214,7 +214,7 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
                                       MatrixXcf &outNoiseCovMatrix) // Sigma_n
 {
   static const int max_iterations = 50;
-  static const float epsilon = 1e-3;
+  static const float epsilon = 1e-3f;
 
   Q_ASSERT(outNoiseCovMatrix.rows() == inData.rows());
   Q_ASSERT(outNoiseCovMatrix.cols() == inData.cols());
@@ -223,11 +223,11 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
   VectorXcf cur_gains(inData.rows());
   VectorXcf prev_gains(inData.rows());
   for (int i = 0; i < inData.rows(); i++)
-    prev_gains(i) = std::complex<float>(0.0, 1.0f);
+    prev_gains(i) = std::complex<float>(0.0f, 1.0f);
   VectorXf cur_fluxes(inFluxes.rows());
   VectorXf prev_fluxes(inFluxes);
 
-  int n = (inInvMask.array() > 0.5).count();
+  int n = (inInvMask.array() > 0.5f).count();
   MatrixXcf rest(n, 1);
   MatrixXcf data(n, 1);
   MatrixXcf pinv(n, 1);
@@ -248,7 +248,7 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
     int j = 0, k = 0;
     while (j < Rest.size())
     {
-      if (inInvMask(j) > 0.5)
+      if (inInvMask(j) > 0.5f)
       {
         rest(k) = Rest(j);
         data(k) = inData(j);
@@ -276,9 +276,9 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
     if ((cur_fluxes.array() == INFINITY).any())
       cur_fluxes = prev_fluxes;
 
-    Q_ASSERT(cur_fluxes(0) != 0.0);
+    Q_ASSERT(cur_fluxes(0) != 0.0f);
     cur_fluxes /= cur_fluxes(0);
-    cur_fluxes = (cur_fluxes.array() >= 0.0).select(cur_fluxes, 0.0);
+    cur_fluxes = (cur_fluxes.array() >= 0.0f).select(cur_fluxes, 0.0f);
 
     // ========================================
     // ==== 3. Noise covariance estimation ====
@@ -297,8 +297,8 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
     }
     for (int j = 0; j < prev_fluxes.size(); j++)
     {
-      prev_theta(j+prev_gains.size()) = std::complex<float>(prev_fluxes(j), 0.0);
-      cur_theta(j+prev_gains.size()) = std::complex<float>(cur_fluxes(j), 0.0);
+      prev_theta(j+prev_gains.size()) = std::complex<float>(prev_fluxes(j), 0.0f);
+      cur_theta(j+prev_gains.size()) = std::complex<float>(cur_fluxes(j), 0.0f);
     }
 
     MatrixXcf pinv(prev_theta.rows(), prev_theta.cols());
@@ -375,7 +375,7 @@ int Calibrator::gainSolv(const MatrixXcf &inModel,
     {
       // Update gains and check for convergence
       estimated_calibration = outGains;
-      outGains = (outGains.array() + tmp.array()) / 2.0;
+      outGains = (outGains.array() + tmp.array()) / 2.0f;
       float gains_normal = outGains.norm();
       tmp = outGains.array() - estimated_calibration.array();
       float delta_gains_normal = tmp.norm();
