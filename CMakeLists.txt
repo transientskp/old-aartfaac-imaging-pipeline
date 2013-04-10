@@ -17,6 +17,7 @@ option (ENABLE_OPENMP "Enable/disable openmp" OFF)
 option (ENABLE_PROFILING "Enable/disable profiling" OFF)
 option (ENABLE_LOFARSTMAN "Enable/disable lofarstman linking" OFF)
 option (ENABLE_NM_TRACE "Enable/disable simplex trace" OFF)
+option (ENABLE_SYSLOG "Enable/disable syslog logging" OFF)
 
 if (NOT CMAKE_BUILD_TYPE)
   set (CMAKE_BUILD_TYPE "RelWithDebInfo")
@@ -39,6 +40,10 @@ endif (ENABLE_LOFARSTMAN)
 if (ENABLE_NM_TRACE)
   add_definitions(-DNM_TRACE)
 endif (ENABLE_NM_TRACE)
+
+if (ENABLE_SYSLOG)
+  add_definitions(-DENABLE_SYSLOG)
+endif (ENABLE_SYSLOG)
 
 # === Project version
 execute_process (

@@ -1,6 +1,13 @@
 #include "Logger.h"
 
+#ifdef ENABLE_SYSLOG
 #include <syslog.h>
+#else
+#define syslog(a,b,c)
+#define openlog(a,b,c)
+#define closelog()
+#endif
+
 #include <stdlib.h>
 #include <unistd.h>
 
