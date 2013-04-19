@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Start a number of pipelines connecting to the server
+ROOT=/home/${USER}/imaging
+PCONFIG=${ROOT}/src/xml/pipelineConfig.xml
+BINARIES=${ROOT}/build
+
+#$ -t 1-8
+echo "starting..." > /home/${USER}/results/pipe-starting.dat
+${BINARIES}/aartfaac-pipeline ${PCONFIG} "$1" > /home/${USER}/results/pipe-$SGE_TASK_ID.dat
+echo "stopping..." > /home/${USER}/results/pipe-starting.dat
+
+exit 0

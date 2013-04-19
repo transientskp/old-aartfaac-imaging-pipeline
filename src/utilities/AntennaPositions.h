@@ -30,7 +30,7 @@ private:
   MatrixXd mWCoords;     ///< a1_z - a2_z;
 };
 
-static AntennaPositions ap("../data/posITRF.dat");
+static AntennaPositions ap("/var/scratch/fhuizing/aartfaac/posITRF.dat");
 
 #define ANT_UVW(a, b) ap.GetUVW(a, b)
 #define ANT_U() ap.GetAllU()

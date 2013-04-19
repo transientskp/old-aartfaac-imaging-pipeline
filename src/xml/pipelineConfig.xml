@@ -5,7 +5,7 @@
   <pipeline>
     <clients>
       <PelicanServerClient>
-        <server host="127.0.0.1" port="2000"/>
+        <server host="10.141.5.254" port="2000"/>
         <data type="StreamBlob" adapter="StreamAdapter"/>
         <data type="ServiceBlob" adapter="ServiceAdapter"/>
       </PelicanServerClient>
@@ -26,25 +26,24 @@
       </Flagger>
 
       <Calibrator>
-        <positrf path="../data/posITRF.dat"/>
+        <positrf path="/var/scratch/fhuizing/aartfaac/posITRF.dat"/>
       </Calibrator>
 
       <Imager>
-        <output path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
-        <positrf path="../data/posITRF.dat"/>
+        <positrf path="/var/scratch/fhuizing/aartfaac/posITRF.dat"/>
       </Imager>
     </modules>
 
     <output>
       <streamers>
         <Visibilities active="false">
-          <output path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
+          <output path="/var/scratch/fhuizing/results"/>
         </Visibilities>
         <TiffStorage active="false">
-          <output path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
+          <output path="/var/scratch/fhuizing/results"/>
         </TiffStorage>
         <CasaImageStorage active="true">
-          <output path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
+          <output path="/var/scratch/fhuizing/results"/>
         </CasaImageStorage>
       </streamers>
       <dataStreams>
