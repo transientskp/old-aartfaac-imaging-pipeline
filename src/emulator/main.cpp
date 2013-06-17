@@ -50,14 +50,14 @@ int main(int argc, char *argv[])
   app.setOrganizationDomain("http://www.aartfaac.org");
   std::cout << HUMAN_NAME << std::endl;
 
-  pelican::ConfigNode service_config(
-    "<ServiceEmulator>"
-    "  <connection host=\"" + host + "\" port=\"2002\" />"
-    "</ServiceEmulator>"
-  );
-  pelican::EmulatorDriver driver1(new ServiceEmulator(service_config));
+//  pelican::ConfigNode service_config(
+//    "<ServiceEmulator>"
+//    "  <connection host=\"" + host + "\" port=\"2002\" />"
+//    "</ServiceEmulator>"
+//  );
+//  pelican::EmulatorDriver driver1(new ServiceEmulator(service_config));
 
-  sleep(1);
+//  sleep(1);
 
   pelican::ConfigNode stream_config(
     "<StreamEmulator>"

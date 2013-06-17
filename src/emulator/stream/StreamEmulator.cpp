@@ -2,18 +2,17 @@
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QStringList>
-#include <pelican/utility/ConfigNode.h>
+#include <QtNetwork/QTcpSocket>
+
 #include <casacore/ms/MeasurementSets.h>
 
-StreamEmulator::StreamEmulator(const pelican::ConfigNode &inConfigNode)
-  : AbstractUdpEmulator(inConfigNode)
+StreamEmulator::StreamEmulator(const pelican::ConfigNode &configNode)
+  : AbstractEmulator(),
+    mTotalPackets(0),
+    mRowIndex(0)
 {
-  mTotalPackets = 0;
-  mTotalCorrelations = 0;
-  mRowIndex = 0;
-  mTotalRowIndex = 0;
-
-  mMaxSamples = MAX_CORRELATIONS;
+  mHost = configNode.getOption("connection", "host", "127.0.0.1");
+  mPort = configNode.getOption("connection", "port", "2001").toShort();
 
   QString table_name = QCoreApplication::arguments().at(1);
   casa::Table table(qPrintable(table_name));
@@ -21,11 +20,16 @@ StreamEmulator::StreamEmulator(const pelican::ConfigNode &inConfigNode)
   mMSColumns = new casa::ROMSColumns(*mMeasurementSet);
   mTotalTableRows = mMSColumns->data().nrow();
   mTotalChannels = mMSColumns->spectralWindow().numChan()(0);
-  mTotalChannelsAndTableRows = mTotalTableRows * mTotalChannels;
-  mCurChannelId = 0;
+  mTotalAntennas = mMSColumns->antenna().nrow();
+
+  if (mTotalAntennas != NUM_ANTENNAS)
+    qFatal("Expecting %d antennas, got %d", NUM_ANTENNAS, mTotalAntennas);
 
   if (mMSColumns->spectralWindow().numChan().nrow() != 1)
     qFatal("Varying channels in single MS not supported");
+
+  if (mTotalChannels > NUM_CHANNELS)
+    qFatal("Too many channels in MS");
 
   mTimer.start();
 }
@@ -36,64 +40,63 @@ StreamEmulator::~StreamEmulator()
   delete mMSColumns;
 }
 
-void StreamEmulator::getPacketData(char *&outData, unsigned long &outSize)
+void StreamEmulator::getPacketData(char *&data, unsigned long &size)
 {
-  outData = (char *) &mUdpPacket;
-  outSize = sizeof(StreamUdpPacket);
+  data = (char *) &mUdpPacket;
+  size = sizeof(StreamUdpPacket);
+
+  // Reset the packet to 0
   memset(static_cast<void *>(&mUdpPacket), 0, sizeof(StreamUdpPacket));
 
-  double freq = mMSColumns->spectralWindow().chanFreq()(0).data()[mCurChannelId];
-  double cur_time = mMSColumns->time()(mRowIndex);
-
   // Set the udp packet header
-  mUdpPacket.mHeader.time         = cur_time;
-  mUdpPacket.mHeader.freq         = freq;
-  mUdpPacket.mHeader.correlations = 0;
+  mUdpPacket.mHeader.freq = mMSColumns->spectralWindow().chanFreq()(0).data()[0];
+  mUdpPacket.mHeader.chan_width = mMSColumns->spectralWindow().chanWidth()(0).data()[0];
+  mUdpPacket.mHeader.time = mMSColumns->time()(mRowIndex);
+  mUdpPacket.mHeader.channels = mTotalChannels;
 
   // Set the udp packet data
   casa::Array<casa::Complex> data_array;
-  casa::Array<casa::Complex>::iterator cIter;
 
-  for (quint32 i = 0; i < mMaxSamples && mRowIndex < mTotalTableRows; i++)
+  for (int i = 0; i < NUM_BASELINES; i++)
   {
-    StreamUdpPacket::Correlation &correlation = mUdpPacket.mCorrelations[i];
-    double time = mMSColumns->time()(mRowIndex);
-
-    // time changed within packet, break and send
-    if (time != cur_time)
-      break;
-
-    correlation.a1  = mMSColumns->antenna1()(mRowIndex);
-    correlation.a2  = mMSColumns->antenna2()(mRowIndex);
-    data_array = mMSColumns->data()(mRowIndex)[mCurChannelId];
-
-    // Fill sample with complex data polarizations
-    int j = 0;
-
-    for (cIter = data_array.begin(); cIter != data_array.end(); ++cIter)
+    if (mUdpPacket.mHeader.time != mMSColumns->time()(mRowIndex))
     {
-      correlation.polarizations[j++] = (*cIter).real();
-      correlation.polarizations[j++] = (*cIter).imag();
+      qCritical("[%s] MS different times in single packet", __PRETTY_FUNCTION__);
+      break;
     }
 
-    mUdpPacket.mHeader.correlations++;
+    int a1 = mMSColumns->antenna1()(mRowIndex);
+    int a2 = mMSColumns->antenna2()(mRowIndex);
+    int baseline = a1*NUM_ANTENNAS+a2;
+
+    data_array = mMSColumns->data()(mRowIndex);
+    for (quint32 channel = 0; channel < mTotalChannels; channel++)
+    {
+      for (int x = 0; x < 2; x++)
+      {
+        for (int y = 0; y < 2; y++)
+        {
+          mUdpPacket.visibilities[baseline][channel][x][y] = 
+            data_array(casa::IPosition(2, x*NUM_POLARIZATIONS+y, channel));
+        }
+      }
+    }
+
     mRowIndex++;
-    mTotalRowIndex++;
 
-    if (mTotalRowIndex % (mTotalChannelsAndTableRows / 100) == 0)
-      qDebug("Sent %3d%% of measurement set",
-             int(ceil((mTotalRowIndex / double(mTotalChannelsAndTableRows)) * 100)));
+    if (mRowIndex % (mTotalTableRows / 100) == 0)
+       qDebug("Sent %3d%% of measurement set",
+              int(ceil((mRowIndex / double(mTotalTableRows)) * 100)));
   }
 
-  if (mRowIndex >= mTotalTableRows)
-  {
-    mRowIndex = 0;
-    mCurChannelId++;
-  }
-
-  // Increase counters
   mTotalPackets++;
-  mTotalCorrelations += mUdpPacket.mHeader.correlations;
+}
+
+QIODevice* StreamEmulator::createDevice()
+{
+  QTcpSocket *socket = new QTcpSocket();
+  socket->connectToHost(mHost, mPort);
+  return socket;
 }
 
 unsigned long StreamEmulator::interval()
@@ -103,12 +106,7 @@ unsigned long StreamEmulator::interval()
 
 int StreamEmulator::nPackets()
 {
-  const int baselines = 288*289/2;
-  const int packets_per_image = ceil(baselines/double(mMaxSamples));
-  const int num_images = mTotalChannelsAndTableRows / baselines;
-
-  Q_ASSERT(mTotalChannelsAndTableRows % baselines == 0);
-  return packets_per_image * num_images;
+  return mTotalTableRows / NUM_BASELINES;
 }
 
 void StreamEmulator::emulationFinished()
@@ -116,13 +114,11 @@ void StreamEmulator::emulationFinished()
   float seconds = mTimer.elapsed() / 1000.0f;
   float mbytes = (sizeof(StreamUdpPacket) * mTotalPackets) / (1024.0f * 1024.0f);
 
-  qDebug("Header     : %ld bytes", sizeof(StreamUdpPacket::Header));
-  qDebug("Correlation: %ld bytes", sizeof(StreamUdpPacket::Correlation));
   qDebug("Packet     : %ld bytes", sizeof(StreamUdpPacket));
-  qDebug("Channels   : %lld channels", mTotalChannels);
+  qDebug("Channels   : %d channels", mTotalChannels);
   qDebug("MBytes     : %0.2f sent", mbytes);
   qDebug("MB/sec     : %0.2f sent", mbytes / seconds);
-  qDebug("Sent       : %lld samples", mTotalCorrelations);
+  qDebug("Packets    : %d sent", mTotalPackets);
 
   QCoreApplication::quit();
 }

@@ -3,7 +3,9 @@
 
 #include "StreamUdpPacket.h"
 
-#include <pelican/emulator/AbstractUdpEmulator.h>
+#include <pelican/emulator/AbstractEmulator.h>
+#include <pelican/utility/ConfigNode.h>
+
 #include <QtCore/QByteArray>
 #include <QTime>
 
@@ -13,28 +15,29 @@ namespace casa
   class ROMSColumns;
 }
 
-class StreamEmulator : public pelican::AbstractUdpEmulator
+class StreamEmulator : public pelican::AbstractEmulator
 {
 public:
-  StreamEmulator(const pelican::ConfigNode &inConfigNode);
+  StreamEmulator(const pelican::ConfigNode &configNode);
   ~StreamEmulator();
 
-  void getPacketData(char *&outData, unsigned long &outSize);
+  void getPacketData(char *&data, unsigned long &size);
   unsigned long interval();
   int nPackets();
 
 private:
   void emulationFinished();
+  QIODevice* createDevice();
 
-  quint64 mTotalCorrelations;
-  quint64 mTotalPackets;
-  quint64 mTotalTableRows;
-  quint64 mTotalChannelsAndTableRows;
-  quint64 mTotalChannels;
-  quint64 mCurChannelId;
-  quint64 mMaxSamples;
-  quint64 mRowIndex;
-  quint64 mTotalRowIndex;
+
+  quint32 mTotalPackets;
+  quint32 mTotalTableRows;
+  quint32 mTotalChannels;
+  quint32 mTotalAntennas;
+  quint32 mRowIndex;
+
+  quint16 mPort;
+  QString mHost;
 
   QTime mTimer;
   StreamUdpPacket mUdpPacket;

@@ -2,25 +2,22 @@
 #define UDP_STREAM_PACKET_H
 
 #include <QtCore>
+#include <complex>
 
-#define MAX_CORRELATIONS 200
+#include "../../Constants.h"
 
 class StreamUdpPacket
 {
 public:
   struct Header
   {
-    quint32 correlations; ///< number of actual correlations within a packet
-    double freq; ///< frequency in Hz
-    double time; ///< time in MJD (https://en.wikipedia.org/wiki/Julian_date#Alternatives)
-  } __attribute__((packed)) mHeader;
+    double freq;       ///< frequency in Hz
+    double chan_width; ///< Frequency resolution of channels
+    double time;       ///< time in MJD (https://en.wikipedia.org/wiki/Julian_date#Alternatives)
+    quint16 channels;  ///< Number of actual channels
+  } mHeader;
 
-  struct Correlation
-  {
-    quint16 a1; ///< antenna1 casacore id
-    quint16 a2; ///< antenna2 casacore id
-    float polarizations[8]; ///< xx, yy, xy, yx polarizations in [re_{xx},im_{xx},...,re_{yx},im_{yx}]
-  } __attribute__((packed)) mCorrelations[MAX_CORRELATIONS];
+  std::complex<float> visibilities[NUM_BASELINES][NUM_CHANNELS][NUM_POLARIZATIONS][NUM_POLARIZATIONS];
 };
 
 #endif // UDP_STREAM_PACKET_H
