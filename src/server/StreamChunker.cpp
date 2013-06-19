@@ -16,11 +16,13 @@ StreamChunker::StreamChunker(const ConfigNode &inConfig):
     qDebug("<%d,%d>", mSubbands[i].first, mSubbands[i].second);
   mPacketSize = sizeof(StreamPacket);
   mTimeOut = inConfig.getOption("connection", "timeout", "5000").toInt();
+  mPacket = new StreamPacket();
 }
 
 StreamChunker::~StreamChunker()
 {
   delete mServer;
+  delete mPacket;
 }
 
 QIODevice *StreamChunker::newDevice()
@@ -40,6 +42,13 @@ void StreamChunker::next(QIODevice *inDevice)
 {
   if (!isActive())
     return;
+
+  while (inDevice->bytesAvailable() < mPacketSize)
+    inDevice->waitForReadyRead(100);
+
+  inDevice->read(reinterpret_cast<char*>(mPacket), mPacketSize);
+
+  qDebug("time: %s", qPrintable(utils::MJD2QDateTime(mPacket->mHeader.time).toString("hh:mm:ss")));
 }
 
 std::vector<StreamChunker::Subband> StreamChunker::ParseSubbands(const QString &s)
@@ -83,7 +92,7 @@ std::vector<StreamChunker::Subband> StreamChunker::ParseSubbands(const QString &
 
   subbands.back().second = channel;
   for (int i = 0, n = subbands.size(); i < n; i++)
-    if (subbands[i].first > subbands[i].second)
+    if (subbands[i].first >= subbands[i].second)
       qFatal("Invalid subband: %d < %d does not hold", subbands[i].first, subbands[i].second);
   return subbands;
 }
