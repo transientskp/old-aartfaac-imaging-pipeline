@@ -14,6 +14,7 @@ StreamEmulator::StreamEmulator(const pelican::ConfigNode &configNode)
   mHost = configNode.getOption("connection", "host", "127.0.0.1");
   mPort = configNode.getOption("connection", "port", "2001").toShort();
 
+  mPacket = new StreamPacket();
   QString table_name = QCoreApplication::arguments().at(1);
   casa::Table table(qPrintable(table_name));
   mMeasurementSet = new casa::MeasurementSet(table);
@@ -31,6 +32,7 @@ StreamEmulator::StreamEmulator(const pelican::ConfigNode &configNode)
   if (mTotalChannels > NUM_CHANNELS)
     qFatal("Too many channels in MS");
 
+  std::cout << "Sending..." << std::flush;
   mTimer.start();
 }
 
@@ -42,24 +44,24 @@ StreamEmulator::~StreamEmulator()
 
 void StreamEmulator::getPacketData(char *&data, unsigned long &size)
 {
-  data = (char *) &mUdpPacket;
-  size = sizeof(StreamUdpPacket);
+  data = (char *) mPacket;
+  size = sizeof(StreamPacket);
 
-  // Reset the packet to 0
-  memset(static_cast<void *>(&mUdpPacket), 0, sizeof(StreamUdpPacket));
+  // Reset the packet header to 0
+  memset(static_cast<void *>(&mPacket->mHeader), 0, sizeof(StreamPacket::Header));
 
-  // Set the udp packet header
-  mUdpPacket.mHeader.freq = mMSColumns->spectralWindow().chanFreq()(0).data()[0];
-  mUdpPacket.mHeader.chan_width = mMSColumns->spectralWindow().chanWidth()(0).data()[0];
-  mUdpPacket.mHeader.time = mMSColumns->time()(mRowIndex);
-  mUdpPacket.mHeader.channels = mTotalChannels;
+  // Set the packet header
+  mPacket->mHeader.freq = mMSColumns->spectralWindow().chanFreq()(0).data()[0];
+  mPacket->mHeader.chan_width = mMSColumns->spectralWindow().chanWidth()(0).data()[0];
+  mPacket->mHeader.time = mMSColumns->time()(mRowIndex);
+  mPacket->mHeader.channels = mTotalChannels;
 
-  // Set the udp packet data
+  // Set the packet data
   casa::Array<casa::Complex> data_array;
 
   for (int i = 0; i < NUM_BASELINES; i++)
   {
-    if (mUdpPacket.mHeader.time != mMSColumns->time()(mRowIndex))
+    if (mPacket->mHeader.time != mMSColumns->time()(mRowIndex))
     {
       qCritical("[%s] MS different times in single packet", __PRETTY_FUNCTION__);
       break;
@@ -67,26 +69,20 @@ void StreamEmulator::getPacketData(char *&data, unsigned long &size)
 
     int a1 = mMSColumns->antenna1()(mRowIndex);
     int a2 = mMSColumns->antenna2()(mRowIndex);
-    int baseline = a1*NUM_ANTENNAS+a2;
+    int baseline = a2*(a2+1)/2 + a1;
 
     data_array = mMSColumns->data()(mRowIndex);
     for (quint32 channel = 0; channel < mTotalChannels; channel++)
-    {
-      for (int x = 0; x < 2; x++)
-      {
-        for (int y = 0; y < 2; y++)
-        {
-          mUdpPacket.visibilities[baseline][channel][x][y] = 
-            data_array(casa::IPosition(2, x*NUM_POLARIZATIONS+y, channel));
-        }
-      }
-    }
+      for (int pol = 0; pol < NUM_POLARIZATIONS; pol++)
+        mPacket->visibilities[baseline][channel][pol] =
+          data_array(casa::IPosition(2, pol, channel));
 
     mRowIndex++;
-
-    if (mRowIndex % (mTotalTableRows / 100) == 0)
-       qDebug("Sent %3d%% of measurement set",
-              int(ceil((mRowIndex / double(mTotalTableRows)) * 100)));
+    if (mRowIndex % (mTotalTableRows / 10) == 0)
+    {
+      static int countdown = 10;
+      std::cout << countdown-- << " " << std::flush;
+    }
   }
 
   mTotalPackets++;
@@ -112,13 +108,16 @@ int StreamEmulator::nPackets()
 void StreamEmulator::emulationFinished()
 {
   float seconds = mTimer.elapsed() / 1000.0f;
-  float mbytes = (sizeof(StreamUdpPacket) * mTotalPackets) / (1024.0f * 1024.0f);
+  float mbytes = (sizeof(StreamPacket) * mTotalPackets) / (1024.0f * 1024.0f);
 
-  qDebug("Packet     : %ld bytes", sizeof(StreamUdpPacket));
+  std::cout << "[done]" << std::endl << std::endl;
+
+  qDebug("Packet     : %ld bytes", sizeof(StreamPacket));
   qDebug("Channels   : %d channels", mTotalChannels);
   qDebug("MBytes     : %0.2f sent", mbytes);
   qDebug("MB/sec     : %0.2f sent", mbytes / seconds);
   qDebug("Packets    : %d sent", mTotalPackets);
 
+  delete mPacket;
   QCoreApplication::quit();
 }

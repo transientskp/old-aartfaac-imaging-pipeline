@@ -5,7 +5,7 @@
 #include <pelican/utility/Config.h>
 #include <QtNetwork/QUdpSocket>
 
-StreamUdpPacket StreamChunker::sEmptyPacket;
+StreamPacket StreamChunker::sEmptyPacket;
 
 StreamChunker::StreamChunker(const ConfigNode &inConfig)
   : AbstractChunker(inConfig)
@@ -19,9 +19,9 @@ StreamChunker::StreamChunker(const ConfigNode &inConfig)
   int antennae_count = inConfig.getOption("antennae", "count").toInt();
   int packet_correlations = MAX_CORRELATIONS;
   int baselines = (antennae_count * (antennae_count + 1)) / 2;
-  mChunkSize = ceil(baselines / double(packet_correlations)) * sizeof(StreamUdpPacket);
+  mChunkSize = ceil(baselines / double(packet_correlations)) * sizeof(StreamPacket);
   mTimeout = inConfig.getOption("chunk", "timeout").toInt();
-  mPacketSize = sizeof(StreamUdpPacket);
+  mPacketSize = sizeof(StreamPacket);
 
   Q_ASSERT(mChunkSize % mPacketSize == 0);
 }
@@ -60,7 +60,7 @@ void StreamChunker::next(QIODevice *inDevice)
   QUdpSocket *udp_socket = static_cast<QUdpSocket *>(inDevice);
 
   quint32 packets = mChunkSize / mPacketSize;
-  StreamUdpPacket packet;
+  StreamPacket packet;
   quint64 key;
 
   for (quint32 i = 0; i < packets; i++)
@@ -146,12 +146,12 @@ void StreamChunker::Chunk::addData(const void *inData, const int inLength)
 quint32 StreamChunker::Chunk::fill()
 {
   quint32 bytes_left = mChunker->mChunkSize - mBytesRead;
-  Q_ASSERT(bytes_left % sizeof(StreamUdpPacket) == 0);
+  Q_ASSERT(bytes_left % sizeof(StreamPacket) == 0);
 
-  for (quint32 i = 0, n = bytes_left / sizeof(StreamUdpPacket); i < n; i++)
+  for (quint32 i = 0, n = bytes_left / sizeof(StreamPacket); i < n; i++)
   {
-    mData.write(static_cast<void *>(&sEmptyPacket), sizeof(StreamUdpPacket), mBytesRead);
-    mBytesRead += sizeof(StreamUdpPacket);
+    mData.write(static_cast<void *>(&sEmptyPacket), sizeof(StreamPacket), mBytesRead);
+    mBytesRead += sizeof(StreamPacket);
   }
 
   return bytes_left;

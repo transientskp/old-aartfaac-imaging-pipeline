@@ -9,7 +9,7 @@ StreamAdapter::StreamAdapter(const ConfigNode &config)
   : AbstractStreamAdapter(config)
 {
   mMaxPacketSamples = MAX_CORRELATIONS;
-  mPacketSize = sizeof(StreamUdpPacket);
+  mPacketSize = sizeof(StreamPacket);
 }
 
 void StreamAdapter::deserialise(QIODevice *inDevice)
@@ -19,7 +19,7 @@ void StreamAdapter::deserialise(QIODevice *inDevice)
   Q_ASSERT(chunkSize() % mPacketSize == 0);
   quint32 num_packets = chunkSize() / mPacketSize;
 
-  StreamUdpPacket packet;
+  StreamPacket packet;
   quint64 bytes_read = 0;
   bool is_touched = false;
   std::complex<float> polarizations[4];
@@ -40,7 +40,7 @@ void StreamAdapter::deserialise(QIODevice *inDevice)
 
     for (quint32 j = 0; j < packet.mHeader.correlations; j++)
     {
-      StreamUdpPacket::Correlation &correlation = packet.mCorrelations[j];
+      StreamPacket::Correlation &correlation = packet.mCorrelations[j];
 
       for (quint32 k = 0; k < 8; k+=2)
       {

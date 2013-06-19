@@ -6,7 +6,7 @@
 
 #include "../../Constants.h"
 
-class StreamUdpPacket
+class StreamPacket
 {
 public:
   struct Header
@@ -17,7 +17,7 @@ public:
     quint16 channels;  ///< Number of actual channels
   } mHeader;
 
-  std::complex<float> visibilities[NUM_BASELINES][NUM_CHANNELS][NUM_POLARIZATIONS][NUM_POLARIZATIONS];
+  std::complex<float> visibilities[NUM_BASELINES][NUM_CHANNELS][NUM_POLARIZATIONS];
 };
 
 #endif // UDP_STREAM_PACKET_H

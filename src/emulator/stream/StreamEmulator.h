@@ -1,12 +1,11 @@
 #ifndef STREAM_EMULATOR_H
 #define STREAM_EMULATOR_H
 
-#include "StreamUdpPacket.h"
+#include "StreamPacket.h"
 
 #include <pelican/emulator/AbstractEmulator.h>
 #include <pelican/utility/ConfigNode.h>
 
-#include <QtCore/QByteArray>
 #include <QTime>
 
 namespace casa
@@ -40,7 +39,7 @@ private:
   QString mHost;
 
   QTime mTimer;
-  StreamUdpPacket mUdpPacket;
+  StreamPacket *mPacket;
 
   casa::MeasurementSet *mMeasurementSet;
   casa::ROMSColumns *mMSColumns;

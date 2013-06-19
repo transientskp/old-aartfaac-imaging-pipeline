@@ -14,7 +14,7 @@
 #define NUM_CHANNELS 64
 
 /** Number of polarizations (X, Y) */
-#define NUM_POLARIZATIONS 2
+#define NUM_POLARIZATIONS 4
 
 /** Polarization indexing for CORR_TYPE 9,10,11,12 */
 #define XX_POL 0

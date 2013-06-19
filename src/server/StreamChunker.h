@@ -39,7 +39,7 @@ private:
   quint64 mChunkSize; ///< Size of a chunk in bytes
   qint64 mPacketSize; ///< Size of a udp packet in bytes
   int mTimeout; ///< Max time a chunk will wait for data in milliseconds
-  static StreamUdpPacket sEmptyPacket; ///< Default empty packet
+  static StreamPacket sEmptyPacket; ///< Default empty packet
 
   QHash<quint64, Chunk *> mDataBuffers;
   quint64 hash(const double inTime, const double inFrequency);

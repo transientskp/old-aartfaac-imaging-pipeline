@@ -4,7 +4,7 @@
 set (EMULATOR_SOURCES
   src/Constants.h
   src/emulator/main.cpp
-  src/emulator/stream/StreamUdpPacket.h
+  src/emulator/stream/StreamPacket.h
   src/emulator/stream/StreamEmulator.cpp
   src/emulator/service/ServiceUdpPacket.h
   src/emulator/service/ServiceEmulator.cpp
@@ -39,7 +39,7 @@ set (SERVER_SOURCES
   src/server/StreamChunker.cpp
   src/server/ServiceChunker.cpp
   src/emulator/service/ServiceUdpPacket.h
-  src/emulator/stream/StreamUdpPacket.h
+  src/emulator/stream/StreamPacket.h
   src/utilities/Utils.cpp
   src/utilities/Logger.cpp
 )
