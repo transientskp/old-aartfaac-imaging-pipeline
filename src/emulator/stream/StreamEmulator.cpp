@@ -48,14 +48,15 @@ void StreamEmulator::getPacketData(char *&data, unsigned long &size)
   size = sizeof(StreamPacket);
 
   // Reset the packet header to 0
-  memset(static_cast<void *>(&mPacket->mHeader), 0, sizeof(StreamPacket::Header));
+  memset(static_cast<void*>(&mPacket->mHeader), 0, sizeof(StreamPacket::Header));
 
   // Set the packet header
+  mPacket->mHeader.channels = mTotalChannels;
   mPacket->mHeader.freq = mMSColumns->spectralWindow().chanFreq()(0).data()[0];
   mPacket->mHeader.chan_width = mMSColumns->spectralWindow().chanWidth()(0).data()[0];
   mPacket->mHeader.time = mMSColumns->time()(mRowIndex);
   mPacket->mHeader.a1 = mMSColumns->antenna1()(mRowIndex);
-  mPacket->mHeader.a2 = mMSColumns->antenna1()(mRowIndex);
+  mPacket->mHeader.a2 = mMSColumns->antenna2()(mRowIndex);
 
   // Load the data from casa measurement set
   casa::Array<casa::Complex> data_array(
@@ -64,14 +65,14 @@ void StreamEmulator::getPacketData(char *&data, unsigned long &size)
         casa::SHARE);
 
   mMSColumns->data().get(mRowIndex, data_array);
-  mRowIndex++;
 
+  // Increase counters
+  mRowIndex++;
   if (mRowIndex % (mTotalTableRows / 10) == 0)
   {
     static int countdown = 10;
     std::cout << countdown-- << " " << std::flush;
   }
-
   mTotalPackets++;
 }
 
