@@ -29,8 +29,8 @@ StreamEmulator::StreamEmulator(const pelican::ConfigNode &configNode):
   if (mMSColumns->spectralWindow().numChan().nrow() != 1)
     qFatal("Varying channels in single MS not supported");
 
-  if (mTotalChannels > NUM_CHANNELS)
-    qFatal("Too many channels in MS");
+  if (mTotalChannels != NUM_CHANNELS)
+    qWarning("Unexpected number of channels");
 
   std::cout << "Sending..." << std::flush;
   mTimer.start();
@@ -54,29 +54,22 @@ void StreamEmulator::getPacketData(char *&data, unsigned long &size)
   mPacket->mHeader.freq = mMSColumns->spectralWindow().chanFreq()(0).data()[0];
   mPacket->mHeader.chan_width = mMSColumns->spectralWindow().chanWidth()(0).data()[0];
   mPacket->mHeader.time = mMSColumns->time()(mRowIndex);
-  mPacket->mHeader.channels = mTotalChannels;
+  mPacket->mHeader.a1 = mMSColumns->antenna1()(mRowIndex);
+  mPacket->mHeader.a2 = mMSColumns->antenna1()(mRowIndex);
 
-  for (int i = 0; i < NUM_BASELINES; i++)
+  // Load the data from casa measurement set
+  casa::Array<casa::Complex> data_array(
+        casa::IPosition(2, NUM_POLARIZATIONS, mTotalChannels),
+        reinterpret_cast<casa::Complex*>(mPacket->visibilities),
+        casa::SHARE);
+
+  mMSColumns->data().get(mRowIndex, data_array);
+  mRowIndex++;
+
+  if (mRowIndex % (mTotalTableRows / 10) == 0)
   {
-    if (mPacket->mHeader.time != mMSColumns->time()(mRowIndex))
-    {
-      qCritical("[%s] MS different times in single packet", __PRETTY_FUNCTION__);
-      break;
-    }
-
-    casa::Array<casa::Complex> data_array(
-          casa::IPosition(2, NUM_POLARIZATIONS, NUM_CHANNELS),
-          reinterpret_cast<casa::Complex*>(mPacket->visibilities[i]),
-          casa::SHARE);
-
-    mMSColumns->data().get(mRowIndex, data_array);
-    mRowIndex++;
-
-    if (mRowIndex % (mTotalTableRows / 10) == 0)
-    {
-      static int countdown = 10;
-      std::cout << countdown-- << " " << std::flush;
-    }
+    static int countdown = 10;
+    std::cout << countdown-- << " " << std::flush;
   }
 
   mTotalPackets++;
@@ -96,7 +89,7 @@ unsigned long StreamEmulator::interval()
 
 int StreamEmulator::nPackets()
 {
-  return mTotalTableRows / NUM_BASELINES;
+  return mTotalTableRows;
 }
 
 void StreamEmulator::emulationFinished()

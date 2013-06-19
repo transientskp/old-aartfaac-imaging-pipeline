@@ -14,10 +14,10 @@ public:
     double freq;       ///< frequency in Hz
     double chan_width; ///< Frequency resolution of channels
     double time;       ///< time in MJD (https://en.wikipedia.org/wiki/Julian_date#Alternatives)
-    quint16 channels;  ///< Number of actual channels
+    quint16 a1, a2;    ///< The two antennas determining the baseline
   } mHeader;
 
-  std::complex<float> visibilities[NUM_BASELINES][NUM_CHANNELS][NUM_POLARIZATIONS];
+  std::complex<float> visibilities[NUM_CHANNELS][NUM_POLARIZATIONS];
 };
 
 #endif // UDP_STREAM_PACKET_H
