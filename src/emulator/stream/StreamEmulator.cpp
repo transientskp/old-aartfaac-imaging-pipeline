@@ -6,10 +6,10 @@
 
 #include <casacore/ms/MeasurementSets.h>
 
-StreamEmulator::StreamEmulator(const pelican::ConfigNode &configNode)
-  : AbstractEmulator(),
-    mTotalPackets(0),
-    mRowIndex(0)
+StreamEmulator::StreamEmulator(const pelican::ConfigNode &configNode):
+  AbstractEmulator(),
+  mTotalPackets(0),
+  mRowIndex(0)
 {
   mHost = configNode.getOption("connection", "host", "127.0.0.1");
   mPort = configNode.getOption("connection", "port", "2001").toShort();
@@ -56,9 +56,6 @@ void StreamEmulator::getPacketData(char *&data, unsigned long &size)
   mPacket->mHeader.time = mMSColumns->time()(mRowIndex);
   mPacket->mHeader.channels = mTotalChannels;
 
-  // Set the packet data
-  casa::Array<casa::Complex> data_array;
-
   for (int i = 0; i < NUM_BASELINES; i++)
   {
     if (mPacket->mHeader.time != mMSColumns->time()(mRowIndex))
@@ -67,17 +64,14 @@ void StreamEmulator::getPacketData(char *&data, unsigned long &size)
       break;
     }
 
-    int a1 = mMSColumns->antenna1()(mRowIndex);
-    int a2 = mMSColumns->antenna2()(mRowIndex);
-    int baseline = a2*(a2+1)/2 + a1;
+    casa::Array<casa::Complex> data_array(
+          casa::IPosition(2, NUM_POLARIZATIONS, NUM_CHANNELS),
+          reinterpret_cast<casa::Complex*>(mPacket->visibilities[i]),
+          casa::SHARE);
 
-    data_array = mMSColumns->data()(mRowIndex);
-    for (quint32 channel = 0; channel < mTotalChannels; channel++)
-      for (int pol = 0; pol < NUM_POLARIZATIONS; pol++)
-        mPacket->visibilities[baseline][channel][pol] =
-          data_array(casa::IPosition(2, pol, channel));
-
+    mMSColumns->data().get(mRowIndex, data_array);
     mRowIndex++;
+
     if (mRowIndex % (mTotalTableRows / 10) == 0)
     {
       static int countdown = 10;
