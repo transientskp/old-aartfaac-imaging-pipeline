@@ -1,10 +1,12 @@
 #ifndef STREAM_CHUNKER_H
 #define STREAM_CHUNKER_H
 
-#include "../emulator/stream/StreamUdpPacket.h"
+#include "../emulator/stream/StreamPacket.h"
 
 #include <pelican/server/AbstractChunker.h>
 #include <QtCore>
+#include <QtNetwork/QTcpServer>
+#include <utility>
 
 using namespace pelican;
 
@@ -18,31 +20,16 @@ public:
   virtual void next(QIODevice *inDevice);
 
 private:
+  typedef std::pair<int,int> Subband;
 
-  class Chunk
-  {
-  public:
-    Chunk(StreamChunker *inChunker);
+  std::vector<Subband> ParseSubbands(const QString &s);
+  std::vector<Subband> mSubbands;
 
-    bool isTimeUp();
-    bool isFilled();
-    void addData(const void *inData, const int inLength);
-    quint32 fill();
+  QTcpServer *mServer;
+  StreamPacket *mPacket;
 
-  private:
-    WritableData mData;
-    QTime mTimer;
-    quint64 mBytesRead;
-    StreamChunker *mChunker;
-  };
-
-  quint64 mChunkSize; ///< Size of a chunk in bytes
-  qint64 mPacketSize; ///< Size of a udp packet in bytes
-  int mTimeout; ///< Max time a chunk will wait for data in milliseconds
-  static StreamPacket sEmptyPacket; ///< Default empty packet
-
-  QHash<quint64, Chunk *> mDataBuffers;
-  quint64 hash(const double inTime, const double inFrequency);
+  int mPacketSize;
+  int mTimeOut;
 };
 
 PELICAN_DECLARE_CHUNKER(StreamChunker)
