@@ -17,8 +17,13 @@ SCAN_BUILD_TMPDIR=$( mktemp -d /tmp/scan-build.XXXXXX )
 SCAN_BUILD_ARCHIVE="${WORKSPACE}/scan-build-archive"
  
 # generate the scan-build report
-scan-build -k -o ${SCAN_BUILD_TMPDIR} make -j 5
- 
+scan-build -analyze-headers -k -o ${SCAN_BUILD_TMPDIR} make -j 5
+
+if [ "$?" -ne "0" ]; then
+  echo ">>> Scanbuild returned with a failure, exit"
+  exit 1
+fi
+
 # get the directory name of the report created by scan-build
 SCAN_BUILD_REPORT=$( find ${SCAN_BUILD_TMPDIR} -maxdepth 1 -not -empty -not -name `basename ${SCAN_BUILD_TMPDIR}` )
 rc=$?
