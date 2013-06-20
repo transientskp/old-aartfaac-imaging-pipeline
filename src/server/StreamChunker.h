@@ -20,16 +20,32 @@ public:
   virtual void next(QIODevice *inDevice);
 
 private:
-  typedef std::pair<int,int> Subband;
+  class Subband
+  {
+  public:
+    quint16 c1;
+    quint16 c2;
+    size_t size;
 
-  std::vector<Subband> ParseSubbands(const QString &s);
+    bool operator < (const Subband &s) const
+    {
+      return c2 < s.c1;
+    }
+  };
+
   std::vector<Subband> mSubbands;
 
   QTcpServer *mServer;
   StreamPacket *mPacket;
 
   int mPacketSize;
+  int mAllChunksSize;
   int mTimeOut;
+
+  /** @brief Parses subbands of the form: "c_{1}-c_{2},...,c_{n-1}-c_{n}",
+   *         where c_{i} in {1,...,n} and c_{i} < c_{i+1}
+   */
+  std::vector<Subband> ParseSubbands(const QString &s);
 };
 
 PELICAN_DECLARE_CHUNKER(StreamChunker)

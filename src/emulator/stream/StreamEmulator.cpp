@@ -51,12 +51,9 @@ void StreamEmulator::getPacketData(char *&data, unsigned long &size)
   memset(static_cast<void*>(&mPacket->mHeader), 0, sizeof(StreamPacket::Header));
 
   // Set the packet header
-  mPacket->mHeader.channels = mTotalChannels;
   mPacket->mHeader.freq = mMSColumns->spectralWindow().chanFreq()(0).data()[0];
   mPacket->mHeader.chan_width = mMSColumns->spectralWindow().chanWidth()(0).data()[0];
   mPacket->mHeader.time = mMSColumns->time()(mRowIndex);
-  mPacket->mHeader.a1 = mMSColumns->antenna1()(mRowIndex);
-  mPacket->mHeader.a2 = mMSColumns->antenna2()(mRowIndex);
 
   // Load the data from casa measurement set
   casa::Array<casa::Complex> data_array(
