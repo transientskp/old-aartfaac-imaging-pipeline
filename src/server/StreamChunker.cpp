@@ -8,15 +8,15 @@
 StreamChunker::StreamChunker(const ConfigNode &inConfig):
   AbstractChunker(inConfig),
   mPacket(new StreamPacket()),
-  mPacketSize(sizeof(StreamPacket)),
-  mAllChunksSize(0)
+  mPacketSize(sizeof(StreamPacket))
 {
   QString s = inConfig.getOption("channel", "subbands");
   mSubbands = ParseSubbands(s);
   std::sort(mSubbands.begin(), mSubbands.end());
   qDebug("Subbands (%ld):", mSubbands.size());
   for (int i = 0, n = mSubbands.size(); i < n; i++)
-    qDebug("  (%2d,%2d) bytes(%lu)", mSubbands[i].c1, mSubbands[i].c2, mSubbands[i].size);
+    qDebug("  (%2d-%2d) chunksize %lu bytes",
+           mSubbands[i].c1, mSubbands[i].c2, mSubbands[i].size);
   mTimeOut = inConfig.getOption("connection", "timeout", "5000").toInt();
 }
 
@@ -147,7 +147,6 @@ std::vector<StreamChunker::Subband> StreamChunker::ParseSubbands(const QString &
 
     s.size = sizeof(ChunkHeader) + channels * NUM_BASELINES *
              NUM_POLARIZATIONS * sizeof(std::complex<float>);
-    mAllChunksSize += s.size;
   }
   return subbands;
 }

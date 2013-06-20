@@ -39,7 +39,6 @@ private:
   StreamPacket *mPacket;
 
   int mPacketSize;
-  int mAllChunksSize;
   int mTimeOut;
 
   /** @brief Parses subbands of the form: "c_{1}-c_{2},...,c_{n-1}-c_{n}",
