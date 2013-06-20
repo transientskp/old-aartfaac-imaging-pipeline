@@ -1,58 +1,46 @@
 #include "StreamAdapter.h"
 #include "StreamBlob.h"
-#include "../emulator/stream/StreamUdpPacket.h"
+#include "../emulator/stream/StreamPacket.h"
 
 #include <complex>
 
 // Construct the example adapter.
-StreamAdapter::StreamAdapter(const ConfigNode &config)
-  : AbstractStreamAdapter(config)
+StreamAdapter::StreamAdapter(const ConfigNode &config):
+  AbstractStreamAdapter(config)
 {
-  mMaxPacketSamples = MAX_CORRELATIONS;
-  mPacketSize = sizeof(StreamPacket);
 }
 
 void StreamAdapter::deserialise(QIODevice *inDevice)
 {
   StreamBlob *blob = static_cast<StreamBlob *>(dataBlob());
+
+  size_t bytes_read = 0;
+
+  while (inDevice->bytesAvailable() < sizeof(ChunkHeader))
+    inDevice->waitForReadyRead(1);
+
+  bytes_read += inDevice->read(reinterpret_cast<char*>(&(blob->mHeader)),
+                               sizeof(ChunkHeader));
   blob->reset();
-  Q_ASSERT(chunkSize() % mPacketSize == 0);
-  quint32 num_packets = chunkSize() / mPacketSize;
 
-  StreamPacket packet;
-  quint64 bytes_read = 0;
-  bool is_touched = false;
-  std::complex<float> polarizations[4];
+  while (inDevice->bytesAvailable() < chunkSize()-sizeof(ChunkHeader))
+    inDevice->waitForReadyRead(100);
 
-  for (quint32 i = 0; i < num_packets; i++)
+  std::complex<float> v[NUM_POLARIZATIONS];
+  int a2 = 0;
+  while (a2 < NUM_ANTENNAS)
   {
-    while (inDevice->bytesAvailable() < mPacketSize)
-      inDevice->waitForReadyRead(100);
-
-    bytes_read += inDevice->read(reinterpret_cast<char *>(&packet), mPacketSize);
-
-    if (!is_touched)
+    for (int a1 = 0; a1 < (a2 + 1); a1++)
     {
-      blob->setMJDTime(packet.mHeader.time);
-      blob->mFrequency = packet.mHeader.freq;
-      is_touched = true;
-    }
-
-    for (quint32 j = 0; j < packet.mHeader.correlations; j++)
-    {
-      StreamPacket::Correlation &correlation = packet.mCorrelations[j];
-
-      for (quint32 k = 0; k < 8; k+=2)
+      for (int c = blob->mHeader.start_chan; c <= blob->mHeader.end_chan; c++)
       {
-        polarizations[k/2].real() = correlation.polarizations[k];
-        polarizations[k/2].imag() = correlation.polarizations[k+1];
+        bytes_read += inDevice->read(reinterpret_cast<char*>(v),
+                                     sizeof(std::complex<float>)*NUM_POLARIZATIONS);
+        blob->addVis(c, a1, a2, v);
       }
-      blob->addSample(correlation.a1, correlation.a2,
-                      polarizations[0],
-                      polarizations[1],
-                      polarizations[2],
-                      polarizations[3]
-                      );
     }
+    a2++;
   }
+
+  Q_ASSERT(bytes_read == chunkSize());
 }

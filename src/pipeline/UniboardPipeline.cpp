@@ -17,7 +17,7 @@ void UniboardPipeline::init()
 
   // Request remote data.
   requestRemoteData("StreamBlob");
-  requestRemoteData("ServiceBlob");
+//  requestRemoteData("ServiceBlob");
 }
 
 // Defines a single iteration of the pipeline.
@@ -34,7 +34,7 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
   // Calibrate correlations
   mCalibrator->run(data, data);
 
-  // Output calibrated visibilities
+  // Output calibrated visibilities, see modules/output
   dataOutput(data, "calibrated");
 
   // Create image
@@ -42,8 +42,7 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
 
   float time = (mTimer.elapsed() / 1000.0f);
 
-  qDebug("Processed `%s' @ %0.3f Hz in %0.3f sec",
-          qPrintable(data->mDateTime.toString("hh:mm:ss")), data->mFrequency, time);
+  qDebug("Processed %0.3f Hz in %0.3f sec", qPrintable(data->mFrequency, time);
 
   // Output to stream(s), see modules/output
   dataOutput(data, "post");

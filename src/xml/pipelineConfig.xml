@@ -7,7 +7,6 @@
       <PelicanServerClient>
         <server host="127.0.0.1" port="2000"/>
         <data type="StreamBlob" adapter="StreamAdapter"/>
-        <data type="ServiceBlob" adapter="ServiceAdapter"/>
       </PelicanServerClient>
     </clients>
 
@@ -15,9 +14,6 @@
       <StreamAdapter>
         <!-- No specific settings -->
       </StreamAdapter>
-      <ServiceAdapter>
-        <!-- No specific settings -->
-      </ServiceAdapter>
     </adapters>
 
     <modules>

@@ -1,6 +1,8 @@
 #ifndef STREAM_BLOB_H
 #define STREAM_BLOB_H
 
+#include "../Constants.h"
+#include "../emulator/stream/StreamPacket.h"
 #include <pelican/data/DataBlob.h>
 #include <eigen3/Eigen/Dense>
 #include <complex>
@@ -14,37 +16,25 @@ class StreamBlob : public DataBlob
 public:
   StreamBlob();
 
-  void reset();
-
-  void addSample(const quint16 inA1,
-                 const quint16 inA2,
-                 const std::complex<float> &inXX,
-                 const std::complex<float> &inYY,
-                 const std::complex<float> &inXY,
-                 const std::complex<float> &inYX);
-
-  void serialise(QIODevice &out) const;
-
-  void deserialise(QIODevice &in, QSysInfo::Endian);
-
-  void setMJDTime(const double inTime);
-
-  Eigen::MatrixXcf mXX;
-  Eigen::MatrixXcf mYY;
-  Eigen::MatrixXcf mXY;
-  Eigen::MatrixXcf mYX;
+  ChunkHeader mHeader;
+  Eigen::MatrixXcf mData[MAX_MERGE_CHANNELS][NUM_POLARIZATIONS]; // visibilities
+  Eigen::MatrixXf mMasks[MAX_MERGE_CHANNELS][NUM_POLARIZATIONS]; // 1.0f is flagged
+  std::vector<int> mFlagged[MAX_MERGE_CHANNELS][NUM_POLARIZATIONS]; // flagged ants
 
   Eigen::MatrixXf mSkyMap;
+  int mImageWidth;
+  int mImageHeight;
+  int mNumChannels;
 
-  Eigen::MatrixXf mMask; ///< Masks invalid entries as 1, otherwise 0
-  std::vector<int> mFlagged; ///< Flagged antennae
+  void reset();
 
-  double mMJDTime;
-  double mFrequency;
-  QDateTime mDateTime;
-  quint32 mChannelId;
-  quint32 mWidth;
-  quint32 mHeight;
+  void addVis(const quint16 channel,
+              const quint16 a1,
+              const quint16 a2,
+              const std::complex<float> &v[]);
+
+  void serialise(QIODevice &out) const;
+  void deserialise(QIODevice &in, QSysInfo::Endian);
 };
 
 PELICAN_DECLARE_DATABLOB(StreamBlob)

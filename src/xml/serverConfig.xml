@@ -8,9 +8,6 @@
       <StreamBlob>
         <buffer maxSize="4294967296" maxChunkSize="10485760"/>
       </StreamBlob>
-      <ServiceBlob>
-        <buffer maxSize="4294967296" maxChunkSize="10485760"/>
-      </ServiceBlob>
     </buffers>
 
     <chunkers>
@@ -19,11 +16,6 @@
         <channel subbands="1-7,8-14,15-21,22-28,29-35,36-42,43-49,50-56,57-63"/>
         <connection host="127.0.0.1" port="2001" timeout="30000"/>
       </StreamChunker>
-      <ServiceChunker>
-        <data type="ServiceBlob"/>
-        <antennae count="288"/>
-        <connection host="127.0.0.1" port="2002"/>
-      </ServiceChunker>
     </chunkers>
   </server>
 

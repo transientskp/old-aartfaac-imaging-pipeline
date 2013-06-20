@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 
     //server.setVerbosity(10000);
     server.addStreamChunker("StreamChunker");
-    server.addServiceChunker("ServiceChunker");
+//    server.addServiceChunker("ServiceChunker");
     server.addProtocol(new pelican::PelicanProtocol(), 2000);
 
     server.start();

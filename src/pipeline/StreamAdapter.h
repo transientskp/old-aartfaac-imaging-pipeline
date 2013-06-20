@@ -15,8 +15,6 @@ public:
   void deserialise(QIODevice *inDevice);
 
 private:
-  quint32 mMaxPacketSamples;
-  qint64 mPacketSize;
 };
 
 // Register the adapter.

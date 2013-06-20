@@ -13,6 +13,9 @@
 /** Number of channels */
 #define NUM_CHANNELS 64
 
+/** Number of maximum channels to merge together */
+#define MAX_MERGE_CHANNELS 16
+
 /** Number of polarizations (X, Y) */
 #define NUM_POLARIZATIONS 4
 
