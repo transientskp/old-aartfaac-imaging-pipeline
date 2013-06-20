@@ -36,6 +36,7 @@ QIODevice *StreamChunker::newDevice()
     delete mServer;
     qFatal("Connection timeout after %d msec", mTimeOut);
   }
+
   return mServer->nextPendingConnection();
 }
 

@@ -1,13 +1,13 @@
 /**
  * Copyright (C) 2013 F. Huizinga
- * 
+ *
  * Find a value of x which minimizes the function fun.  The search begins at
  * the point x0 and iterates using the Nelder & Mead Simplex algorithm (a
  * derivative-free method).  This algorithm is better-suited to functions which
  * have discontinuities or for which a gradient-based search fails.
  *
  * On exit, the function returns x, the minimum point
- * 
+ *
  * NOTE: This code is a direct translation of nmsmax.m from Octave, created
  *       by N.J.Higham and Andy Adler.
  */
@@ -61,7 +61,7 @@ Matrix<D, Dynamic, 1> Simplex(
         Matrix<D, Dynamic, 1> x,     // initial params
   const D tolerance = 1e-5,          // termination criteria
   const int iterations = 1e3         // max iterations
-)        
+)
 {
   typedef Matrix<D, Dynamic, Dynamic> MatX; // Matrix
   typedef Matrix<D, Dynamic, 1> VecX;       // Vector
@@ -124,14 +124,14 @@ Matrix<D, Dynamic, 1> Simplex(
 
 #ifdef NM_TRACE
     D fmax = f(0);
-    qDebug("Iter: %d how = %s, nf = %d, f = %9.4e (%2.1f%%)", 
-      k, HowStr[how].c_str(), 
-      nf, 
-      fmax, 
-      100.0*(fmax-fmax_old) / 
+    qDebug("Iter: %d how = %s, nf = %d, f = %9.4e (%2.1f%%)",
+      k, HowStr[how].c_str(),
+      nf,
+      fmax,
+      100.0*(fmax-fmax_old) /
         (abs(fmax_old) + std::numeric_limits<D>::epsilon()));
     fmax_old = fmax;
-#endif // NDEBUG
+#endif // NM_TRACE
 
     VecX v1 = V.col(0);
     MatX X = V.block(0,1,n,n).colwise() - v1;
@@ -181,7 +181,7 @@ Matrix<D, Dynamic, 1> Simplex(
       nf++;
       if (fc > f(n))
       {
-        vk = vc; 
+        vk = vc;
         fk = fc;
         how = CONTRACT;
       }

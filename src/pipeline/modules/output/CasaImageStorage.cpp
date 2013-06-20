@@ -29,7 +29,9 @@ void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *i
     return;
   }
 
-  QString filename = mPath + "/" + QString::number(blob->mHeader.freq) + "_" +
+  QString filename = mPath + "/F" + QString::number(blob->mHeader.freq) + "_S" +
+                     QString::number(blob->mHeader.start_chan) + "-" +
+                     QString::number(blob->mHeader.end_chan) + "_T" +
                      utils::MJD2QDateTime(blob->mHeader.time).toString("dd-MM-yyyy_hh-mm-ss") +
                      ".image";
 

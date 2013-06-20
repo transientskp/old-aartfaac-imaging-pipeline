@@ -132,12 +132,15 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
     MatrixXd selection((mFluxes.array() > 0.01f).count(), 3);
     VectorXf fluxes(selection.rows());
     for (int i = 0, j = 0, n = selection.rows(); i < n; i++)
+    {
       if (mFluxes(i) > 0.01f)
       {
         selection.row(j) = mSelection.row(i);
         fluxes(j) = mFluxes(i);
         j++;
       }
+    }
+    Q_ASSERT(fluxes.size() > 0);
     wsfSrcPos(mNormalizedData, mNoiseCovMatrix, mGains, mFrequency, selection);
 
     // ==============================

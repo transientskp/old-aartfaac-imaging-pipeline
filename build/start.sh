@@ -50,14 +50,14 @@ fi
 
 echo "Starting aartfaac-server"
 $ROOT/aartfaac-server $SCONFIG &
-sleep 2
+sleep 1
 
 echo "Starting $PIPELINES aartfaac pipelines"
 for (( i=0; i<$PIPELINES; i++ ))
 do
   $ROOT/aartfaac-pipeline $PCONFIG $MS &
 done;
-sleep 5
+sleep 2
 
 echo "Starting aartfaac emulator"
 $ROOT/aartfaac-emulator $MS &
