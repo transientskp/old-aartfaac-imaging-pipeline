@@ -46,6 +46,7 @@ void StreamChunker::next(QIODevice *inDevice)
 
   std::vector<WritableData> chunks(mSubbands.size());
   std::vector<size_t> bytes(mSubbands.size(), 0);
+  ChunkHeader chunk_header;
 
   for (int b = 0; b < NUM_BASELINES; b++)
   {
@@ -57,7 +58,6 @@ void StreamChunker::next(QIODevice *inDevice)
     {
       for (int i = 0, n = mSubbands.size(); i < n; i++)
       {
-        ChunkHeader chunk_header;
         chunk_header.time = mPacket->mHeader.time;
         chunk_header.freq = mPacket->mHeader.freq;
         chunk_header.chan_width = mPacket->mHeader.chan_width;
@@ -136,10 +136,16 @@ std::vector<StreamChunker::Subband> StreamChunker::ParseSubbands(const QString &
   for (int i = 0, n = subbands.size(); i < n; i++)
   {
     Subband &s = subbands[i];
+    int channels = s.c2 - s.c1 + 1;
+
     if (s.c1 >= s.c2)
       qFatal("Invalid subband: %d < %d does not hold", s.c1, s.c2);
 
-    s.size = sizeof(ChunkHeader) + (s.c2-s.c1 + 1) * NUM_BASELINES *
+    if (channels > MAX_MERGE_CHANNELS)
+      qFatal("Too many channels in single subband: %d <= %d does not hold",
+             channels, MAX_MERGE_CHANNELS);
+
+    s.size = sizeof(ChunkHeader) + channels * NUM_BASELINES *
              NUM_POLARIZATIONS * sizeof(std::complex<float>);
     mAllChunksSize += s.size;
   }
