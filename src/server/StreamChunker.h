@@ -25,6 +25,7 @@ private:
   public:
     quint16 c1;
     quint16 c2;
+    quint16 channels;
     size_t size;
 
     bool operator < (const Subband &s) const

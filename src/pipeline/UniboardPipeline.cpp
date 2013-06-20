@@ -42,7 +42,7 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
 
   float time = (mTimer.elapsed() / 1000.0f);
 
-  qDebug("Processed %0.3f Hz in %0.3f sec", qPrintable(data->mFrequency, time);
+  qDebug("Processed %0.3f Hz in %0.3f sec", data->mHeader.freq, time);
 
   // Output to stream(s), see modules/output
   dataOutput(data, "post");

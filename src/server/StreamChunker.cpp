@@ -15,8 +15,8 @@ StreamChunker::StreamChunker(const ConfigNode &inConfig):
   std::sort(mSubbands.begin(), mSubbands.end());
   qDebug("Subbands (%ld):", mSubbands.size());
   for (int i = 0, n = mSubbands.size(); i < n; i++)
-    qDebug("  (%2d-%2d) chunksize %lu bytes",
-           mSubbands[i].c1, mSubbands[i].c2, mSubbands[i].size);
+    qDebug("  (%d-%d)\t(%d) chunksize %lu bytes",
+           mSubbands[i].c1, mSubbands[i].c2, mSubbands[i].channels, mSubbands[i].size);
   mTimeOut = inConfig.getOption("connection", "timeout", "5000").toInt();
 }
 
@@ -136,16 +136,16 @@ std::vector<StreamChunker::Subband> StreamChunker::ParseSubbands(const QString &
   for (int i = 0, n = subbands.size(); i < n; i++)
   {
     Subband &s = subbands[i];
-    int channels = s.c2 - s.c1 + 1;
+    s.channels = s.c2 - s.c1 + 1;
 
     if (s.c1 >= s.c2)
       qFatal("Invalid subband: %d < %d does not hold", s.c1, s.c2);
 
-    if (channels > MAX_MERGE_CHANNELS)
+    if (s.channels > MAX_MERGE_CHANNELS)
       qFatal("Too many channels in single subband: %d <= %d does not hold",
-             channels, MAX_MERGE_CHANNELS);
+             s.channels, MAX_MERGE_CHANNELS);
 
-    s.size = sizeof(ChunkHeader) + channels * NUM_BASELINES *
+    s.size = sizeof(ChunkHeader) + s.channels * NUM_BASELINES *
              NUM_POLARIZATIONS * sizeof(std::complex<float>);
   }
   return subbands;

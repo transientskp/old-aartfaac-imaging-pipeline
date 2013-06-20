@@ -31,9 +31,11 @@ void StreamBlob::reset()
 
   for (int c = 0; c < mNumChannels; c++)
   {
+    mData[c][XX_POL].setZero();
     mFlagged[c][XX_POL].clear();
     mMasks[c][XX_POL].setIdentity();
   }
+  mSkyMap.setZero();
 }
 
 void StreamBlob::serialise(QIODevice &out) const
@@ -49,7 +51,7 @@ void StreamBlob::deserialise(QIODevice &in, QSysInfo::Endian)
 void StreamBlob::addVis(const quint16 channel,
                         const quint16 a1,
                         const quint16 a2,
-                        const std::complex<float> &v[])
+                        const std::complex<float> v[])
 {
   for (int p = 0; p < NUM_POLARIZATIONS; p++)
   {

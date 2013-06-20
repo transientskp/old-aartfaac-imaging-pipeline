@@ -65,6 +65,7 @@ void Visibilities::sendStream(const QString &inStreamName, const DataBlob *inDat
     return;
   }
 
+  /*
   casa::String out_name = qPrintable(mPath + "/" +
                     QString::number(blob->mFrequency) +
                     "_" + blob->mDateTime.toString("dd-MM-yyyy_hh-mm-ss") + ".ms");
@@ -140,5 +141,6 @@ void Visibilities::sendStream(const QString &inStreamName, const DataBlob *inDat
 
   ms.flush();
   ms.closeSubTables();
+  */
 }
 

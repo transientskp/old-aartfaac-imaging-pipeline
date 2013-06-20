@@ -31,7 +31,7 @@ public:
   void addVis(const quint16 channel,
               const quint16 a1,
               const quint16 a2,
-              const std::complex<float> &v[]);
+              const std::complex<float> v[]);
 
   void serialise(QIODevice &out) const;
   void deserialise(QIODevice &in, QSysInfo::Endian);

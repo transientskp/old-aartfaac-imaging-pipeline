@@ -59,121 +59,124 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
   static const double max_restriction = 60.0;                 ///< avoid vis. above this much meters
   static const Vector3d normal(0.598753, 0.072099, 0.797682); ///< Normal to CS002 (central antenna)
 
-  mFrequency = input->mFrequency;
-  double uvdist_cutoff = std::min(min_restriction*(C_MS/mFrequency), max_restriction);
-
-  // =====================================
-  // ==== 0. Prepare/Reshape matrices ====
-  // =====================================
-  int num_antennas = NUM_ANTENNAS - input->mFlagged.size();
-
-  if (mFlagged.size() != input->mFlagged.size())
+  for (int c = 0; c < input->mNumChannels; c++)
   {
-    mNormalizedData.resize(num_antennas, num_antennas);
-    mSpatialFilterMask.resize(num_antennas, num_antennas);
-    mMask.resize(num_antennas, num_antennas);
-    mNoiseCovMatrix.resize(num_antennas, num_antennas);
-    mAntennaITRFReshaped.resize(num_antennas, 3);
-    mGains.resize(num_antennas);
-  }
-  mFlagged = input->mFlagged;
+    mFrequency = input->mHeader.freq + (input->mHeader.start_chan + c)*input->mHeader.chan_width;
+    double uvdist_cutoff = std::min(min_restriction*(C_MS/mFrequency), max_restriction);
 
-  for (int a1 = 0, _a1 = 0; a1 < NUM_ANTENNAS; a1++)
-  {
-    if (std::find(mFlagged.begin(), mFlagged.end(), a1) != mFlagged.end())
-      continue;
+    // =====================================
+    // ==== 0. Prepare/Reshape matrices ====
+    // =====================================
+    int num_antennas = NUM_ANTENNAS - input->mFlagged[c][XX_POL].size();
 
-    mAntennaITRFReshaped.row(_a1) = ANT_ITRF().row(a1);
-
-    for (int a2 = 0, _a2 = 0; a2 < NUM_ANTENNAS; a2++)
+    if (mFlagged.size() != input->mFlagged[c][XX_POL].size())
     {
-      if (std::find(mFlagged.begin(), mFlagged.end(), a2) != mFlagged.end())
+      mNormalizedData.resize(num_antennas, num_antennas);
+      mSpatialFilterMask.resize(num_antennas, num_antennas);
+      mMask.resize(num_antennas, num_antennas);
+      mNoiseCovMatrix.resize(num_antennas, num_antennas);
+      mAntennaITRFReshaped.resize(num_antennas, 3);
+      mGains.resize(num_antennas);
+    }
+    mFlagged = input->mFlagged[c][XX_POL];
+
+    for (int a1 = 0, _a1 = 0; a1 < NUM_ANTENNAS; a1++)
+    {
+      if (std::find(mFlagged.begin(), mFlagged.end(), a1) != mFlagged.end())
         continue;
 
-      mNormalizedData(_a1, _a2) = input->mXX(a1, a2);
-      mSpatialFilterMask(_a1, _a2) = mUVDist(a1, a2) < uvdist_cutoff ? 1.0f : 0.0f;
-      mMask(_a1, _a2) = input->mMask(a1, a2);
-      _a2++;
+      mAntennaITRFReshaped.row(_a1) = ANT_ITRF().row(a1);
+
+      for (int a2 = 0, _a2 = 0; a2 < NUM_ANTENNAS; a2++)
+      {
+        if (std::find(mFlagged.begin(), mFlagged.end(), a2) != mFlagged.end())
+          continue;
+
+        mNormalizedData(_a1, _a2) = input->mData[c][XX_POL](a1, a2);
+        mSpatialFilterMask(_a1, _a2) = mUVDist(a1, a2) < uvdist_cutoff ? 1.0f : 0.0f;
+        mMask(_a1, _a2) = input->mMasks[c][XX_POL](a1, a2);
+        _a2++;
+      }
+
+      _a1++;
     }
 
-    _a1++;
-  }
+    double time = input->mHeader.time / 86400.0 + 2400000.5;
 
-  double time = input->mMJDTime / 86400.0 + 2400000.5;
+    // ========================================================================
+    // ==== 1. Whitening of the array covariance matrix for DOA estimation ====
+    // ========================================================================
+    mNormalizedData.array() /= (mNormalizedData.diagonal() * mNormalizedData.diagonal().transpose()).array().sqrt();
 
-  // ========================================================================
-  // ==== 1. Whitening of the array covariance matrix for DOA estimation ====
-  // ========================================================================
-  mNormalizedData.array() /= (mNormalizedData.diagonal() * mNormalizedData.diagonal().transpose()).array().sqrt();
+    // ================================
+    // ==== 2. Initial calibration ====
+    // ================================
+    MatrixXd src_pos(mRaSources.rows(), 3);
+    utils::radec2itrf<double>(mRaSources, mDecSources, mEpoch, time, src_pos);
+    VectorXd up = src_pos * normal;
+    mSelection.resize((up.array() > 0.0).count(), 3);
 
-  // ================================
-  // ==== 2. Initial calibration ====
-  // ================================
-  MatrixXd src_pos(mRaSources.rows(), 3);
-  utils::radec2itrf<double>(mRaSources, mDecSources, mEpoch, time, src_pos);
-  VectorXd up = src_pos * normal;
-  mSelection.resize((up.array() > 0.0).count(), 3);
+    for (int i = 0, j = 0, n = src_pos.rows(); i < n; i++)
+      if (up(i) > 0.0)
+      {
+        for (int k = 0; k < src_pos.cols(); k++)
+          mSelection(j,k) = src_pos(i,k);
+        j++;
+      }
+    statCal(mNormalizedData, mFrequency, mMask, mGains, mFluxes, mNoiseCovMatrix);
 
-  for (int i = 0, j = 0, n = src_pos.rows(); i < n; i++)
-    if (up(i) > 0.0)
+    // ====================================
+    // ==== 3. WSF Position Estimation ====
+    // ====================================
+    Q_ASSERT(mSelection.rows() == mFluxes.rows());
+    MatrixXd selection((mFluxes.array() > 0.01f).count(), 3);
+    VectorXf fluxes(selection.rows());
+    for (int i = 0, j = 0, n = selection.rows(); i < n; i++)
+      if (mFluxes(i) > 0.01f)
+      {
+        selection.row(j) = mSelection.row(i);
+        fluxes(j) = mFluxes(i);
+        j++;
+      }
+    wsfSrcPos(mNormalizedData, mNoiseCovMatrix, mGains, mFrequency, selection);
+
+    // ==============================
+    // ==== 4. Final calibration ====
+    // ==============================
+    std::complex<double> i1(0.0, 1.0);
+    i1 *= 2.0 * M_PI * mFrequency / C_MS;
+    MatrixXcf A = (-i1 * (mAntennaITRFReshaped * selection.transpose())).array().exp().cast<std::complex<float> >();
+    MatrixXf inv_mask = (mNoiseCovMatrix.array().abs() > 0.0).select(MatrixXf::Zero(mNoiseCovMatrix.rows(), mNoiseCovMatrix.cols()), 1.0f);
+    walsCalibration(A, mNormalizedData, fluxes, inv_mask, mGains, mFluxes, mNoiseCovMatrix);
+    mGains = (1.0/mGains.array());
+    mGains.adjointInPlace();
+    mNormalizedData = (mGains.transpose().adjoint() * mGains.transpose()).array() * (mNormalizedData.array() - mNoiseCovMatrix.array()).array();
+
+    // ===============================
+    // ==== 5. A-team subtraction ====
+    // ===============================
+    MatrixXcf ATeam = A * mFluxes.asDiagonal() * A.adjoint();
+    mNormalizedData.array() -= ATeam.array();
+
+    // ================================================================
+    // ==== 6. Reconstruct the full ACM from the reshaped matrices ====
+    // ================================================================
+    for (int a1 = 0, _a1 = 0; a1 < NUM_ANTENNAS; a1++)
     {
-      for (int k = 0; k < src_pos.cols(); k++)
-        mSelection(j,k) = src_pos(i,k);
-      j++;
-    }
-  statCal(mNormalizedData, mFrequency, mMask, mGains, mFluxes, mNoiseCovMatrix);
-
-  // ====================================
-  // ==== 3. WSF Position Estimation ====
-  // ====================================
-  Q_ASSERT(mSelection.rows() == mFluxes.rows());
-  MatrixXd selection((mFluxes.array() > 0.01f).count(), 3);
-  VectorXf fluxes(selection.rows());
-  for (int i = 0, j = 0, n = selection.rows(); i < n; i++)
-    if (mFluxes(i) > 0.01f)
-    {
-      selection.row(j) = mSelection.row(i);
-      fluxes(j) = mFluxes(i);
-      j++;
-    }
-  wsfSrcPos(mNormalizedData, mNoiseCovMatrix, mGains, mFrequency, selection);
-
-  // ==============================
-  // ==== 4. Final calibration ====
-  // ==============================
-  std::complex<double> i1(0.0, 1.0);
-  i1 *= 2.0 * M_PI * mFrequency / C_MS;
-  MatrixXcf A = (-i1 * (mAntennaITRFReshaped * selection.transpose())).array().exp().cast<std::complex<float> >();
-  MatrixXf inv_mask = (mNoiseCovMatrix.array().abs() > 0.0).select(MatrixXf::Zero(mNoiseCovMatrix.rows(), mNoiseCovMatrix.cols()), 1.0f);
-  walsCalibration(A, mNormalizedData, fluxes, inv_mask, mGains, mFluxes, mNoiseCovMatrix);
-  mGains = (1.0/mGains.array());
-  mGains.adjointInPlace();
-  mNormalizedData = (mGains.transpose().adjoint() * mGains.transpose()).array() * (mNormalizedData.array() - mNoiseCovMatrix.array()).array();
-
-  // ===============================
-  // ==== 5. A-team subtraction ====
-  // ===============================
-  MatrixXcf ATeam = A * mFluxes.asDiagonal() * A.adjoint();
-  mNormalizedData.array() -= ATeam.array();
-
-  // ================================================================
-  // ==== 6. Reconstruct the full ACM from the reshaped matrices ====
-  // ================================================================
-  for (int a1 = 0, _a1 = 0; a1 < NUM_ANTENNAS; a1++)
-  {
-    if (std::find(mFlagged.begin(), mFlagged.end(), a1) != mFlagged.end())
-      continue;
-
-    for (int a2 = 0, _a2 = 0; a2 < NUM_ANTENNAS; a2++)
-    {
-      if (std::find(mFlagged.begin(), mFlagged.end(), a2) != mFlagged.end())
+      if (std::find(mFlagged.begin(), mFlagged.end(), a1) != mFlagged.end())
         continue;
 
-      output->mXX(a1, a2) = mNormalizedData(_a1, _a2);
-      _a2++;
-    }
+      for (int a2 = 0, _a2 = 0; a2 < NUM_ANTENNAS; a2++)
+      {
+        if (std::find(mFlagged.begin(), mFlagged.end(), a2) != mFlagged.end())
+          continue;
 
-    _a1++;
+        output->mData[c][XX_POL](a1, a2) = mNormalizedData(_a1, _a2);
+        _a2++;
+      }
+
+      _a1++;
+    }
   }
 }
 

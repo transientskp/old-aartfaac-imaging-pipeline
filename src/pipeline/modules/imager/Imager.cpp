@@ -54,7 +54,8 @@ Imager::~Imager()
 void Imager::run(const StreamBlob *input, StreamBlob *output)
 {
   // Splat the image on a grid
-  gridding(input->mXX, mUCoords, mVCoords, input->mMask, mGridded);
+  for (int c = 0; c < input->mNumChannels; c++)
+    gridding(input->mData[c][XX_POL], mUCoords, mVCoords, input->mMasks[c][XX_POL], mGridded);
 
   // Perform fft
   fftShift(mGridded);
@@ -64,7 +65,7 @@ void Imager::run(const StreamBlob *input, StreamBlob *output)
   fftShift(mGridded);
 
   // Copy real part to skymap and mask beyond the horizon
-  float dl = C_MS / (input->mFrequency * IMAGE_OUTPUT_SIZE * mDuv);
+  float dl = C_MS / (input->mHeader.freq * IMAGE_OUTPUT_SIZE * mDuv);
   for (int i = 0; i < IMAGE_OUTPUT_SIZE; i++)
   {
     float l = dl*(i-IMAGE_OUTPUT_SIZE/2);
@@ -74,7 +75,7 @@ void Imager::run(const StreamBlob *input, StreamBlob *output)
       if (l*l + m*m < 1.0f)
         output->mSkyMap(i,j) = mGridded(i,j).real();
       else
-        output->mSkyMap(i,j) = 0.0;
+        output->mSkyMap(i,j) = 0.0f;
     }
   }
 }
