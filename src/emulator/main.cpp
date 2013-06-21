@@ -64,6 +64,7 @@ int main(int argc, char *argv[])
     "  <connection host=\"" + host + "\" port=\"2001\" />"
     "</StreamEmulator>"
   );
+
   pelican::EmulatorDriver driver2(new StreamEmulator(stream_config));
 
   return app.exec();

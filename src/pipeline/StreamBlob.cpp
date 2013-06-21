@@ -18,6 +18,8 @@ StreamBlob::StreamBlob():
     }
   }
 
+  mHeader.start_chan = 0;
+  mHeader.end_chan = 0;
   mSkyMap.resize(mImageWidth, mImageHeight);
 
   reset();
@@ -27,7 +29,7 @@ void StreamBlob::reset()
 {
   mNumChannels = mHeader.end_chan - mHeader.start_chan + 1;
   if (mNumChannels > MAX_MERGE_CHANNELS)
-    qFatal("Error: Too many channels");
+    qFatal("Too many channels: %d <= %d does not hold", mNumChannels, MAX_MERGE_CHANNELS);
 
   for (int c = 0; c < mNumChannels; c++)
   {

@@ -66,6 +66,8 @@ void StreamChunker::next(QIODevice *inDevice)
         chunk_header.end_chan = mSubbands[i].c2;
 
         chunks[i] = getDataStorage(mSubbands[i].size);
+        if (!chunks[i].isValid())
+          qFatal("[%s()] Not enough memory", __FUNCTION__);
         chunks[i].write(static_cast<void*>(&chunk_header), sizeof(ChunkHeader), bytes[i]);
         bytes[i] += sizeof(ChunkHeader);
       }
