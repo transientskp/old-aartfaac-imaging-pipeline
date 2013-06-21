@@ -23,8 +23,8 @@ public:
   void run(const StreamBlob *input, StreamBlob *output);
 
 private:
-  void gridding(const MatrixXcf &inCorrelations, const MatrixXf &inX, const MatrixXf &inY, const MatrixXf &inMask, MatrixXcf &outGridded);
-  void fftShift(MatrixXcf &ioMatrix);
+  void gridding(const MatrixXcf &correlations, const MatrixXf &uCoords, const MatrixXf &vCoords, const MatrixXf &mask, MatrixXcf &grid);
+  void fftShift(MatrixXcf &matrix);
 
   MatrixXd mAntennaITRF;
   MatrixXf mUCoords;

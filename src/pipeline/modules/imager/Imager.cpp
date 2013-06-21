@@ -53,6 +53,9 @@ Imager::~Imager()
 
 void Imager::run(const StreamBlob *input, StreamBlob *output)
 {
+  // Zero the grid
+  mGridded.setZero();
+
   // Splat the image on a grid
   for (int c = 0; c < input->mNumChannels; c++)
     gridding(input->mData[c][XX_POL], mUCoords, mVCoords, input->mMasks[c][XX_POL], mGridded);
@@ -80,44 +83,42 @@ void Imager::run(const StreamBlob *input, StreamBlob *output)
   }
 }
 
-void Imager::fftShift(MatrixXcf &ioMatrix)
+void Imager::fftShift(MatrixXcf &matrix)
 {
-  Q_ASSERT(ioMatrix.rows() == ioMatrix.cols());
-  Q_ASSERT(ioMatrix.rows() % 2 == 0);
+  Q_ASSERT(matrix.rows() == matrix.cols());
+  Q_ASSERT(matrix.rows() % 2 == 0);
 
-  int half = ioMatrix.rows() / 2;
+  int half = matrix.rows() / 2;
 
-  ioMatrix.block(0, 0, half, half).swap(ioMatrix.block(half, half, half, half));
-  ioMatrix.block(0, half, half, half).swap(ioMatrix.block(half, 0, half, half));
+  matrix.block(0, 0, half, half).swap(matrix.block(half, half, half, half));
+  matrix.block(0, half, half, half).swap(matrix.block(half, 0, half, half));
 }
 
-void Imager::gridding(const MatrixXcf &inCorrelations, const MatrixXf &inX, const MatrixXf &inY, const MatrixXf &inMask, MatrixXcf &outGridded)
+void Imager::gridding(const MatrixXcf &correlations, const MatrixXf &uCoords, const MatrixXf &vCoords, const MatrixXf &mask, MatrixXcf &grid)
 {
 
-  Q_ASSERT(inCorrelations.rows() == inCorrelations.cols());
+  Q_ASSERT(correlations.rows() == correlations.cols());
 
-  Q_ASSERT(inX.rows() == inCorrelations.rows());
-  Q_ASSERT(inY.rows() == inCorrelations.rows());
-  Q_ASSERT(inX.cols() == inCorrelations.cols());
-  Q_ASSERT(inY.cols() == inCorrelations.cols());
+  Q_ASSERT(uCoords.rows() == correlations.rows());
+  Q_ASSERT(vCoords.rows() == correlations.rows());
+  Q_ASSERT(uCoords.cols() == correlations.cols());
+  Q_ASSERT(vCoords.cols() == correlations.cols());
 
-  outGridded.setZero();
+  Q_ASSERT(correlations.rows() == mask.rows());
+  Q_ASSERT(correlations.cols() == mask.cols());
 
-  Q_ASSERT(inCorrelations.rows() == inMask.rows());
-  Q_ASSERT(inCorrelations.cols() == inMask.cols());
-
-  int N = inCorrelations.rows();
+  int N = correlations.rows();
   for (int a1 = 0; a1 < N; a1++)
   {
     for (int a2 = 0; a2 < N; a2++)
     {
-      if (inMask(a1,a2) > 0.5f)
+      if (mask(a1,a2) > 0.5f)
         continue;
 
-      const std::complex<float> &corr = inCorrelations(a1, a2);
+      const std::complex<float> &corr = correlations(a1, a2);
 
-      float u = inX(a1, a2) / mDuv + IMAGE_OUTPUT_SIZE / 2 - 1;
-      float v = inY(a1, a2) / mDuv + IMAGE_OUTPUT_SIZE / 2 - 1;
+      float u = uCoords(a1, a2) / mDuv + IMAGE_OUTPUT_SIZE / 2 - 1;
+      float v = vCoords(a1, a2) / mDuv + IMAGE_OUTPUT_SIZE / 2 - 1;
 
       int w = std::floor(u);
       int e = std::ceil(u);
@@ -134,10 +135,10 @@ void Imager::gridding(const MatrixXcf &inCorrelations, const MatrixXf &inX, cons
       float south_east_power = south_power * east_power;
       float north_east_power = north_power * east_power;
 
-      outGridded(s, w) += south_west_power * corr;
-      outGridded(n, w) += north_west_power * corr;
-      outGridded(s, e) += south_east_power * corr;
-      outGridded(n, e) += north_east_power * corr;
+      grid(s, w) += south_west_power * corr;
+      grid(n, w) += north_west_power * corr;
+      grid(s, e) += south_east_power * corr;
+      grid(n, e) += north_east_power * corr;
     }
   }
 }
