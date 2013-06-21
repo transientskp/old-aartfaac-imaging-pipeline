@@ -49,17 +49,17 @@ then
 fi
 
 echo "Starting aartfaac-server"
-$ROOT/aartfaac-server $SCONFIG &
+CPUPROFILE=/tmp/server.prof $ROOT/aartfaac-server $SCONFIG &
 sleep 1
 
 echo "Starting $PIPELINES aartfaac pipelines"
 for (( i=0; i<$PIPELINES; i++ ))
 do
-  $ROOT/aartfaac-pipeline $PCONFIG $MS &
+  CPUPROFILE=/tmp/pipeline.prof $ROOT/aartfaac-pipeline $PCONFIG $MS &
 done;
 sleep 2
 
 echo "Starting aartfaac emulator"
-$ROOT/aartfaac-emulator $MS &
+CPUPROFILE=/tmp/emulator.prof $ROOT/aartfaac-emulator $MS &
 
 exit 0
