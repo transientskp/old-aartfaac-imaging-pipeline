@@ -16,8 +16,8 @@ public:
   StreamChunker(const ConfigNode &inConfig);
   ~StreamChunker();
 
-  virtual QIODevice *newDevice();
-  virtual void next(QIODevice *inDevice);
+  QIODevice *newDevice();
+  void next(QIODevice *inDevice);
 
 private:
   class Subband

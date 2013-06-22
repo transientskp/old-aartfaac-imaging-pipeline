@@ -26,14 +26,19 @@ public:
   int mImageHeight;
   int mNumChannels;
 
+  /// Reset the blob for reuse
   void reset();
 
+  /// Add visibilities for all polarizations (xx,yy,xy,yx)
   void addVis(const quint16 channel,
               const quint16 a1,
               const quint16 a2,
               const std::complex<float> v[]);
 
+  /// Prepare for sending
   void serialise(QIODevice &out) const;
+
+  /// Receive blob
   void deserialise(QIODevice &in, QSysInfo::Endian);
 };
 

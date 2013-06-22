@@ -58,7 +58,11 @@ void Imager::run(const StreamBlob *input, StreamBlob *output)
 
   // Splat the image on a grid
   for (int c = 0; c < input->mNumChannels; c++)
+  {
+    float freq = input->mHeader.freq + (input->mHeader.start_chan+c)*input->mHeader.chan_width;
+    mDuv = C_MS/freq/2.0f;
     gridding(input->mData[c][XX_POL], mUCoords, mVCoords, input->mMasks[c][XX_POL], mGridded);
+  }
 
   // Perform fft
   fftShift(mGridded);
