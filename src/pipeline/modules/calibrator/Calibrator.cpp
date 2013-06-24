@@ -14,7 +14,7 @@
 Calibrator::Calibrator(const ConfigNode &inConfig):
   AbstractModule(inConfig)
 {
-  mAntennaITRFReshaped = ANT_ITRF();
+  mAntennaLocalPosReshaped = ANT_LOCAL();
 
   mMask.resize(NUM_ANTENNAS, NUM_ANTENNAS);
   mSpatialFilterMask.resize(NUM_ANTENNAS, NUM_ANTENNAS);
@@ -75,7 +75,7 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
       mSpatialFilterMask.resize(num_antennas, num_antennas);
       mMask.resize(num_antennas, num_antennas);
       mNoiseCovMatrix.resize(num_antennas, num_antennas);
-      mAntennaITRFReshaped.resize(num_antennas, 3);
+      mAntennaLocalPosReshaped.resize(num_antennas, 3);
       mGains.resize(num_antennas);
     }
     mFlagged = input->mFlagged[c][XX_POL];
@@ -85,7 +85,7 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
       if (std::find(mFlagged.begin(), mFlagged.end(), a1) != mFlagged.end())
         continue;
 
-      mAntennaITRFReshaped.row(_a1) = ANT_ITRF().row(a1);
+      mAntennaLocalPosReshaped.row(_a1) = ANT_LOCAL().row(a1);
 
       for (int a2 = 0, _a2 = 0; a2 < NUM_ANTENNAS; a2++)
       {
@@ -148,7 +148,7 @@ void Calibrator::run(const StreamBlob *input, StreamBlob *output)
     // ==============================
     std::complex<double> i1(0.0, 1.0);
     i1 *= 2.0 * M_PI * mFrequency / C_MS;
-    MatrixXcf A = (-i1 * (mAntennaITRFReshaped * selection.transpose())).array().exp().cast<std::complex<float> >();
+    MatrixXcf A = (-i1 * (mAntennaLocalPosReshaped * selection.transpose())).array().exp().cast<std::complex<float> >();
     MatrixXf inv_mask = (mNoiseCovMatrix.array().abs() > 0.0).select(MatrixXf::Zero(mNoiseCovMatrix.rows(), mNoiseCovMatrix.cols()), 1.0f);
     walsCalibration(A, mNormalizedData, fluxes, inv_mask, mGains, mFluxes, mNoiseCovMatrix);
     mGains = (1.0/mGains.array());
@@ -192,7 +192,7 @@ void Calibrator::statCal(const MatrixXcf &inData,
 {
   std::complex<double> i1(0.0, 1.0);
   i1 *= 2.0 * M_PI * inFrequency / C_MS;
-  MatrixXcf A = (-i1 * (mAntennaITRFReshaped * mSelection.transpose())).array().exp().cast<std::complex<float> >();
+  MatrixXcf A = (-i1 * (mAntennaLocalPosReshaped * mSelection.transpose())).array().exp().cast<std::complex<float> >();
 
   MatrixXcf KA(A.rows()*A.rows(), A.cols());
   utils::khatrirao<std::complex<float> >(A.conjugate(), A, KA);
@@ -441,7 +441,7 @@ void Calibrator::wsfSrcPos(const MatrixXcf &inData,
   MatrixXcf T = 1.0f / inGains.array();
   MatrixXcf G = T.conjugate().asDiagonal().toDenseMatrix();
 
-  WSFCost wsf_cost(EsWEs, G, inFreq, mAntennaITRFReshaped, nsrc);
+  WSFCost wsf_cost(EsWEs, G, inFreq, mAntennaLocalPosReshaped, nsrc);
 
   init = NM::Simplex(wsf_cost, init, 1e-4);
 

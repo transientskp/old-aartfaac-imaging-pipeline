@@ -14,6 +14,7 @@ public:
   AntennaPositions(const QString &inFileName);
   ~AntennaPositions() {}
 
+  Vector3d GetPosLocal(const int a);
   Vector3d GetITRF(const int a);
   Vector3d GetUVW(const int a1, const int a2);
 
@@ -21,13 +22,15 @@ public:
   MatrixXd& GetAllV() { return mVCoords; }
   MatrixXd& GetAllW() { return mWCoords; }
 
-  MatrixXd& GetAllITRF() { return mAntennaITRF; }
+  MatrixXd& GetAllITRF() { return mPosItrf; }
+  MatrixXd& GetAllLocal() { return mPosLocal; }
 
 private:
-  MatrixXd mAntennaITRF; ///< ITRF positions (a1,...,an)
-  MatrixXd mUCoords;     ///< a1_x - a2_x;
-  MatrixXd mVCoords;     ///< a1_y - a2_y;
-  MatrixXd mWCoords;     ///< a1_z - a2_z;
+  MatrixXd mPosItrf;  ///< ITRF positions (a1,...,an)
+  MatrixXd mPosLocal; ///< Local antenna positions (ITRF * R)
+  MatrixXd mUCoords;  ///< a1_x - a2_x;
+  MatrixXd mVCoords;  ///< a1_y - a2_y;
+  MatrixXd mWCoords;  ///< a1_z - a2_z;
 };
 
 static AntennaPositions ap("../data/posITRF.dat");
@@ -37,6 +40,7 @@ static AntennaPositions ap("../data/posITRF.dat");
 #define ANT_V() ap.GetAllV()
 #define ANT_W() ap.GetAllW()
 #define ANT_ITRF() ap.GetAllITRF()
-#define ANT_XYZ(a) ap.GetITRF(a)
+#define ANT_LOCAL() ap.GetAllLocal()
+#define ANT_XYZ(a) ap.GetPosLocal(a)
 
 #endif // ANTENNA_POSITONS_H

@@ -82,7 +82,7 @@ private:
   /// Changed when new antenna are (un)flagged
   std::vector<int> mFlagged;
   MatrixXf mSpatialFilterMask;
-  MatrixXd mAntennaITRFReshaped;
+  MatrixXd mAntennaLocalPosReshaped;
   MatrixXf mMask;
   MatrixXd mSelection;
   MatrixXcf mNormalizedData;
