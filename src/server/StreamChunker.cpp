@@ -11,7 +11,7 @@ StreamChunker::StreamChunker(const ConfigNode &config):
   mServer(0),
   mNumChannels(0),
   mFrequency(0.0),
-  mFrequencyWidth(0.0)
+  mChannelWidth(0.0)
 {
   QString s = config.getOption("channel", "subbands");
   mSubbands = ParseSubbands(s);
@@ -25,13 +25,13 @@ StreamChunker::StreamChunker(const ConfigNode &config):
   mTimeOut = config.getOption("connection", "timeout", "5000").toInt();
 
   // NOTE: These defaults are associated with SB002_LBA_OUTER_SPREAD.MS.trimmed
-  mNumChannels = config.getOption("channel", "amount", "64").toInt();
-  mFrequency = config.getOption("channel", "frequency", "54786682.128906").toDouble();
-  mFrequencyWidth = config.getOption("channel", "frequency_width", "3051.757812").toDouble();
+  mNumChannels = config.getOption("channel", "amount", "1").toInt();
+  mFrequency = config.getOption("channel", "frequency", "54873657.226562").toDouble();
+  mChannelWidth = config.getOption("channel", "width", "3051.757812").toDouble();
 
   qDebug("Channels (%d):", mNumChannels);
   qDebug("  Frequency ref: %f", mFrequency);
-  qDebug("  Channel width: %f", mFrequencyWidth);
+  qDebug("  Channel width: %f", mChannelWidth);
   mVisibilities = new std::complex<float>[mNumChannels*NUM_POLARIZATIONS];
 }
 
@@ -80,7 +80,7 @@ void StreamChunker::next(QIODevice *inDevice)
   for (int i = 0, n = mSubbands.size(); i < n; i++)
   {
     chunk_header.freq = mFrequency;
-    chunk_header.chan_width = mFrequencyWidth;
+    chunk_header.chan_width = mChannelWidth;
     chunk_header.start_chan = mSubbands[i].c1;
     chunk_header.end_chan = mSubbands[i].c2;
 
@@ -170,8 +170,8 @@ std::vector<StreamChunker::Subband> StreamChunker::ParseSubbands(const QString &
     Subband &s = subbands[i];
     s.channels = s.c2 - s.c1 + 1;
 
-    if (s.c1 >= s.c2)
-      qFatal("Invalid subband: %d < %d does not hold", s.c1, s.c2);
+    if (s.c1 > s.c2)
+      qFatal("Invalid subband: %d <= %d does not hold", s.c1, s.c2);
 
     if (s.channels > MAX_MERGE_CHANNELS)
       qFatal("Too many channels in single subband: %d <= %d does not hold",

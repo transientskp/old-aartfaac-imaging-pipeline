@@ -13,7 +13,7 @@
     <chunkers>
       <StreamChunker>
         <data type="StreamBlob"/>
-        <channel subbands="1-63"/>
+        <channel subbands="1-1" amount="1" frequency="54873657.226562" width="3051.757812"/>
         <connection host="127.0.0.1" port="2001" timeout="30000"/>
       </StreamChunker>
     </chunkers>
