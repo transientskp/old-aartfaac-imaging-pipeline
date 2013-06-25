@@ -64,7 +64,7 @@ include (cmake/sources.cmake)
 include_directories (${PROJECT_BINARY_DIR})
 
 # === Find and include dependencies.
-find_package (Eigen3 REQUIRED)
+find_package (Eigen3 3.1 REQUIRED)
 find_package (FFTW REQUIRED)
 find_package (Qt4 COMPONENTS QtCore QtNetwork QtXml REQUIRED)
 find_package (Pelican REQUIRED)
