@@ -1,6 +1,9 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+/** Header magic as defined in the correlator */
+#define HEADER_MAGIC 0x3B98F002
+
 /** Max number of chars for the antenna names */
 #define MAX_CHARS_ANTENNA_NAME 10
 
@@ -9,9 +12,6 @@
 
 /** Number of baselines including self correlation */
 #define NUM_BASELINES (NUM_ANTENNAS*(NUM_ANTENNAS+1)/2)
-
-/** Number of channels */
-#define NUM_CHANNELS 64
 
 /** Number of maximum channels to merge together */
 #define MAX_MERGE_CHANNELS 16

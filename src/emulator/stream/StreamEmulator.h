@@ -28,7 +28,6 @@ private:
   void emulationFinished();
   QIODevice* createDevice();
 
-
   quint32 mTotalPackets;
   quint32 mTotalTableRows;
   quint32 mTotalChannels;
@@ -39,7 +38,9 @@ private:
   QString mHost;
 
   QTime mTimer;
-  StreamPacket *mPacket;
+
+  char *mData;
+  size_t mDataSize;
 
   casa::MeasurementSet *mMeasurementSet;
   casa::ROMSColumns *mMSColumns;

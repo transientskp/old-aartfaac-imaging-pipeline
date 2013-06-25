@@ -3,6 +3,7 @@
 
 #include "../emulator/stream/StreamPacket.h"
 
+#include <complex>
 #include <pelican/server/AbstractChunker.h>
 #include <QtCore>
 #include <QtNetwork/QTcpServer>
@@ -13,7 +14,7 @@ using namespace pelican;
 class StreamChunker : public AbstractChunker
 {
 public:
-  StreamChunker(const ConfigNode &inConfig);
+  StreamChunker(const ConfigNode &config);
   ~StreamChunker();
 
   QIODevice *newDevice();
@@ -34,13 +35,15 @@ private:
     }
   };
 
+  std::complex<float> *mVisibilities;
+  QTcpServer *mServer; ///< TCP/IP server, created in newDevice()
+
+  // Must be defined in serverConf.xml
   std::vector<Subband> mSubbands;
-
-  QTcpServer *mServer;
-  StreamPacket *mPacket;
-
-  int mPacketSize;
   int mTimeOut;
+  int mNumChannels;
+  double mFrequency;
+  double mFrequencyWidth;
 
   /** @brief Parses subbands of the form: "c_{1}-c_{2},...,c_{n-1}-c_{n}",
    *         where c_{i} in {0,...,n} and c_{i} < c_{i+1}

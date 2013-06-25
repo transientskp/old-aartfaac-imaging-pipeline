@@ -1,29 +1,44 @@
 #include "StreamChunker.h"
 
+#include "../Constants.h"
 #include "../utilities/Utils.h"
 
 #include <pelican/utility/Config.h>
 #include <QtNetwork/QTcpSocket>
 
-StreamChunker::StreamChunker(const ConfigNode &inConfig):
-  AbstractChunker(inConfig),
-  mPacket(new StreamPacket()),
-  mPacketSize(sizeof(StreamPacket))
+StreamChunker::StreamChunker(const ConfigNode &config):
+  AbstractChunker(config),
+  mServer(0),
+  mNumChannels(0),
+  mFrequency(0.0),
+  mFrequencyWidth(0.0)
 {
-  QString s = inConfig.getOption("channel", "subbands");
+  QString s = config.getOption("channel", "subbands");
   mSubbands = ParseSubbands(s);
   std::sort(mSubbands.begin(), mSubbands.end());
+
   qDebug("Subbands (%ld):", mSubbands.size());
   for (int i = 0, n = mSubbands.size(); i < n; i++)
     qDebug("  (%d-%d)\t(%d) chunksize %lu bytes",
            mSubbands[i].c1, mSubbands[i].c2, mSubbands[i].channels, mSubbands[i].size);
-  mTimeOut = inConfig.getOption("connection", "timeout", "5000").toInt();
+
+  mTimeOut = config.getOption("connection", "timeout", "5000").toInt();
+
+  // NOTE: These defaults are associated with SB002_LBA_OUTER_SPREAD.MS.trimmed
+  mNumChannels = config.getOption("channel", "amount", "64").toInt();
+  mFrequency = config.getOption("channel", "frequency", "54786682.128906").toDouble();
+  mFrequencyWidth = config.getOption("channel", "frequency_width", "3051.757812").toDouble();
+
+  qDebug("Channels (%d):", mNumChannels);
+  qDebug("  Frequency ref: %f", mFrequency);
+  qDebug("  Channel width: %f", mFrequencyWidth);
+  mVisibilities = new std::complex<float>[mNumChannels*NUM_POLARIZATIONS];
 }
 
 StreamChunker::~StreamChunker()
 {
   delete mServer;
-  delete mPacket;
+  delete[] mVisibilities;
 }
 
 QIODevice *StreamChunker::newDevice()
@@ -33,7 +48,7 @@ QIODevice *StreamChunker::newDevice()
 
   if (!mServer->waitForNewConnection(mTimeOut))
   {
-    delete mServer;
+    this->~StreamChunker();
     qFatal("Connection timeout after %d msec", mTimeOut);
   }
 
@@ -48,30 +63,43 @@ void StreamChunker::next(QIODevice *inDevice)
   std::vector<WritableData> chunks(mSubbands.size());
   std::vector<size_t> bytes(mSubbands.size(), 0);
   ChunkHeader chunk_header;
+  StreamHeader stream_header;
 
+  // Wait for enough bytes and parse the streaming header
+  qint64 stream_hdr_size = sizeof(StreamHeader);
+  while (inDevice->bytesAvailable() < stream_hdr_size)
+    inDevice->waitForReadyRead(1);
+
+  inDevice->read(reinterpret_cast<char*>(&stream_header), stream_hdr_size);
+
+  if (stream_header.magic != HEADER_MAGIC)
+    qFatal("Invalid packet, magics do not match");
+
+  // Allocate chunk memory for each subband and write chunker header
+  chunk_header.time = stream_header.end_time;
+  for (int i = 0, n = mSubbands.size(); i < n; i++)
+  {
+    chunk_header.freq = mFrequency;
+    chunk_header.chan_width = mFrequencyWidth;
+    chunk_header.start_chan = mSubbands[i].c1;
+    chunk_header.end_chan = mSubbands[i].c2;
+
+    chunks[i] = getDataStorage(mSubbands[i].size);
+    if (!chunks[i].isValid())
+      qFatal("[%s()] Not enough memory", __FUNCTION__);
+
+    chunks[i].write(static_cast<void*>(&chunk_header), sizeof(ChunkHeader), bytes[i]);
+    bytes[i] += sizeof(ChunkHeader);
+  }
+
+  // Start reading data from device and write to the appropriate chunk/subband
   for (int b = 0; b < NUM_BASELINES; b++)
   {
-    while (inDevice->bytesAvailable() < mPacketSize)
-      inDevice->waitForReadyRead(1);
-    inDevice->read(reinterpret_cast<char*>(mPacket), mPacketSize);
+    qint64 baseline_size = mNumChannels*NUM_POLARIZATIONS*sizeof(std::complex<float>);
+    while (inDevice->bytesAvailable() < baseline_size);
+      inDevice->waitForReadyRead(10);
 
-    if (b == 0)
-    {
-      for (int i = 0, n = mSubbands.size(); i < n; i++)
-      {
-        chunk_header.time = mPacket->mHeader.time;
-        chunk_header.freq = mPacket->mHeader.freq;
-        chunk_header.chan_width = mPacket->mHeader.chan_width;
-        chunk_header.start_chan = mSubbands[i].c1;
-        chunk_header.end_chan = mSubbands[i].c2;
-
-        chunks[i] = getDataStorage(mSubbands[i].size);
-        if (!chunks[i].isValid())
-          qFatal("[%s()] Not enough memory", __FUNCTION__);
-        chunks[i].write(static_cast<void*>(&chunk_header), sizeof(ChunkHeader), bytes[i]);
-        bytes[i] += sizeof(ChunkHeader);
-      }
-    }
+    inDevice->read(reinterpret_cast<char*>(mVisibilities), baseline_size);
 
     for (int i = 0, n = mSubbands.size(); i < n; i++)
     {
@@ -81,9 +109,10 @@ void StreamChunker::next(QIODevice *inDevice)
       {
         for (int p = 0; p < NUM_POLARIZATIONS; p++)
         {
-          chunks[i].write(static_cast<void*>(&mPacket->visibilities[c][p]),
+          chunks[i].write(static_cast<void*>(&mVisibilities[c*NUM_POLARIZATIONS+p]),
                           sizeof(std::complex<float>),
                           bytes[i]);
+
           bytes[i] += sizeof(std::complex<float>);
         }
       }
