@@ -14,7 +14,7 @@
 #define NUM_BASELINES (NUM_ANTENNAS*(NUM_ANTENNAS+1)/2)
 
 /** Number of maximum channels to merge together */
-#define MAX_MERGE_CHANNELS 16
+#define MAX_MERGE_CHANNELS 64
 
 /** Number of polarizations (X, Y) */
 #define NUM_POLARIZATIONS 4

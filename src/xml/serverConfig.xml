@@ -6,14 +6,14 @@
   <server>
     <buffers>
       <StreamBlob>
-        <buffer maxSize="4294967296" maxChunkSize="10485760"/>
+        <buffer maxSize="4294967296" maxChunkSize="4294967296"/>
       </StreamBlob>
     </buffers>
 
     <chunkers>
       <StreamChunker>
         <data type="StreamBlob"/>
-        <channel subbands="1-7,8-14,15-21,22-28,29-35,36-42,43-49,50-56,57-63"/>
+        <channel subbands="1-63"/>
         <connection host="127.0.0.1" port="2001" timeout="30000"/>
       </StreamChunker>
     </chunkers>
