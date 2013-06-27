@@ -94,7 +94,10 @@ void StreamEmulator::getPacketData(char *&data, unsigned long &size)
 QIODevice* StreamEmulator::createDevice()
 {
   QTcpSocket *socket = new QTcpSocket();
+  socket->abort();
   socket->connectToHost(mHost, mPort);
+  if (!socket->waitForConnected(-1))
+    throw QString("Error: ") + socket->errorString();
 
   std::cout << std::endl << "Sending..." << std::flush;
   mTimer.start();
@@ -121,6 +124,4 @@ void StreamEmulator::emulationFinished()
   qDebug("Packet     : %ld bytes", mDataSize);
   qDebug("Speed      : %0.2f MiB/s", (total_bytes / (1024.0f*1024.0f)) / seconds);
   qDebug("Total sent : %ld bytes, %d packets", total_bytes, mTotalPackets);
-
-  QCoreApplication::quit();
 }

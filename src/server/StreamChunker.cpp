@@ -43,15 +43,13 @@ StreamChunker::~StreamChunker()
 
 QIODevice *StreamChunker::newDevice()
 {
-  mServer = new QTcpServer();
-  mServer->listen(QHostAddress(host()), port());
-
-  if (!mServer->waitForNewConnection(mTimeOut))
+  if (mServer == 0)
   {
-    this->~StreamChunker();
-    qFatal("Connection timeout after %d msec", mTimeOut);
+    mServer = new QTcpServer();
+    mServer->listen(QHostAddress(host()), port());
   }
 
+  mServer->waitForNewConnection(-1);
   return mServer->nextPendingConnection();
 }
 
