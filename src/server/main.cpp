@@ -12,7 +12,7 @@
 void sighandler(int signal)
 {
   qCritical("Caught signal %d (%s), shutting down", signal, strsignal(signal));
-  QCoreApplication::exit(signal);
+  exit(signal);
 }
 
 int main(int argc, char *argv[])

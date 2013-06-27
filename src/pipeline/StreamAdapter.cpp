@@ -17,7 +17,7 @@ void StreamAdapter::deserialise(QIODevice *inDevice)
   size_t bytes_read = 0;
 
   while (inDevice->bytesAvailable() < sizeof(ChunkHeader))
-    inDevice->waitForReadyRead(1);
+    inDevice->waitForReadyRead(-1);
 
   bytes_read += inDevice->read(reinterpret_cast<char*>(&(blob->mHeader)),
                                sizeof(ChunkHeader));

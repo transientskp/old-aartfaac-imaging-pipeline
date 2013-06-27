@@ -66,7 +66,7 @@ void StreamChunker::next(QIODevice *inDevice)
   // Wait for enough bytes and parse the streaming header
   qint64 stream_hdr_size = sizeof(StreamHeader);
   while (inDevice->bytesAvailable() < stream_hdr_size)
-    inDevice->waitForReadyRead(1);
+    inDevice->waitForReadyRead(-1);
 
   inDevice->read(reinterpret_cast<char*>(&stream_header), stream_hdr_size);
 
@@ -94,8 +94,8 @@ void StreamChunker::next(QIODevice *inDevice)
   for (int b = 0; b < NUM_BASELINES; b++)
   {
     qint64 baseline_size = mNumChannels*NUM_POLARIZATIONS*sizeof(std::complex<float>);
-    while (inDevice->bytesAvailable() < baseline_size);
-      inDevice->waitForReadyRead(10);
+    while (inDevice->bytesAvailable() < baseline_size)
+      inDevice->waitForReadyRead(-1);
 
     inDevice->read(reinterpret_cast<char*>(mVisibilities), baseline_size);
 
