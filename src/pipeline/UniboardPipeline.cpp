@@ -47,24 +47,25 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
 
   // Start potential threads
   int channel = 0;
-#pragma omp parallel
-{
-  #pragma omp single
-  while (channel < data->mNumChannels)
-  {
-    #pragma omp task firstprivate(channel,data)
-    {
-      // Flag bad antennas/visibilities
-      mFlaggers[channel%mThreads]->run(channel, data, data);
-      // Calibrate correlations
-      mCalibrators[channel%mThreads]->run(channel, data, data);
-      // Output calibrated visibilities, see modules/output
-      dataOutput(data, "calibrated");
-    }
+  const int max = data->mNumChannels;
 
-    channel++;
+  #pragma omp parallel
+  {
+    #pragma omp single
+    while (channel < max)
+    {
+      #pragma omp task firstprivate(channel, data)
+      {
+        int idx = omp_get_thread_num();
+        // Flag bad antennas/visibilities
+        mFlaggers[idx]->run(channel, data, data);
+        // Calibrate correlations
+        mCalibrators[idx]->run(channel, data, data);
+      }
+
+      channel++;
+    }
   }
-}
 
   // Create image
   mImager->run(data, data);
