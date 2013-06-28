@@ -16,9 +16,7 @@ void UniboardPipeline::init()
 {
 #ifdef ENABLE_OPENMP
   mThreads = omp_get_max_threads();
-  std::cout << "OpenMP threads: %d" << mThreads << std::endl;
-#else
-  mThreads = 1;
+  qDebug("OpenMP threads: %d", mThreads);
 #endif // ENABLE_OPENMP
 
 
@@ -54,7 +52,7 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
   #pragma omp single
   while (channel < data->mNumChannels)
   {
-    #pragma omp task firstprivate(channel), shared(data)
+    #pragma omp task firstprivate(channel,data)
     {
       // Flag bad antennas/visibilities
       mFlaggers[channel%mThreads]->run(channel, data, data);
@@ -73,7 +71,7 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
 
   float time = (mTimer.elapsed() / 1000.0f);
 
-  qCritical("Processed subband (%d-%d) in %0.3f sec",
+  qDebug("Processed subband (%d-%d) in %0.3f sec",
          data->mHeader.start_chan, data->mHeader.end_chan, time);
 
   // Output to stream(s), see modules/output

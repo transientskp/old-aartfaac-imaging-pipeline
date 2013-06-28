@@ -312,7 +312,7 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
     float x = std::abs(X(0) - 1.0f);
     if (x < epsilon)
     {
-      qDebug("[%s] Convergence after %d iterations", __FUNCTION__, i);
+//      qDebug("[%s] Convergence after %d iterations", __FUNCTION__, i);
       break;
     }
 
@@ -384,7 +384,7 @@ int Calibrator::gainSolv(const MatrixXcf &inModel,
       float delta_gains_normal = tmp.norm();
       if (delta_gains_normal / gains_normal <= epsilon)
       {
-        qDebug("[%s] Convergence after %d iterations", __FUNCTION__, i);
+//        qDebug("[%s] Convergence after %d iterations", __FUNCTION__, i);
         break;
       }
     }
