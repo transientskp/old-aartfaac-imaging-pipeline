@@ -22,7 +22,7 @@ public:
   Calibrator(const ConfigNode &inConfig);
   ~Calibrator();
 
-  void run(const StreamBlob *input, StreamBlob *output);
+  void run(const int channel, const StreamBlob *input, StreamBlob *output);
 
 private:
   void statCal(const MatrixXcf &inData,

@@ -33,7 +33,8 @@ void Logger::close()
 void Logger::messageHandler(QtMsgType inType, const char *inMsg)
 {
   QString msg(inMsg);
-  msg = "[" + sName + "] " + msg;
+  __pid_t pid = getpid();
+  msg = "[" + sName + "-" + QString::number(pid) + "] " + msg;
 
   switch (inType)
   {

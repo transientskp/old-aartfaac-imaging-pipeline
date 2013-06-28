@@ -25,6 +25,8 @@ endif (NOT CMAKE_BUILD_TYPE)
 
 if (ENABLE_OPENMP)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+  add_definitions(-DENABLE_OPENMP)
+  add_definitions(-DEIGEN_DONT_PARALLELIZE)
 endif (ENABLE_OPENMP)
 
 if (ENABLE_PROFILING)

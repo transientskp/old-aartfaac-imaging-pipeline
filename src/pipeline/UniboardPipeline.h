@@ -16,8 +16,6 @@ class UniboardPipeline : public AbstractPipeline
 public:
   /// Constructor.
   UniboardPipeline() : AbstractPipeline(),
-    mFlagger(NULL),
-    mCalibrator(NULL),
     mImager(NULL)
   {}
 
@@ -28,9 +26,11 @@ public:
   void run(QHash<QString, DataBlob *>& remoteData);
 
 private:
-  Flagger *mFlagger;
-  Calibrator *mCalibrator;
+  std::vector<Flagger*> mFlaggers;
+  std::vector<Calibrator*> mCalibrators;
+
   Imager *mImager;
+  int mThreads;
 
   QTime mTimer;
 };
