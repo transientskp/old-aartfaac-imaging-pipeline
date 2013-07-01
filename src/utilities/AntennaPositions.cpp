@@ -2,12 +2,12 @@
 
 #include <QtCore>
 
-AntennaPositions::AntennaPositions(const QString &inFileName)
+AntennaPositions::AntennaPositions(const QString &filename)
 {
-  QFile file(inFileName);
+  QFile file(filename);
 
   if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-    qFatal("Failed opening %s", qPrintable(inFileName));
+    qFatal("Failed opening %s", qPrintable(filename));
 
   QTextStream ts(&file);
   mPosItrf.resize(NUM_ANTENNAS, 3);

@@ -15,7 +15,6 @@
 #include <QDataStream>
 #include <QtCore>
 
-bool Logger::sShouldUseColor = shouldUseColor();
 QString Logger::sName;
 
 void Logger::open(const QString &inName)
@@ -42,10 +41,10 @@ void Logger::messageHandler(QtMsgType inType, const char *inMsg)
     {
       syslog(LOG_INFO, "[INFO] %s", inMsg);
 
-      if (sShouldUseColor)
+      if (shouldUseColor())
         std::cout << qPrintable(colorize(msg, GREEN)) << std::endl;
       else
-        std::cout << "[INFO] " << inMsg << std::endl;
+        std::cout << "[INFO] " << qPrintable(msg) << std::endl;
 
       break;
     }
@@ -53,10 +52,10 @@ void Logger::messageHandler(QtMsgType inType, const char *inMsg)
     {
       syslog(LOG_WARNING, "[WARNING] %s", inMsg);
 
-      if (sShouldUseColor)
+      if (shouldUseColor())
         std::cout << qPrintable(colorize(msg, YELLOW)) << std::endl;
       else
-        std::cout << "[WARNING] " << inMsg << std::endl;
+        std::cout << "[WARNING] " << qPrintable(msg) << std::endl;
 
       break;
     }
@@ -64,10 +63,10 @@ void Logger::messageHandler(QtMsgType inType, const char *inMsg)
     {
       syslog(LOG_CRIT, "[CRITICAL] %s", inMsg);
 
-      if (sShouldUseColor)
+      if (shouldUseColor())
         std::cerr << qPrintable(colorize(msg, RED)) << std::endl;
       else
-        std::cerr << "[CRITICAL] " << inMsg << std::endl;
+        std::cerr << "[CRITICAL] " << qPrintable(msg) << std::endl;
 
       break;
     }
@@ -75,10 +74,10 @@ void Logger::messageHandler(QtMsgType inType, const char *inMsg)
     {
       syslog(LOG_EMERG, "[FATAL] %s", inMsg);
 
-      if (sShouldUseColor)
+      if (shouldUseColor())
         std::cerr << qPrintable(colorize(msg, RED)) << std::endl;
       else
-        std::cerr << "[FATAL] " << inMsg << std::endl;
+        std::cerr << "[FATAL] " << qPrintable(msg) << std::endl;
 
       exit(EXIT_FAILURE);
       break;
