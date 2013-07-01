@@ -41,6 +41,6 @@ void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *i
   casa::PagedImage<casa::Float> image(map_shape, coordinate_info, qPrintable(filename));
   for (int i = 0; i < IMAGE_OUTPUT_SIZE; i++)
     for (int j = 0; j < IMAGE_OUTPUT_SIZE; j++)
-      image.putAt(blob->mSkyMap(i, j), casa::IPosition(2, i, j));
+      image.putAt(blob->mSkyMap(i, j), casa::IPosition(2, j, i));
 }
 

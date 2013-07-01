@@ -107,7 +107,7 @@ void StreamChunker::next(QIODevice *inDevice)
       {
         for (int p = 0; p < NUM_POLARIZATIONS; p++)
         {
-          chunks[i].write(static_cast<void*>(&mVisibilities[c*NUM_POLARIZATIONS+p]),
+          chunks[i].write(static_cast<void*>(&mVisibilities[(c)*NUM_POLARIZATIONS+p]),
                           sizeof(std::complex<float>),
                           bytes[i]);
 

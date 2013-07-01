@@ -14,7 +14,7 @@
 Calibrator::Calibrator(const ConfigNode &inConfig):
   AbstractModule(inConfig)
 {
-  mAntennaLocalPosReshaped = ANT_LOCAL();
+  mAntennaLocalPosReshaped = ANT_ITRF();
 
   mMask.resize(NUM_ANTENNAS, NUM_ANTENNAS);
   mSpatialFilterMask.resize(NUM_ANTENNAS, NUM_ANTENNAS);
@@ -83,7 +83,7 @@ void Calibrator::run(const int channel, const StreamBlob *input, StreamBlob *out
     if (std::find(mFlagged.begin(), mFlagged.end(), a1) != mFlagged.end())
       continue;
 
-    mAntennaLocalPosReshaped.row(_a1) = ANT_LOCAL().row(a1);
+    mAntennaLocalPosReshaped.row(_a1) = ANT_ITRF().row(a1);
 
     for (int a2 = 0, _a2 = 0; a2 < NUM_ANTENNAS; a2++)
     {

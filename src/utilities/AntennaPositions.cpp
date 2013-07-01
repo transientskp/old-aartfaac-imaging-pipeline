@@ -47,9 +47,9 @@ AntennaPositions::AntennaPositions(const QString &filename)
   {
     for (int a2 = 0; a2 < NUM_ANTENNAS; a2++)
     {
-      mUCoords(a1, a2) = mPosLocal(a1, 0) - mPosLocal(a2, 0);
-      mVCoords(a1, a2) = mPosLocal(a1, 1) - mPosLocal(a2, 1);
-      mWCoords(a1, a2) = mPosLocal(a1, 2) - mPosLocal(a2, 2);
+      mUCoords(a1, a2) = mPosItrf(a1, 0) - mPosItrf(a2, 0);
+      mVCoords(a1, a2) = mPosItrf(a1, 1) - mPosItrf(a2, 1);
+      mWCoords(a1, a2) = mPosItrf(a1, 2) - mPosItrf(a2, 2);
     }
   }
 }

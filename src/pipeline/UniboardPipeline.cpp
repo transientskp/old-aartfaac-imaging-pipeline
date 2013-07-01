@@ -56,7 +56,11 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
     {
       #pragma omp task firstprivate(channel, data)
       {
-        int idx = omp_get_thread_num();
+        int idx = 0;
+#ifdef ENABLE_OPENMP
+        idx = omp_get_thread_num();
+#endif // ENABLE_OPENMP
+
         // Flag bad antennas/visibilities
         mFlaggers[idx]->run(channel, data, data);
         // Calibrate correlations
