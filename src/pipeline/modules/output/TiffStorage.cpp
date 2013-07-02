@@ -1,10 +1,12 @@
 #include "TiffStorage.h"
 #include "../../StreamBlob.h"
+#include "../../../utilities/Utils.h"
+#include "../../../Constants.h"
 
 #include <limits>
 #include <cmath>
-#include <QtGui/QImage>
 #include <QtGui/QColor>
+#include <eigen3/Eigen/Dense>
 
 TiffStorage::TiffStorage(const ConfigNode &inConfigNode)
   : AbstractOutputStream(inConfigNode)
@@ -19,6 +21,9 @@ TiffStorage::TiffStorage(const ConfigNode &inConfigNode)
     color.setHsv(hue, 255, 255);
     mColors.append(color.rgb());
   }
+
+  mImage = QImage(IMAGE_OUTPUT_SIZE, IMAGE_OUTPUT_SIZE, QImage::Format_Indexed8);
+  mImage.setColorTable(mColors);
 }
 
 TiffStorage::~TiffStorage()
@@ -29,6 +34,7 @@ TiffStorage::~TiffStorage()
 void TiffStorage::sendStream(const QString &inStreamName, const DataBlob *inDataBlob)
 {
   const StreamBlob *blob = static_cast<const StreamBlob *>(inDataBlob);
+  static int img_index = 0;
 
   if (blob->type() != "StreamBlob")
   {
@@ -37,39 +43,21 @@ void TiffStorage::sendStream(const QString &inStreamName, const DataBlob *inData
     return;
   }
 
-/*
-  const std::vector<float> &skymap = blob->getSkyMap();
+  Eigen::MatrixXf &skymap = const_cast<Eigen::MatrixXf&>(blob->mSkyMap);
 
-  // Obtain min and max value
-  float min = std::numeric_limits<float>::max();
+  const float min = skymap.minCoeff();
+  const float max = skymap.maxCoeff();
+  const float gamma = 2.2f;
 
-  float max = std::numeric_limits<float>::min();
+  skymap = (skymap.array() - min) / (max - min);
 
-  for (int i = 0, n = skymap.size(); i < n; i++)
-  {
-    min = std::min<float>(min, skymap[i]);
-    max = std::max<float>(max, skymap[i]);
-  }
+  QString filename = mPath + "/img-" + QString::number(img_index) + ".png";
+  img_index++;
 
-  // Normalize between 0..1 and find gamma
-  std::vector<float> normalized(skymap.size());
-  float gamma = 0.75f;
+  for (int i = 0; i < skymap.size(); i++)
+    *(mImage.bits() + i) = (uchar) roundf(std::pow(skymap(i), gamma) * 255.0f);
 
-  for (int i = 0, n = skymap.size(); i < n; i++)
-    normalized[i] = (skymap[i] - min) / (max - min);
-
-  // Apply gamma correction and put into bitmap
-  // See http://en.wikipedia.org/wiki/Gamma_correction
-  std::vector<unsigned char> bitmap(skymap.size());
-
-  for (int i = 0, n = skymap.size(); i < n; i++)
-    bitmap[i] = (unsigned char) round(std::pow<float>(normalized[i], gamma) * 255.0f);
-
-  // Create image
-  QImage image(&bitmap[0], blob->getWidth(), blob->getHeight(), QImage::Format_Indexed8);
-  image.setColorTable(mColors);
-  QString filename = QString::number(blob->getFrequency()) + "_" + blob->getDateTime().toString("dd-MM-yyyy_hh:mm:ss") + ".tiff";
-  image.save(mPath + "/" + filename, "TIFF");
-*/
+  if (!mImage.save(filename))
+    qFatal("[%s] Could not save image to %s", __FUNCTION__, qPrintable(filename));
 }
 

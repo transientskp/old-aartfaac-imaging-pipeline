@@ -6,6 +6,8 @@
 
 #include <QtGui/QColor>
 #include <QtCore>
+#include <QtGui/QImage>
+
 
 using namespace pelican;
 
@@ -25,6 +27,7 @@ protected:
 private:
   QString mPath; ///< Path to store images at
   QVector<QRgb> mColors; ///< Colortable for 8bit image
+  QImage mImage; ///< Output image
 };
 
 PELICAN_DECLARE(AbstractOutputStream, TiffStorage)
