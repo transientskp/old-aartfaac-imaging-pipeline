@@ -2,7 +2,6 @@
 #include "version.h"
 #include "UniboardPipeline.h"
 #include "StreamAdapter.h"
-#include "ServiceAdapter.h"
 
 #include <pelican/core/PipelineApplication.h>
 #include <QtCore/QCoreApplication>

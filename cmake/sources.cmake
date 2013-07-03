@@ -6,8 +6,6 @@ set (EMULATOR_SOURCES
   src/emulator/main.cpp
   src/emulator/stream/StreamPacket.h
   src/emulator/stream/StreamEmulator.cpp
-  src/emulator/service/ServiceUdpPacket.h
-  src/emulator/service/ServiceEmulator.cpp
   src/utilities/Logger.cpp
 )
 
@@ -17,8 +15,6 @@ set (PIPELINE_SOURCES
   src/pipeline/main.cpp
   src/pipeline/StreamBlob.cpp
   src/pipeline/StreamAdapter.cpp
-  src/pipeline/ServiceAdapter.cpp
-  src/pipeline/ServiceBlob.cpp
   src/pipeline/UniboardPipeline.cpp
   src/pipeline/modules/flagger/Flagger.cpp
   src/pipeline/modules/calibrator/Calibrator.cpp
@@ -37,8 +33,6 @@ set (SERVER_SOURCES
   src/Constants.h
   src/server/main.cpp
   src/server/StreamChunker.cpp
-  src/server/ServiceChunker.cpp
-  src/emulator/service/ServiceUdpPacket.h
   src/emulator/stream/StreamPacket.h
   src/utilities/Utils.cpp
   src/utilities/Logger.cpp
@@ -52,7 +46,6 @@ set (emulatortest_SOURCES
   src/emulator/test/main.cpp
   src/emulator/test/UniboardEmulatorTest.cpp
   src/emulator/stream/StreamEmulator.cpp
-  src/emulator/service/ServiceEmulator.cpp
 )
 
 set (pipelinetest_SOURCES
@@ -66,7 +59,6 @@ set (pipelinetest_SOURCES
   src/pipeline/modules/flagger/Flagger.cpp
   src/utilities/Utils.cpp
   src/utilities/AntennaPositions.cpp
-  src/utilities/UVWParser.cpp
   src/utilities/NMSMax.h
 )
 

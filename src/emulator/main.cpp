@@ -1,5 +1,4 @@
 #include "stream/StreamEmulator.h"
-#include "service/ServiceEmulator.h"
 #include "../utilities/Logger.h"
 #include "version.h"
 
@@ -7,7 +6,7 @@
 #include <csignal>
 #include <unistd.h>
 #include <pelican/emulator/EmulatorDriver.h>
-#include <pelican/utility/ConfigNode.h>
+#include <pelican/utility/Config.h>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QString>
 
@@ -18,54 +17,56 @@ void sighandler(int signal)
   exit(signal);
 }
 
+void usage(int signal)
+{
+  std::cout << "Usage: aartfaac-emulator <XML> [OPTION]" << std::endl;
+  std::cout << " Emulates the gpu-based correlator using a casa ms." << std::endl;
+  std::cout << " Configurable through xml file." << std::endl;
+  std::cout << " Example: aartfaac-emulator emulator.xml O2" << std::endl << std::endl;
+
+  std::cout << " XML\tlocation of the xml config file" << std::endl;
+  std::cout << " OPTION\toption set in the xml config file" << std::endl;
+  exit(signal);
+}
+
 int main(int argc, char *argv[])
 {
-  QString host = "127.0.0.1";
+  signal(SIGTERM, &sighandler);
+  signal(SIGINT, &sighandler);
 
   Logger::open("aartfaac-emulator");
   qInstallMsgHandler(Logger::messageHandler);
 
-  signal(SIGTERM, &sighandler);
-  signal(SIGINT, &sighandler);
-  signal(SIGQUIT, &sighandler);
-
   QCoreApplication app(argc, argv);
+  QString xml_file;
+  QString option;
 
-  if (argc != 2 && argc != 3)
+  switch (argc)
   {
-    std::cerr << "Usage: aartfaac-emulator <ms> [host]" << std::endl;
-    std::cerr << "       ms  : location to measurement set" << std::endl;
-    std::cerr << "       host: host address (pelican server)" << std::endl;
-    exit(EXIT_FAILURE);
+  case 2: xml_file = argv[1]; option = "O1"; break;
+  case 3: xml_file = argv[1]; option = argv[2]; break;
+  default: usage(EXIT_FAILURE);
   }
 
-  if (argc == 3)
+  try
   {
-    host = QCoreApplication::arguments().at(2);
+    pelican::Config config(xml_file);
+    pelican::Config::TreeAddress address;
+    address << pelican::Config::NodeId("configuration", "");
+    address << pelican::Config::NodeId("StreamEmulator", option);
+    pelican::ConfigNode settings;
+
+    if (config.verifyAddress(address))
+      settings = config.get(address);
+    else
+      throw QString("Invalid xml option set");
+
+    pelican::EmulatorDriver driver(new StreamEmulator(settings));
   }
-
-  app.setApplicationName(HUMAN_NAME);
-  app.setApplicationVersion(VERSION);
-  app.setOrganizationName("Anton Pannekoek Institute");
-  app.setOrganizationDomain("http://www.aartfaac.org");
-  std::cout << HUMAN_NAME << std::endl;
-
-//  pelican::ConfigNode service_config(
-//    "<ServiceEmulator>"
-//    "  <connection host=\"" + host + "\" port=\"2002\" />"
-//    "</ServiceEmulator>"
-//  );
-//  pelican::EmulatorDriver driver1(new ServiceEmulator(service_config));
-
-//  sleep(1);
-
-  pelican::ConfigNode stream_config(
-    "<StreamEmulator>"
-    "  <connection host=\"" + host + "\" port=\"2001\" />"
-    "</StreamEmulator>"
-  );
-
-  pelican::EmulatorDriver driver2(new StreamEmulator(stream_config));
+  catch (const QString &error)
+  {
+    qFatal("Error: %s", qPrintable(error));
+  }
 
   return app.exec();
 }

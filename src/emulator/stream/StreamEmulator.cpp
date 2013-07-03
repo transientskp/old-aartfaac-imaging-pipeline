@@ -11,13 +11,13 @@ StreamEmulator::StreamEmulator(const pelican::ConfigNode &configNode):
   mTotalPackets(0),
   mRowIndex(0)
 {
-  mHost = configNode.getOption("connection", "host", "127.0.0.1");
-  mPort = configNode.getOption("connection", "port", "2001").toShort();
-
   Q_ASSERT(sizeof(casa::Complex) == sizeof(std::complex<float>));
   Q_ASSERT(sizeof(StreamHeader) == 512);
 
-  QString table_name = QCoreApplication::arguments().at(1);
+  mHost = configNode.getOption("connection", "host", "127.0.0.1");
+  mPort = configNode.getOption("connection", "port", "2001").toShort();
+  QString table_name = configNode.getOption("measurementset", "name");
+
   casa::Table table(qPrintable(table_name));
   mMeasurementSet = new casa::MeasurementSet(table);
   mMSColumns = new casa::ROMSColumns(*mMeasurementSet);
@@ -96,8 +96,9 @@ QIODevice* StreamEmulator::createDevice()
   QTcpSocket *socket = new QTcpSocket();
   socket->abort();
   socket->connectToHost(mHost, mPort);
+
   if (!socket->waitForConnected(-1))
-    throw QString("Error: ") + socket->errorString();
+    qFatal("Error: Could not connect to %s:%d", qPrintable(mHost), mPort);
 
   std::cout << std::endl << "Sending..." << std::flush;
   mTimer.start();
@@ -124,4 +125,6 @@ void StreamEmulator::emulationFinished()
   qDebug("Packet     : %ld bytes", mDataSize);
   qDebug("Speed      : %0.2f MiB/s", (total_bytes / (1024.0f*1024.0f)) / seconds);
   qDebug("Total sent : %ld bytes, %d packets", total_bytes, mTotalPackets);
+
+  QCoreApplication::quit();
 }

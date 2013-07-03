@@ -1,7 +1,6 @@
 #include "UniboardPipeline.h"
 
 #include "StreamBlob.h"
-#include "ServiceBlob.h"
 #include "modules/imager/Imager.h"
 #include "modules/calibrator/Calibrator.h"
 #include "modules/flagger/Flagger.h"
@@ -34,7 +33,6 @@ void UniboardPipeline::init()
 
   // Request remote data.
   requestRemoteData("StreamBlob");
-//  requestRemoteData("ServiceBlob");
 }
 
 // Defines a single iteration of the pipeline.
