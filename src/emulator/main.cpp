@@ -62,11 +62,12 @@ int main(int argc, char *argv[])
       throw QString("Invalid xml option set");
 
     pelican::EmulatorDriver driver(new StreamEmulator(settings));
+    return app.exec();
   }
   catch (const QString &error)
   {
     qFatal("Error: %s", qPrintable(error));
   }
 
-  return app.exec();
+  return EXIT_SUCCESS;
 }

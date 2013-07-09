@@ -12,12 +12,10 @@ std::vector<casa::Array<casa::Double> > Visibilities::sUVWCoordinates;
 casa::Array<casa::Float> Visibilities::sWeightSpectrum;
 double Visibilities::sExposure;
 
-extern char *gTableName;
-
 Visibilities::Visibilities(const ConfigNode &inConfigNode)
   : AbstractOutputStream(inConfigNode)
 {
-  mTableName = gTableName;
+  mTableName = "NULL";
 
   if (sUpperTriangleIndices.empty())
   {

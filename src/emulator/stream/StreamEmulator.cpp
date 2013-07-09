@@ -14,8 +14,10 @@ StreamEmulator::StreamEmulator(const pelican::ConfigNode &configNode):
   Q_ASSERT(sizeof(casa::Complex) == sizeof(std::complex<float>));
   Q_ASSERT(sizeof(StreamHeader) == 512);
 
-  mHost = configNode.getOption("connection", "host", "127.0.0.1");
-  mPort = configNode.getOption("connection", "port", "2001").toShort();
+  mHost = configNode.getOption("connection", "host");
+  mPort = configNode.getOption("connection", "port").toShort();
+  mInterval = configNode.getOption("emulator", "packetInterval").toInt();
+  mSubbandSize = configNode.getOption("emulator", "subbandSize").toInt();
   QString table_name = configNode.getOption("measurementset", "name");
 
   casa::Table table(qPrintable(table_name));
@@ -24,6 +26,9 @@ StreamEmulator::StreamEmulator(const pelican::ConfigNode &configNode):
   mTotalTableRows = mMSColumns->data().nrow();
   mTotalChannels = mMSColumns->spectralWindow().numChan()(0);
   mTotalAntennas = mMSColumns->antenna().nrow();
+
+  if (mSubbandSize > mTotalChannels)
+    qFatal("Size of a subband cannot exceed number of channels in MS");
 
   if (mTotalTableRows % NUM_BASELINES != 0)
     qFatal("Expecting number of tablerows %d to be a multiple of %d", mTotalTableRows, NUM_BASELINES);
@@ -37,6 +42,11 @@ StreamEmulator::StreamEmulator(const pelican::ConfigNode &configNode):
   double freq = mMSColumns->spectralWindow().chanFreq()(0).data()[0];
   double freq_width = mMSColumns->spectralWindow().chanWidth()(0).data()[0];
 
+  qDebug("Host         : %s:%d", qPrintable(mHost), mPort);
+  qDebug("Interval     : %d", mInterval);
+  qDebug("Subband size : %d", mSubbandSize);
+  qDebug("Table name   : %s", qPrintable(table_name));
+  std::cout << std::endl;
   qDebug("Number of channels  : %u", mTotalChannels);
   qDebug("Reference frequency : %f", freq);
   qDebug("Channel width       : %f", freq_width);
@@ -96,9 +106,8 @@ QIODevice* StreamEmulator::createDevice()
   QTcpSocket *socket = new QTcpSocket();
   socket->abort();
   socket->connectToHost(mHost, mPort);
-
   if (!socket->waitForConnected(-1))
-    qFatal("Error: Could not connect to %s:%d", qPrintable(mHost), mPort);
+    throw QString("Error: ") + socket->errorString();
 
   std::cout << std::endl << "Sending..." << std::flush;
   mTimer.start();
@@ -107,7 +116,7 @@ QIODevice* StreamEmulator::createDevice()
 
 unsigned long StreamEmulator::interval()
 {
-  return 0;
+  return mInterval;
 }
 
 int StreamEmulator::nPackets()

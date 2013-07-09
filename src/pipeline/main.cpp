@@ -7,24 +7,12 @@
 #include <QtCore/QCoreApplication>
 #include <QtCore/QString>
 
-char *gTableName; ///< Used in the Visibilities class for constructing an ms
-
 int main(int argc, char *argv[])
 {
   Logger::open("aartfaac-pipeline");
   qInstallMsgHandler(Logger::messageHandler);
 
-  if (argc != 3)
-    qFatal("Wrong number of arguments");
-
-  gTableName = argv[2];
-
-  // HACK: As the pipeline app doesn't allow more args on the commandline, we
-  //       strip them off again here.
-  int   ac    = argc - 1;
-  char *av[]  = {argv[0], argv[1]};
-
-  QCoreApplication app(ac, av);
+  QCoreApplication app(argc, argv);
 
   app.setApplicationName(HUMAN_NAME);
   app.setApplicationVersion(VERSION);
@@ -34,7 +22,7 @@ int main(int argc, char *argv[])
 
   try
   {
-    pelican::PipelineApplication p_app(ac, av);
+    pelican::PipelineApplication p_app(argc, argv);
     p_app.registerPipeline(new UniboardPipeline());
     p_app.setDataClient("PelicanServerClient");
     p_app.start();

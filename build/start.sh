@@ -11,16 +11,15 @@ This script starts an imaging pipeline.
 
 OPTIONS:
   -h  Show this message
-  -m  MeasurementSet directory
   -p  Number of pipelines (default 1)
 EOF
 }
 
 ROOT=`pwd`
+ECONFIG=$ROOT/../src/xml/emulatorConfig.xml
 SCONFIG=$ROOT/../src/xml/serverConfig.xml
 PCONFIG=$ROOT/../src/xml/pipelineConfig.xml
 PIPELINES=1
-MS=
 
 while getopts "hm:p:" OPTION
 do
@@ -42,12 +41,6 @@ do
   esac
 done
 
-if [[ -z $MS ]] || [[ ! -d $MS ]]
-then
-  usage
-  exit 1
-fi
-
 echo "Starting aartfaac-server"
 CPUPROFILE=/tmp/server.prof $ROOT/aartfaac-server $SCONFIG &
 sleep 1
@@ -55,11 +48,11 @@ sleep 1
 echo "Starting $PIPELINES aartfaac pipelines"
 for (( i=0; i<$PIPELINES; i++ ))
 do
-  CPUPROFILE=/tmp/pipeline.prof $ROOT/aartfaac-pipeline $PCONFIG $MS &
+  CPUPROFILE=/tmp/pipeline.prof $ROOT/aartfaac-pipeline $PCONFIG &
 done;
 sleep 2
 
 echo "Starting aartfaac emulator"
-CPUPROFILE=/tmp/emulator.prof $ROOT/aartfaac-emulator $MS &
+CPUPROFILE=/tmp/emulator.prof $ROOT/aartfaac-emulator $ECONFIG &
 
 exit 0

@@ -49,7 +49,7 @@ QIODevice *StreamChunker::newDevice()
     mServer->listen(QHostAddress(host()), port());
   }
 
-  mServer->waitForNewConnection(-1);
+  mServer->waitForNewConnection(mTimeOut);
   return mServer->nextPendingConnection();
 }
 
