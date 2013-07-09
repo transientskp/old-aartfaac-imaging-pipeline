@@ -2,6 +2,12 @@
 
 set -e
 
+ROOT=`pwd`
+ECONFIG=$ROOT/../src/xml/emulatorConfig.xml
+SCONFIG=$ROOT/../src/xml/serverConfig.xml
+PCONFIG=$ROOT/../src/xml/pipelineConfig.xml
+PIPELINES=1
+
 usage()
 {
 cat << EOF
@@ -11,25 +17,16 @@ This script starts an imaging pipeline.
 
 OPTIONS:
   -h  Show this message
-  -p  Number of pipelines (default 1)
+  -p  Number of pipelines (default $PIPELINES)
 EOF
 }
 
-ROOT=`pwd`
-ECONFIG=$ROOT/../src/xml/emulatorConfig.xml
-SCONFIG=$ROOT/../src/xml/serverConfig.xml
-PCONFIG=$ROOT/../src/xml/pipelineConfig.xml
-PIPELINES=1
-
-while getopts "hm:p:" OPTION
+while getopts "hp:" OPTION
 do
   case $OPTION in
     h)
       usage
       exit 0
-      ;;
-    m)
-      MS=$OPTARG
       ;;
     p)
       PIPELINES=$OPTARG
