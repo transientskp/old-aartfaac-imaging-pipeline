@@ -9,7 +9,8 @@
 StreamEmulator::StreamEmulator(const pelican::ConfigNode &configNode):
   AbstractEmulator(),
   mTotalPackets(0),
-  mRowIndex(0)
+  mRowIndex(0),
+  mBytesSend(0)
 {
   Q_ASSERT(sizeof(casa::Complex) == sizeof(std::complex<float>));
   Q_ASSERT(sizeof(StreamHeader) == 512);
@@ -51,10 +52,14 @@ StreamEmulator::StreamEmulator(const pelican::ConfigNode &configNode):
   qDebug("Reference frequency : %f", freq);
   qDebug("Channel width       : %f", freq_width);
 
-  // Allocate the data as local buffer
-  mDataSize = sizeof(StreamHeader) + NUM_BASELINES*mTotalChannels*NUM_POLARIZATIONS*sizeof(std::complex<float>);
+  // Allocate the data as local buffers
+  mDataSize = NUM_BASELINES*mTotalChannels*NUM_POLARIZATIONS*sizeof(std::complex<float>);
+  mPacketSize = sizeof(StreamHeader) + NUM_BASELINES*mSubbandSize*NUM_POLARIZATIONS*sizeof(std::complex<float>);
   mData = new char[mDataSize];
+  mPacket = new char[mPacketSize];
   memset(static_cast<void*>(mData), 0, mDataSize);
+  memset(static_cast<void*>(mPacket), 0, mPacketSize);
+  mPacketsPerSubband = mTotalChannels / mSubbandSize;
 }
 
 StreamEmulator::~StreamEmulator()
@@ -62,42 +67,70 @@ StreamEmulator::~StreamEmulator()
   delete mMeasurementSet;
   delete mMSColumns;
   delete[] mData;
+  delete[] mPacket;
 }
 
 void StreamEmulator::getPacketData(char *&data, unsigned long &size)
 {
-  data = mData;
-  size = mDataSize;
+  data = mPacket;
+  size_t full_baseline_size = mTotalChannels*NUM_POLARIZATIONS*sizeof(std::complex<float>);
+  size_t subband_baseline_size = mSubbandSize*NUM_POLARIZATIONS*sizeof(std::complex<float>);
 
-  // Get header memory
-  StreamHeader *header = reinterpret_cast<StreamHeader*>(mData);
-
-  // Set the packet header
-  header->magic = HEADER_MAGIC;
-  header->start_time = header->end_time;
-  header->end_time = mMSColumns->time()(mRowIndex);
-
-  // Load the data per baseline
-  size_t baseline_size = mTotalChannels*NUM_POLARIZATIONS*sizeof(std::complex<float>);
-  for (quint32 i = 0; i < NUM_BASELINES; i++)
+  // New subband and timeslot, load new data from ms and send header + first packet of this batch
+  quint32 subband = mTotalPackets % mPacketsPerSubband;
+  if (subband == 0)
   {
-    // Load the data from casa measurement set
-    casa::Array<casa::Complex> data_array(
-          casa::IPosition(2, NUM_POLARIZATIONS, mTotalChannels),
-          reinterpret_cast<casa::Complex*>(mData + sizeof(StreamHeader) + i*baseline_size),
-          casa::SHARE);
+    size = mPacketSize;
 
-    mMSColumns->data().get(mRowIndex, data_array);
+    // Get header memory
+    StreamHeader *header = reinterpret_cast<StreamHeader*>(mPacket);
 
-    // Increase counters
-    mRowIndex++;
-    if (mRowIndex % (mTotalTableRows / 10) == 0)
+    // Set the packet header
+    header->magic = HEADER_MAGIC;
+    header->start_time = header->end_time;
+    header->end_time = mMSColumns->time()(mRowIndex);
+
+    // Load all the data for this timeslot per baseline
+    for (quint32 i = 0; i < NUM_BASELINES; i++)
     {
-      static int countdown = 10;
-      std::cout << countdown-- << " " << std::flush;
+      // Load the data from casa measurement set
+      casa::Array<casa::Complex> data_array(
+            casa::IPosition(2, NUM_POLARIZATIONS, mTotalChannels),
+            reinterpret_cast<casa::Complex*>(mData + i*full_baseline_size),
+            casa::SHARE);
+
+      mMSColumns->data().get(mRowIndex, data_array);
+      mRowIndex++;
+    }
+
+    // Construct the first packet of this batch
+    for (quint32 i = 0; i < NUM_BASELINES; i++)
+    {
+      memcpy(
+        static_cast<void*>(mPacket + sizeof(StreamHeader) + i*subband_baseline_size),
+        static_cast<void*>(mData + i*full_baseline_size),
+        subband_baseline_size
+      );
+    }
+  }
+  // Send remaining packets belonging to this timeslot
+  else
+  {
+    size = mPacketSize - sizeof(StreamHeader);
+
+    // Construct the remaining packet of this batch
+    for (quint32 i = 0; i < NUM_BASELINES; i++)
+    {
+      memcpy(
+        static_cast<void*>(mPacket + i*subband_baseline_size),
+        static_cast<void*>(mData + i*full_baseline_size + subband*subband_baseline_size),
+        subband_baseline_size
+      );
     }
   }
 
+  mBytesSend += size;
+  std::cout << nPackets() - mTotalPackets << " " << std::flush;
   mTotalPackets++;
 }
 
@@ -121,7 +154,7 @@ unsigned long StreamEmulator::interval()
 
 int StreamEmulator::nPackets()
 {
-  return mTotalTableRows / NUM_BASELINES;
+  return (mTotalTableRows / NUM_BASELINES) * mPacketsPerSubband;
 }
 
 void StreamEmulator::emulationFinished()
@@ -130,10 +163,9 @@ void StreamEmulator::emulationFinished()
 
   std::cout << "[done]" << std::endl << std::endl;
 
-  size_t total_bytes = mTotalPackets * mDataSize;
-  qDebug("Packet     : %ld bytes", mDataSize);
-  qDebug("Speed      : %0.2f MiB/s", (total_bytes / (1024.0f*1024.0f)) / seconds);
-  qDebug("Total sent : %ld bytes, %d packets", total_bytes, mTotalPackets);
+  qDebug("Packet     : %ld bytes", mPacketSize);
+  qDebug("Speed      : %0.2f MiB/s", (mBytesSend / (1024.0f*1024.0f)) / seconds);
+  qDebug("Total sent : %ld bytes, %d packets", mBytesSend, mTotalPackets);
 
   QCoreApplication::quit();
 }
