@@ -1,0 +1,3 @@
+*.cpp diff=cpp
+*.c diff=c
+*.py diff=python
