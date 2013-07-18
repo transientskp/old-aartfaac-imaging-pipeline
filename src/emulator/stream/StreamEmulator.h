@@ -42,11 +42,11 @@ private:
 
   QTime mTimer;
 
-  char *mData;        ///< Full channel data of single time step
-  char *mPacket;      ///< Data for a single packet (subset of mData)
-  size_t mDataSize;   ///< mData size
-  size_t mPacketSize; ///< mPacket size
-  size_t mBytesSend;  ///< Total bytes send
+  char *mFullBandwidthData; ///< Full channel data of single time step
+  char *mSubbandData;       ///< Data for a single packet (subset of mData)
+  size_t mDataSize;         ///< mData size
+  size_t mPacketSize;       ///< mPacket size
+  size_t mBytesSend;        ///< Total bytes send
 
   casa::MeasurementSet *mMeasurementSet;
   casa::ROMSColumns *mMSColumns;

@@ -55,10 +55,10 @@ StreamEmulator::StreamEmulator(const pelican::ConfigNode &configNode):
   // Allocate the data as local buffers
   mDataSize = NUM_BASELINES*mTotalChannels*NUM_POLARIZATIONS*sizeof(std::complex<float>);
   mPacketSize = sizeof(StreamHeader) + NUM_BASELINES*mSubbandSize*NUM_POLARIZATIONS*sizeof(std::complex<float>);
-  mData = new char[mDataSize];
-  mPacket = new char[mPacketSize];
-  memset(static_cast<void*>(mData), 0, mDataSize);
-  memset(static_cast<void*>(mPacket), 0, mPacketSize);
+  mFullBandwidthData = new char[mDataSize];
+  mSubbandData = new char[mPacketSize];
+  memset(static_cast<void*>(mFullBandwidthData), 0, mDataSize);
+  memset(static_cast<void*>(mSubbandData), 0, mPacketSize);
   mPacketsPerSubband = mTotalChannels / mSubbandSize;
 }
 
@@ -66,13 +66,13 @@ StreamEmulator::~StreamEmulator()
 {
   delete mMeasurementSet;
   delete mMSColumns;
-  delete[] mData;
-  delete[] mPacket;
+  delete[] mFullBandwidthData;
+  delete[] mSubbandData;
 }
 
 void StreamEmulator::getPacketData(char *&data, unsigned long &size)
 {
-  data = mPacket;
+  data = mSubbandData;
   size_t full_baseline_size = mTotalChannels*NUM_POLARIZATIONS*sizeof(std::complex<float>);
   size_t subband_baseline_size = mSubbandSize*NUM_POLARIZATIONS*sizeof(std::complex<float>);
 
@@ -83,7 +83,7 @@ void StreamEmulator::getPacketData(char *&data, unsigned long &size)
     size = mPacketSize;
 
     // Get header memory
-    StreamHeader *header = reinterpret_cast<StreamHeader*>(mPacket);
+    StreamHeader *header = reinterpret_cast<StreamHeader*>(mSubbandData);
 
     // Set the packet header
     header->magic = HEADER_MAGIC;
@@ -96,7 +96,7 @@ void StreamEmulator::getPacketData(char *&data, unsigned long &size)
       // Load the data from casa measurement set
       casa::Array<casa::Complex> data_array(
             casa::IPosition(2, NUM_POLARIZATIONS, mTotalChannels),
-            reinterpret_cast<casa::Complex*>(mData + i*full_baseline_size),
+            reinterpret_cast<casa::Complex*>(mFullBandwidthData + i*full_baseline_size),
             casa::SHARE);
 
       mMSColumns->data().get(mRowIndex, data_array);
@@ -107,8 +107,8 @@ void StreamEmulator::getPacketData(char *&data, unsigned long &size)
     for (quint32 i = 0; i < NUM_BASELINES; i++)
     {
       memcpy(
-        static_cast<void*>(mPacket + sizeof(StreamHeader) + i*subband_baseline_size),
-        static_cast<void*>(mData + i*full_baseline_size),
+        static_cast<void*>(mSubbandData + sizeof(StreamHeader) + i*subband_baseline_size),
+        static_cast<void*>(mFullBandwidthData + i*full_baseline_size),
         subband_baseline_size
       );
     }
@@ -122,8 +122,8 @@ void StreamEmulator::getPacketData(char *&data, unsigned long &size)
     for (quint32 i = 0; i < NUM_BASELINES; i++)
     {
       memcpy(
-        static_cast<void*>(mPacket + i*subband_baseline_size),
-        static_cast<void*>(mData + i*full_baseline_size + subband*subband_baseline_size),
+        static_cast<void*>(mSubbandData + i*subband_baseline_size),
+        static_cast<void*>(mFullBandwidthData + i*full_baseline_size + subband*subband_baseline_size),
         subband_baseline_size
       );
     }
