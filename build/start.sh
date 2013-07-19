@@ -7,6 +7,7 @@ ECONFIG=$ROOT/../src/xml/emulatorConfig.xml
 SCONFIG=$ROOT/../src/xml/serverConfig.xml
 PCONFIG=$ROOT/../src/xml/pipelineConfig.xml
 PIPELINES=1
+OPTIONSET=O1
 
 usage()
 {
@@ -18,10 +19,11 @@ This script starts an imaging pipeline.
 OPTIONS:
   -h  Show this message
   -p  Number of pipelines (default $PIPELINES)
+  -o  Option set in emulator (default $OPTIONSET)
 EOF
 }
 
-while getopts "hp:" OPTION
+while getopts "ho:p:" OPTION
 do
   case $OPTION in
     h)
@@ -30,6 +32,9 @@ do
       ;;
     p)
       PIPELINES=$OPTARG
+      ;;
+    o)
+      OPTIONSET=$OPTARG
       ;;
     ?)
       usage
@@ -50,6 +55,6 @@ done;
 sleep 2
 
 echo "Starting aartfaac emulator"
-CPUPROFILE=/tmp/emulator.prof $ROOT/aartfaac-emulator $ECONFIG &
+CPUPROFILE=/tmp/emulator.prof $ROOT/aartfaac-emulator $ECONFIG $OPTIONSET &
 
 exit 0
