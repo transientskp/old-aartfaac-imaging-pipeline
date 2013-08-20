@@ -50,7 +50,7 @@ sleep 1
 echo "Starting $PIPELINES aartfaac pipelines"
 for (( i=0; i<$PIPELINES; i++ ))
 do
-  CPUPROFILE=/tmp/pipeline.prof $ROOT/aartfaac-pipeline $PCONFIG &
+  CPUPROFILE=/tmp/pipeline-$i.prof $ROOT/aartfaac-pipeline $PCONFIG &
 done;
 sleep 2
 
