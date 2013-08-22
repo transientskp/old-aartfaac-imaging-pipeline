@@ -5,14 +5,14 @@
     <!-- ========= Option set 1 ========== -->
     <StreamEmulator     name="O1">
         <connection     host="127.0.0.1" port="2001" />
-        <measurementset name="/home/fhuizing/Workspace/Aartfaac/data/SB002_LBA_OUTER_SPREAD.MS.trimmed" />
+        <measurementset name="/var/scratch/pprasad/19Jun13/LBA_OUTER_BAND60/SB002_LBA_OUTER.MS" />
         <emulator       packetInterval="0" subbandSize="64"/>
     </StreamEmulator>
     
     <!-- ========= Option set 2 ========== -->
     <StreamEmulator     name="O2">
         <connection     host="127.0.0.1" port="2001" />
-        <measurementset name="/home/fhuizing/Workspace/Aartfaac/data/SB002_LBA_OUTER_SPREAD.MS.trimmed" />
+        <measurementset name="/home/fhuizing/SB002_LBA_OUTER_SPREAD.MS.trimmed" />
         <emulator       packetInterval="0" subbandSize="16"/>
     </StreamEmulator>
 </configuration>

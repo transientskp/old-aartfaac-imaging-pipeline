@@ -2,7 +2,7 @@
 
 set -e
 
-ROOT=`pwd`
+ROOT=$(pwd)
 ECONFIG=$ROOT/../src/xml/emulatorConfig.xml
 SCONFIG=$ROOT/../src/xml/serverConfig.xml
 PCONFIG=$ROOT/../src/xml/pipelineConfig.xml

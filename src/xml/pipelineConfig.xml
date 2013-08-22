@@ -26,25 +26,20 @@
       </Calibrator>
 
       <Imager>
-        <output path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
         <positrf path="../data/posITRF.dat"/>
       </Imager>
     </modules>
 
     <output>
       <streamers>
-        <Visibilities active="false">
-          <output path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
-        </Visibilities>
         <TiffStorage active="false">
-          <output path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
+          <output path="/local5/AARTFAAC/19Jul13/LBA_OUTER_BAND60/output"/>
         </TiffStorage>
         <CasaImageStorage active="true">
-          <output path="/home/fhuizing/Workspace/Aartfaac/data/output"/>
+          <output path="/local5/AARTFAAC/19Jul13/LBA_OUTER_BAND60/output"/>
         </CasaImageStorage>
       </streamers>
       <dataStreams>
-        <stream name="calibrated" listeners="Visibilities"/>
         <stream name="post" listeners="TiffStorage"/>
         <stream name="post" listeners="CasaImageStorage"/>
       </dataStreams>
