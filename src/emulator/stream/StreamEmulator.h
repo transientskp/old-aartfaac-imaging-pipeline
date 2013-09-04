@@ -34,19 +34,14 @@ private:
   quint32 mTotalAntennas;
   quint32 mRowIndex;
   quint32 mInterval;
-  quint32 mSubbandSize;
-  quint32 mPacketsPerSubband;
 
   quint16 mPort;
   QString mHost;
 
   QTime mTimer;
 
-  char *mFullBandwidthData; ///< Full channel data of single time step
-  char *mSubbandData;       ///< Data for a single packet (subset of mData)
-  size_t mDataSize;         ///< mData size
-  size_t mPacketSize;       ///< mPacket size
-  size_t mBytesSend;        ///< Total bytes send
+  char *mData;
+  size_t mDataSize;
 
   casa::MeasurementSet *mMeasurementSet;
   casa::ROMSColumns *mMSColumns;
