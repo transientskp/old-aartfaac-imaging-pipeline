@@ -48,8 +48,8 @@ int main(int argc, char *argv[])
     pelican::PelicanServer server(&config);
 
     //server.setVerbosity(10000);
-    server.addStreamChunker("StreamChunker");
-//    server.addServiceChunker("ServiceChunker");
+    server.addStreamChunker("StreamChunker", "Stream1");
+    server.addStreamChunker("StreamChunker", "Stream2");
     server.addProtocol(new pelican::PelicanProtocol(), 2000);
 
     server.start();

@@ -16,14 +16,14 @@ void StreamAdapter::deserialise(QIODevice *inDevice)
 
   size_t bytes_read = 0;
 
-  while (inDevice->bytesAvailable() < sizeof(ChunkHeader))
+  while (size_t(inDevice->bytesAvailable()) < sizeof(ChunkHeader))
     inDevice->waitForReadyRead(-1);
 
   bytes_read += inDevice->read(reinterpret_cast<char*>(&(blob->mHeader)),
                                sizeof(ChunkHeader));
   blob->reset();
 
-  while (inDevice->bytesAvailable() < chunkSize()-sizeof(ChunkHeader))
+  while (size_t(inDevice->bytesAvailable()) < chunkSize()-sizeof(ChunkHeader))
     inDevice->waitForReadyRead(100);
 
   std::complex<float> v[NUM_POLARIZATIONS];

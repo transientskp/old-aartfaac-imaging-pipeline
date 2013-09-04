@@ -13,23 +13,24 @@ StreamChunker::StreamChunker(const ConfigNode &config):
   mFrequency(0.0),
   mChannelWidth(0.0)
 {
-  QString s = config.getOption("channel", "subbands");
+  QString s = config.getOption("stream", "subbands");
   mSubbands = ParseSubbands(s);
   std::sort(mSubbands.begin(), mSubbands.end());
 
+  qDebug("----- Stream (%d) ------", port());
   qDebug("Subbands (%ld):", mSubbands.size());
   for (int i = 0, n = mSubbands.size(); i < n; i++)
-    qDebug("  (%d-%d)\t(%d) chunksize %lu bytes",
+    qDebug("  (%2d-%2d)\t(%d) chunksize %lu bytes",
            mSubbands[i].c1, mSubbands[i].c2, mSubbands[i].channels, mSubbands[i].size);
 
   mTimeOut = config.getOption("connection", "timeout", "5000").toInt();
 
   // NOTE: These defaults are associated with SB002_LBA_OUTER_SPREAD.MS.trimmed
-  mNumChannels = config.getOption("channel", "amount", "1").toInt();
-  mFrequency = config.getOption("channel", "frequency", "54873657.226562").toDouble();
-  mChannelWidth = config.getOption("channel", "width", "3051.757812").toDouble();
+  mNumChannels = config.getOption("stream", "numChannels", "1").toInt();
+  mFrequency = config.getOption("stream", "frequency", "54873657.226562").toDouble();
+  mChannelWidth = config.getOption("stream", "width", "3051.757812").toDouble();
 
-  qDebug("Channels (%d):", mNumChannels);
+  qDebug("Channels in stream(%d):", mNumChannels);
   qDebug("  Frequency ref: %f", mFrequency);
   qDebug("  Channel width: %f", mChannelWidth);
   mVisibilities = new std::complex<float>[mNumChannels*NUM_POLARIZATIONS];
@@ -50,6 +51,8 @@ QIODevice *StreamChunker::newDevice()
   }
 
   mServer->waitForNewConnection(mTimeOut);
+  qDebug("[%s] Created new connection %s:%d",
+         __PRETTY_FUNCTION__, qPrintable(host()), port());
   return mServer->nextPendingConnection();
 }
 
@@ -58,22 +61,21 @@ void StreamChunker::next(QIODevice *inDevice)
   if (!isActive())
     return;
 
-  std::vector<WritableData> chunks(mSubbands.size());
-  std::vector<size_t> bytes(mSubbands.size(), 0);
-  ChunkHeader chunk_header;
-  StreamHeader stream_header;
-
   // Wait for enough bytes and parse the streaming header
+  StreamHeader stream_header;
   qint64 stream_hdr_size = sizeof(StreamHeader);
   while (inDevice->bytesAvailable() < stream_hdr_size)
     inDevice->waitForReadyRead(-1);
 
   inDevice->read(reinterpret_cast<char*>(&stream_header), stream_hdr_size);
-
   if (stream_header.magic != HEADER_MAGIC)
     qFatal("Invalid packet, magics do not match");
 
   // Allocate chunk memory for each subband and write chunker header
+  std::vector<WritableData> chunks(mSubbands.size());
+  std::vector<size_t> bytes(mSubbands.size(), 0);
+  ChunkHeader chunk_header;
+
   chunk_header.time = stream_header.end_time;
   for (int i = 0, n = mSubbands.size(); i < n; i++)
   {

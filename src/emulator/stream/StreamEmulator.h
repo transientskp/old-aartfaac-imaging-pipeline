@@ -34,7 +34,6 @@ private:
   quint32 mTotalAntennas;
   quint32 mRowIndex;
   quint32 mInterval;
-  quint32 mSubbandSize;
 
   quint16 mPort;
   QString mHost;

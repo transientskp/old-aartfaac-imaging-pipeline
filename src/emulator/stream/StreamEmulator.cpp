@@ -17,7 +17,6 @@ StreamEmulator::StreamEmulator(const pelican::ConfigNode &configNode):
   mHost = configNode.getOption("connection", "host");
   mPort = configNode.getOption("connection", "port").toShort();
   mInterval = configNode.getOption("emulator", "packetInterval").toInt();
-  mSubbandSize = configNode.getOption("emulator", "subbandSize").toInt();
   QString table_name = configNode.getOption("measurementset", "name");
 
   casa::Table table(qPrintable(table_name));
@@ -26,9 +25,6 @@ StreamEmulator::StreamEmulator(const pelican::ConfigNode &configNode):
   mTotalTableRows = mMSColumns->data().nrow();
   mTotalChannels = mMSColumns->spectralWindow().numChan()(0);
   mTotalAntennas = mMSColumns->antenna().nrow();
-
-  if (mSubbandSize > mTotalChannels)
-    qFatal("Size of a subband cannot exceed number of channels in MS");
 
   if (mTotalTableRows % NUM_BASELINES != 0)
     qFatal("Expecting number of tablerows %d to be a multiple of %d", mTotalTableRows, NUM_BASELINES);
@@ -44,7 +40,6 @@ StreamEmulator::StreamEmulator(const pelican::ConfigNode &configNode):
 
   qDebug("Host         : %s:%d", qPrintable(mHost), mPort);
   qDebug("Interval     : %d", mInterval);
-  qDebug("Subband size : %d", mSubbandSize);
   qDebug("Table name   : %s", qPrintable(table_name));
   std::cout << std::endl;
   qDebug("Number of channels  : %u", mTotalChannels);
