@@ -2,6 +2,7 @@
 #include "../modules/calibrator/Calibrator.h"
 #include "../StreamBlob.h"
 #include "../../Constants.h"
+#include "../../Macros.h"
 
 #include <pelican/utility/ConfigNode.h>
 #include <eigen3/Eigen/Dense>
@@ -27,10 +28,10 @@ void CalibratorTest::setUp()
   );
   mCalibrator = new Calibrator(config);
   mStreamBlob = new StreamBlob();
-  mStreamBlob->mXX = MatrixXcf::Random(NUM_ANTENNAS, NUM_ANTENNAS);
-  mStreamBlob->mXX.array() + mStreamBlob->mXX.transpose().array();
-  mStreamBlob->mMJDTime = 4.83793e+09;
-  mStreamBlob->mFrequency = 5.97565e+07;
+  Data(mStreamBlob) = MatrixXcf::Random(NUM_ANTENNAS, NUM_ANTENNAS);
+  Data(mStreamBlob).array() + Data(mStreamBlob).transpose().array();
+  mStreamBlob->mHeader.time = 4.83793e+09;
+  mStreamBlob->mHeader.freq = 5.97565e+07;
 }
 
 void CalibratorTest::tearDown()
@@ -41,7 +42,7 @@ void CalibratorTest::tearDown()
 
 void CalibratorTest::calibrate()
 {
-  mCalibrator->run(mStreamBlob, mStreamBlob);
+  mCalibrator->run(0, mStreamBlob, mStreamBlob);
 }
 
 void CalibratorTest::gainSolve()

@@ -4,6 +4,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 class QCoreApplication;
+class QTcpServer;
 
 class UniboardEmulatorTest : public CppUnit::TestFixture
 {
@@ -23,6 +24,7 @@ public:
 
 private:
   QCoreApplication *mApp;
+  QTcpServer *mServer;
 };
 
 #endif // UNIBOARDEMULATOR_TEST_H

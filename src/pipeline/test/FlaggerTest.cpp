@@ -2,6 +2,7 @@
 #include "../modules/flagger/Flagger.h"
 #include "../StreamBlob.h"
 #include "../../Constants.h"
+#include "../../Macros.h"
 
 #include <pelican/utility/ConfigNode.h>
 #include <eigen3/Eigen/Dense>
@@ -24,14 +25,14 @@ void FlaggerTest::setUp()
   );
   mFlagger = new Flagger(config);
   mStreamBlob = new StreamBlob();
-  mStreamBlob->mXX = MatrixXcf::Random(NUM_ANTENNAS, NUM_ANTENNAS);
-  mStreamBlob->mXX.array() + mStreamBlob->mXX.transpose().array();
+  Data(mStreamBlob) = MatrixXcf::Random(NUM_ANTENNAS, NUM_ANTENNAS);
+  Data(mStreamBlob).array() + Data(mStreamBlob).transpose().array();
 
   // Artificial increase antenna 10
   for (int i = 0; i < NUM_ANTENNAS; i++)
   {
-    mStreamBlob->mXX(i,10) += 10.0f;
-    mStreamBlob->mXX(10,i) += 10.0f;
+    Data(mStreamBlob)(i,10) += 10.0f;
+    Data(mStreamBlob)(10,i) += 10.0f;
   }
 }
 
@@ -43,8 +44,8 @@ void FlaggerTest::tearDown()
 
 void FlaggerTest::flag()
 {
-  mFlagger->run(mStreamBlob, mStreamBlob);
-  CPPUNIT_ASSERT_DOUBLES_EQUAL(mStreamBlob->mMask.col(10).sum(), NUM_ANTENNAS, 1e-5f);
-  CPPUNIT_ASSERT_DOUBLES_EQUAL(mStreamBlob->mMask.row(10).sum(), NUM_ANTENNAS, 1e-5f);
+  mFlagger->run(0, mStreamBlob, mStreamBlob);
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(Mask(mStreamBlob).col(10).sum(), NUM_ANTENNAS, 1e-5f);
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(Mask(mStreamBlob).row(10).sum(), NUM_ANTENNAS, 1e-5f);
 }
 
