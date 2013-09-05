@@ -200,6 +200,7 @@ void Calibrator::statCal(const MatrixXcf &inData,
   MatrixXcf data = inData.array() * mask.array();
   data.resize(inData.rows()*inData.cols(), 1);
   VectorXf flux = (AA.inverse() * KA.adjoint() * data).array().real();
+  //F-NOTE: Comment out these lines later
   flux.array() /= flux(0);
   flux = (flux.array() < 0.0f).select(0.0f, flux);
 

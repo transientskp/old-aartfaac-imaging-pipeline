@@ -142,7 +142,7 @@ Matrix<D, Dynamic, 1> Simplex(
     if (size_simplex <= tolerance)
       break;
 
-    VecX vbar = (V.block(0,0,n,n).rowwise().sum().array() / n).transpose();
+    VecX vbar = (V.block(0,0,n,n).rowwise().sum().array() / n);
     VecX vr = (1.0 + alpha)*vbar.array() - alpha*V.col(n).array();
     x = vr;
     D fr = dirn * fun(x);
@@ -212,9 +212,9 @@ Matrix<D, Dynamic, 1> Simplex(
 
 #ifndef NDEBUG
   if (k >= iterations)
-    qWarning("[%s] Max iterations %d exceeded.\n", __FUNCTION__, iterations);
+    qWarning("[%s] Max iterations %d exceeded", __FUNCTION__, iterations);
   else
-    qDebug("[%s] f = %9.4e iters = %d/%d f(x) calls = %d\n", __FUNCTION__, fun(x), k, iterations, nf);
+    qDebug("[%s] f = %9.4e iters = %d/%d f(x) calls = %d", __FUNCTION__, fun(x), k, iterations, nf);
 #endif
 
   return x;
