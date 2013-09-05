@@ -12,6 +12,7 @@ set (EMULATOR_SOURCES
 # === Pipeline sources
 set (PIPELINE_SOURCES
   src/Constants.h
+  src/Macros.h
   src/pipeline/main.cpp
   src/pipeline/StreamBlob.cpp
   src/pipeline/StreamAdapter.cpp
