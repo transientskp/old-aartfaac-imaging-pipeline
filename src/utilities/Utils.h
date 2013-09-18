@@ -8,6 +8,8 @@
 
 using namespace Eigen;
 
+#define DEG(x) ((x) * M_PI / 180.0)
+
 namespace utils
 {
 /**
@@ -205,6 +207,13 @@ void matrix2stderr(const DenseBase<Derived> &M, const char *name, const int prec
 
   std::cerr << std::endl << std::endl;
 }
+
+/**
+ * @brief sunRaDec
+ * Given the time in julian days, returns the radec coords of the sun in
+ * degrees
+ */
+void sunRaDec(const double inJD, double &outRa, double &outDec);
 
 /**
  * @brief

@@ -13,6 +13,17 @@ QDateTime MJD2QDateTime(const double inMJD)
   return QDateTime::fromTime_t(unix_time);
 }
 
+void sunRaDec(const double inJD, double &outRa, double &outDec)
+{
+  double n = inJD - 2451545.0;
+  double L = std::fmod(280.460 + 0.9856474 * n, 360.0);
+  double g = std::fmod(357.528 + 0.9856003 * n, 360.0);
+  double lambda = L + 1.915 * sin(DEG(g)) + 0.020 * sin(DEG(2*g));
+  double epsilon = 23.439 - 0.0000004 * n;
+  outRa = atan2(cos(DEG(epsilon)) * sin(DEG(lambda)), cos(DEG(lambda)));
+  outDec = asin(sin(DEG(epsilon)) * sin(DEG(lambda)));
+}
+
 long GetTimeInMicros()
 {
   timeval time;

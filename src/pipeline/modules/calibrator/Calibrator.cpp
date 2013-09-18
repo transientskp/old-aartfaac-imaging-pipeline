@@ -23,9 +23,9 @@ Calibrator::Calibrator(const ConfigNode &inConfig):
   MatrixXd u = ANT_U(), v = ANT_V(), w = ANT_W();
   mUVDist = (u.array().square() + v.array().square() + w.array().square()).sqrt();
 
-  mRaSources.resize(4);
-  mDecSources.resize(4);
-  mFluxes.resize(4);
+  mRaSources.resize(5);
+  mDecSources.resize(5);
+  mFluxes.resize(5);
 
   // Cassiopeia A (11000 flux)
   mRaSources(0)   = 6.113786558863104;
@@ -43,8 +43,9 @@ Calibrator::Calibrator(const ConfigNode &inConfig):
   mRaSources(3)   = 3.265074698168392;
   mDecSources(3)  = 0.221104127406815;
 
-  mEpoch.resize(4);
+  mEpoch.resize(5);
   mEpoch.setOnes();
+  mEpoch(4) = 0;
 
   mNormalizedData.resize(NUM_ANTENNAS, NUM_ANTENNAS);
 }
@@ -100,6 +101,7 @@ void Calibrator::run(const int channel, const StreamBlob *input, StreamBlob *out
   }
 
   double time = input->mHeader.time / 86400.0 + 2400000.5;
+  utils::sunRaDec(time, mRaSources(4), mDecSources(4));
 
   // ========================================================================
   // ==== 1. Whitening of the array covariance matrix for DOA estimation ====
