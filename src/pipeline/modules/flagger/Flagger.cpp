@@ -2,6 +2,7 @@
 
 #include "../../StreamBlob.h"
 #include "../../../Constants.h"
+#include "../../../utilities/Utils.h"
 
 #include <pelican/utility/Config.h>
 #include <algorithm>
@@ -54,6 +55,7 @@ void Flagger::run(const int channel, const StreamBlob *input, StreamBlob *output
       output->mMasks[channel][XX_POL].col(a).setOnes();
       output->mMasks[channel][XX_POL].row(a).setOnes();
       output->mFlagged[channel][XX_POL].push_back(a);
+      ADD_STAT("flagger", input->mHeader.time << " " << a << " " << mAntennas(a));
     }
   }
 }

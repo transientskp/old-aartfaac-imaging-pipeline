@@ -4,6 +4,8 @@
 #include "modules/imager/Imager.h"
 #include "modules/calibrator/Calibrator.h"
 #include "modules/flagger/Flagger.h"
+#include "../utilities/Utils.h"
+#include <time.h>
 
 #ifdef ENABLE_OPENMP
 #include <omp.h>
@@ -45,12 +47,12 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
 
   // Start potential threads
   int channel = 0;
-  const int max = data->mNumChannels;
+  const int num_channels = data->mNumChannels;
 
   #pragma omp parallel
   {
     #pragma omp single
-    while (channel < max)
+    while (channel < num_channels)
     {
       #pragma omp task firstprivate(channel, data)
       {
@@ -72,10 +74,12 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
   // Create image
   mImager->run(data, data);
 
-  float time = (mTimer.elapsed() / 1000.0f);
+  float duration = (mTimer.elapsed() / 1000.0f);
 
   qDebug("Processed subband (%d-%d) in %0.3f sec",
-         data->mHeader.start_chan, data->mHeader.end_chan, time);
+         data->mHeader.start_chan, data->mHeader.end_chan, duration);
+
+  ADD_STAT("chunks", time(NULL) << " " << num_channels << " " << duration);
 
   // Output to stream(s), see modules/output
   dataOutput(data, "post");

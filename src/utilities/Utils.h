@@ -4,11 +4,20 @@
 #include <QtCore>
 #include <eigen3/Eigen/Dense>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <typeinfo>
 
 using namespace Eigen;
 
 #define DEG(x) ((x) * M_PI / 180.0)
+
+#define ADD_STAT(name, msg)                    \
+  do {                                         \
+    std::stringstream ss;                      \
+    ss << msg << std::endl;                    \
+    utils::WriteStats(name, ss.str().c_str()); \
+  } while (0)
 
 namespace utils
 {
@@ -17,6 +26,12 @@ namespace utils
  * Converts a modified julian date in seconds to QDateTime
  */
 QDateTime MJD2QDateTime(const double inMJD);
+
+/**
+ * @brief WriteStats
+ * Write stats to disk
+ */
+void WriteStats(const char *name, const char *data, const char *dir = "/tmp");
 
 /**
  * @brief

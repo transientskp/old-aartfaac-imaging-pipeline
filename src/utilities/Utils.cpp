@@ -1,5 +1,8 @@
 #include "Utils.h"
+
 #include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 namespace utils
 {
@@ -22,6 +25,23 @@ void sunRaDec(const double inJD, double &outRa, double &outDec)
   double epsilon = 23.439 - 0.0000004 * n;
   outRa = atan2(cos(DEG(epsilon)) * sin(DEG(lambda)), cos(DEG(lambda)));
   outDec = asin(sin(DEG(epsilon)) * sin(DEG(lambda)));
+}
+
+void WriteStats(const char *name, const char *data, const char *dir)
+{
+  __pid_t pid = getpid();
+  char file_name[1024];
+  snprintf(file_name, 1024, "%s/%d-%s.dat", dir, pid, name);
+  std::ofstream file(file_name, std::ios::out | std::ios::app);
+  if (file.is_open())
+  {
+    file << data;
+    file.close();
+  }
+  else
+  {
+    qCritical("Could not open `%s' for writing", file_name);
+  }
 }
 
 long GetTimeInMicros()

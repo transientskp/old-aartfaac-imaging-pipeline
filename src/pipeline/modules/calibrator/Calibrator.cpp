@@ -180,6 +180,8 @@ void Calibrator::run(const int channel, const StreamBlob *input, StreamBlob *out
 
     _a1++;
   }
+
+  ADD_STAT("calibration-gains", input->mHeader.time << " " << mFrequency << " " << mGains);
 }
 
 void Calibrator::statCal(const MatrixXcf &inData,
