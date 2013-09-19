@@ -48,6 +48,7 @@ Calibrator::Calibrator(const ConfigNode &inConfig):
   mEpoch(4) = 0;
 
   mNormalizedData.resize(NUM_ANTENNAS, NUM_ANTENNAS);
+  mMajorCycleResidue = mMinorCycleResidue = 0.0f;
 }
 
 Calibrator::~Calibrator()
@@ -181,7 +182,8 @@ void Calibrator::run(const int channel, const StreamBlob *input, StreamBlob *out
     _a1++;
   }
 
-  ADD_STAT("calibration-gains", input->mHeader.time << " " << mFrequency << " " << mGains);
+  ADD_STAT("calibration-gains", input->mHeader.time << " " << mFrequency << " " << mGains.transpose());
+  ADD_STAT("modelfitting-residues", input->mHeader.time << " " << mFrequency << " " << mMajorCycleResidue << " " << mMinorCycleResidue);
 }
 
 void Calibrator::statCal(const MatrixXcf &inData,
@@ -314,8 +316,8 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
     MatrixXcf X = pinv.transpose() * cur_theta;
     Q_ASSERT(X.size() == 1);
 
-    float x = std::abs(X(0) - 1.0f);
-    if (x < epsilon)
+    mMajorCycleResidue = std::abs(X(0) - 1.0f);
+    if (mMajorCycleResidue < epsilon)
     {
 //      qDebug("[%s] Convergence after %d iterations", __FUNCTION__, i);
       break;
@@ -387,7 +389,8 @@ int Calibrator::gainSolv(const MatrixXcf &inModel,
       float gains_normal = outGains.norm();
       tmp = outGains.array() - estimated_calibration.array();
       float delta_gains_normal = tmp.norm();
-      if (delta_gains_normal / gains_normal <= epsilon)
+      mMinorCycleResidue = delta_gains_normal / gains_normal;
+      if (mMinorCycleResidue <= epsilon)
       {
 //        qDebug("[%s] Convergence after %d iterations", __FUNCTION__, i);
         break;

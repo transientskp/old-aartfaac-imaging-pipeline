@@ -40,4 +40,7 @@
 /** Speed of light in meters per second */
 #define C_MS 299792458.0
 
+/** Lock file for synchronized file io */
+#define LOCK_FILE "/tmp/stat-lock"
+
 #endif // CONSTANTS_H

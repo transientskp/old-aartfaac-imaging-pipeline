@@ -31,7 +31,7 @@ QDateTime MJD2QDateTime(const double inMJD);
  * @brief WriteStats
  * Write stats to disk
  */
-void WriteStats(const char *name, const char *data, const char *dir = "/tmp");
+void WriteStats(const char *name, const char *data, const char *dir = "/tmp/aartfaac-stats");
 
 /**
  * @brief

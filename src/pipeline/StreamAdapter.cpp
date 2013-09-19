@@ -2,7 +2,6 @@
 #include "StreamBlob.h"
 #include "../Constants.h"
 #include "../emulator/stream/StreamPacket.h"
-#include "../utilities/Utils.h"
 
 #include <complex>
 
@@ -44,11 +43,6 @@ void StreamAdapter::deserialise(QIODevice *inDevice)
     a2++;
   }
 
+  blob->computeStats();
   Q_ASSERT(bytes_read == chunkSize());
-  for (int c = 0; c < blob->mNumChannels; c++)
-  {
-    ADD_STAT("frobenius-norm", blob->mHeader.time << " " <<
-             blob->mHeader.freq + c*blob->mHeader.chan_width <<
-             blob->mData[c][XX_POL].norm());
-  }
 }

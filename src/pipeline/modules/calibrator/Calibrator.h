@@ -91,6 +91,8 @@ private:
   VectorXcf mGains;
   VectorXf mFluxes;
   double mFrequency;
+  float mMajorCycleResidue;
+  float mMinorCycleResidue;
 };
 
 PELICAN_DECLARE_MODULE(Calibrator)

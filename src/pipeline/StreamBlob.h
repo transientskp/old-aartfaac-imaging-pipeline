@@ -19,6 +19,7 @@ public:
   ChunkHeader mHeader;
   Eigen::MatrixXcf mData[MAX_MERGE_CHANNELS][NUM_POLARIZATIONS]; // visibilities
   Eigen::MatrixXf mMasks[MAX_MERGE_CHANNELS][NUM_POLARIZATIONS]; // 1.0f is flagged
+  Eigen::MatrixXcf mVisibilities;
   std::vector<int> mFlagged[MAX_MERGE_CHANNELS][NUM_POLARIZATIONS]; // flagged ants
 
   Eigen::MatrixXf mSkyMap;
@@ -40,6 +41,9 @@ public:
 
   /// Receive blob
   void deserialise(QIODevice &in, QSysInfo::Endian);
+
+  /// Compute raw statistics
+  void computeStats();
 };
 
 PELICAN_DECLARE_DATABLOB(StreamBlob)

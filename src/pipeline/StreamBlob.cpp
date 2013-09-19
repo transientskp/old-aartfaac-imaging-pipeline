@@ -1,4 +1,6 @@
 #include "StreamBlob.h"
+#include "../utilities/Utils.h"
+#include "../utilities/AntennaPositions.h"
 
 #include <limits>
 
@@ -21,6 +23,7 @@ StreamBlob::StreamBlob():
   mHeader.start_chan = 0;
   mHeader.end_chan = 0;
   mSkyMap.resize(mImageWidth, mImageHeight);
+  mVisibilities.resize(NUM_ANTENNAS, NUM_ANTENNAS);
 
   reset();
 }
@@ -38,6 +41,7 @@ void StreamBlob::reset()
     mMasks[c][XX_POL].setIdentity();
   }
   mSkyMap.setZero();
+  mVisibilities.setZero();
 }
 
 void StreamBlob::serialise(QIODevice &out) const
@@ -50,6 +54,32 @@ void StreamBlob::deserialise(QIODevice &in, QSysInfo::Endian)
   Q_UNUSED(in);
 }
 
+void StreamBlob::computeStats()
+{
+  static const double distance = 320.0;
+  mVisibilities.array() /= mNumChannels;
+  ADD_STAT("frobenius-norm", mHeader.time << " " << mVisibilities.norm());
+
+  std::complex<float> sum;
+  int count = 0;
+  for (int a1 = 0; a1 < NUM_ANTENNAS; a1++)
+  {
+    Eigen::RowVector3d pos_a1 = ap.GetPosLocal(a1);
+    for (int a2 = a1 + 1; a2 < NUM_ANTENNAS; a2++)
+    {
+      Eigen::RowVector3d pos_a2 = ap.GetPosLocal(a2);
+      if ((pos_a1 - pos_a2).norm() > distance)
+      {
+        sum += mVisibilities(a1, a2);
+        count++;
+      }
+    }
+  }
+  sum /= count;
+  // add fringe amplitude and phase
+  ADD_STAT("fringe", mHeader.time << " " << std::abs(sum) << " " << std::atan2(sum.imag(), sum.real()));
+}
+
 void StreamBlob::addVis(const quint16 channel,
                         const quint16 a1,
                         const quint16 a2,
@@ -60,4 +90,6 @@ void StreamBlob::addVis(const quint16 channel,
     mData[channel-mHeader.start_chan][p](a1,a2) = v[p];
     mData[channel-mHeader.start_chan][p](a2,a1) = std::conj(v[p]);
   }
+  mVisibilities(a1, a2) += v[XX_POL];
+  mVisibilities(a2, a1) += std::conj(v[XX_POL]);
 }
