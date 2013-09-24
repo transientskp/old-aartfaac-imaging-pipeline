@@ -2,6 +2,7 @@
 #include "../Constants.h"
 
 #include <sys/time.h>
+#include <sys/file.h>
 #include <stdio.h>
 
 namespace utils
@@ -27,50 +28,24 @@ void sunRaDec(const double inJD, double &outRa, double &outDec)
   outDec = asin(sin(DEG(epsilon)) * sin(DEG(lambda)));
 }
 
-void Lock(const char *name)
-{
-  char filename[1024];
-  snprintf(filename, 1024, "%s-%s", LOCK_FILE, name);
-  FILE *lock = fopen(filename, "w");
-  fclose(lock);
-}
-
-bool IsLocked(const char *name)
-{
-  char filename[1024];
-  snprintf(filename, 1024, "%s-%s", LOCK_FILE, name);
-  return access(filename, F_OK) != -1;
-}
-
-void Unlock(const char *name)
-{
-  char filename[1024];
-  snprintf(filename, 1024, "%s-%s", LOCK_FILE, name);
-  remove(filename);
-}
-
 void WriteStats(const char *name, const char *data, const char *dir)
 {
   char file_name[1024];
   snprintf(file_name, 1024, "%s/%s.dat", dir, name);
 
-  while (IsLocked(name))
-    usleep(1e3);
-
-  Lock(name);
-    std::ofstream file(file_name, std::ios::out | std::ios::app);
-    if (file.is_open())
-    {
-      file.unsetf(std::ios::floatfield);
-      file.precision(30);
-      file << data;
-      file.close();
-    }
-    else
-    {
-      qCritical("Could not open `%s' for writing", file_name);
-    }
-  Unlock(name);
+  FILE *fp = fopen(file_name, "a+");
+  if (fp != NULL)
+  {
+    int fn = fileno(fp);
+    flock(fn, LOCK_EX);
+    fputs(data, fp);
+    fclose(fp);
+    flock(fn, LOCK_UN);
+  }
+  else
+  {
+    qCritical("Could not open `%s' for writing", file_name);
+  }
 }
 
 long GetTimeInMicros()
