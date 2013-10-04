@@ -5,6 +5,7 @@
 #include "../../../utilities/AntennaPositions.h"
 #include "../../../utilities/Utils.h"
 #include "../../../utilities/NMSMax.h"
+#include "../../../utilities/Statistics.h"
 
 #include <pelican/utility/Config.h>
 #include <QtCore>
@@ -343,7 +344,7 @@ int Calibrator::gainSolv(const MatrixXcf &inModel,
   VectorXcf estimated_calibration(n);
   VectorXcf tmp(n);
 
-  static const int max_iterations = 100;
+  static const int max_iterations = 30;
   static const float epsilon = 1e-6f;
 
   for (int i = 0; i < n; i++)

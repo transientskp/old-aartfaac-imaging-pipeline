@@ -3,6 +3,7 @@
 #include "../../StreamBlob.h"
 #include "../../../Constants.h"
 #include "../../../utilities/Utils.h"
+#include "../../../utilities/Statistics.h"
 
 #include <pelican/utility/Config.h>
 #include <algorithm>

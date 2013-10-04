@@ -8,8 +8,6 @@ SCONFIG=$ROOT/../src/xml/serverConfig.xml
 PCONFIG=$ROOT/../src/xml/pipelineConfig.xml
 PIPELINES=1
 OPTIONSET=O1
-LOCKFILE=$(grep 'LOCK_FILE' $ROOT/../src/Constants.h | cut -d' ' -f3 | sed "s/^\([\"']\)\(.*\)\1\$/\2/g")
-STATDIR=/tmp/aartfaac-stats
 
 usage()
 {
@@ -44,12 +42,6 @@ do
       ;;
   esac
 done
-
-echo "Clean up stat dir from previous run"
-mkdir -p $STATDIR
-rm -vf $STATDIR/*
-echo "Remove previous remaining lockfiles"
-rm -vf $LOCKFILE*
 
 echo "Starting aartfaac-server"
 CPUPROFILE=/tmp/server.prof $ROOT/aartfaac-server $SCONFIG &

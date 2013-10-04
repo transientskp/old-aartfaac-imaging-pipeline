@@ -12,15 +12,6 @@ using namespace Eigen;
 
 #define DEG(x) ((x) * M_PI / 180.0)
 
-#define ADD_STAT(name, msg)                    \
-  do {                                         \
-    std::stringstream ss;                      \
-    ss.unsetf(std::ios::floatfield);           \
-    ss.precision(30);                          \
-    ss << msg << std::endl;                    \
-    utils::WriteStats(name, ss.str().c_str()); \
-  } while (0)
-
 namespace utils
 {
 /**
