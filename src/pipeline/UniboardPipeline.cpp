@@ -5,6 +5,7 @@
 #include "modules/calibrator/Calibrator.h"
 #include "modules/flagger/Flagger.h"
 #include "../utilities/Utils.h"
+#include "../utilities/Statistics.h"
 #include <time.h>
 
 #ifdef ENABLE_OPENMP

@@ -80,16 +80,20 @@ include_directories (
   ${CASACORE_INCLUDES}
   ${QT_INCLUDE_DIR}
   ${QT_QTCORE_INCLUDE_DIR}
+  ${QT_QTNETWORK_INCLUDE_DIR}
 )
+
+# === Preprocess qt moc headers
+qt4_wrap_cpp(MOC_SOURCES ${MOC_HEADERS})
+include(${QT_USE_FILE})
+add_definitions(${QT_DEFINITIONS})
 
 # === Create the emulator binary.
 set (EMULATOR ${PROJECT_NAME}-emulator)
 add_executable (${EMULATOR} ${EMULATOR_SOURCES})
 
 target_link_libraries (${EMULATOR}
-  ${QT_QTCORE_LIBRARY}
-  ${QT_QTNETWORK_LIBRARY}
-  ${QT_QTXML_LIBRARY}
+  ${QT_LIBRARIES}
   ${LOFAR_LIBRARIES}
   ${PELICAN_LIBRARIES}
   ${CASACORE_LIBRARIES}
@@ -97,13 +101,10 @@ target_link_libraries (${EMULATOR}
 
 # === Create the pipeline binary.
 set (PIPELINE ${PROJECT_NAME}-pipeline)
-add_executable (${PIPELINE} ${PIPELINE_SOURCES})
+add_executable (${PIPELINE} ${PIPELINE_SOURCES} ${MOC_SOURCES})
 
 target_link_libraries (${PIPELINE}
-  ${QT_QTCORE_LIBRARY}
-  ${QT_QTNETWORK_LIBRARY}
-  ${QT_QTXML_LIBRARY}
-  ${QT_QTGUI_LIBRARY}
+  ${QT_LIBRARIES}
   ${CASACORE_LIBRARIES}
   -lfftw3f # can't use ${FFTW_LIBRARIES} here...
   ${PELICAN_LIBRARIES}
@@ -111,12 +112,10 @@ target_link_libraries (${PIPELINE}
 
 # === Create the server binary.
 set (SERVER ${PROJECT_NAME}-server)
-add_executable (${SERVER} ${SERVER_SOURCES})
+add_executable (${SERVER} ${SERVER_SOURCES} ${MOC_SOURCES})
 
 target_link_libraries (${SERVER}
-  ${QT_QTCORE_LIBRARY}
-  ${QT_QTNETWORK_LIBRARY}
-  ${QT_QTXML_LIBRARY}
+  ${QT_LIBRARIES}
   ${PELICAN_LIBRARIES}
 )
 

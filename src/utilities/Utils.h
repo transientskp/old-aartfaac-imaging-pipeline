@@ -12,15 +12,6 @@ using namespace Eigen;
 
 #define DEG(x) ((x) * M_PI / 180.0)
 
-#define ADD_STAT(name, msg)                    \
-  do {                                         \
-    std::stringstream ss;                      \
-    ss.unsetf(std::ios::floatfield);           \
-    ss.precision(30);                          \
-    ss << msg << std::endl;                    \
-    utils::WriteStats(name, ss.str().c_str()); \
-  } while (0)
-
 namespace utils
 {
 /**
@@ -61,11 +52,11 @@ void pseudoInverse(const Matrix<T, Dynamic, Dynamic> &inA, Matrix<T, Dynamic, Dy
   static JacobiSVD<Matrix<T, Dynamic, Dynamic> > svd;
   svd.compute(inA, ComputeFullU | ComputeFullV);
 
-  outI.setZero(); // Use outI as temporary (Sigma^+)
+  MatrixXf S = MatrixXf::Zero(outI.rows(), outI.cols());
   for (int i = 0, n = svd.singularValues().rows(); i < n; i++)
-    outI(i, i) = 1.0 / svd.singularValues()(i);
+    S(i, i) = 1 / svd.singularValues()(i);
 
-  outI = (svd.matrixV() * outI.transpose() * svd.matrixU().adjoint());
+  outI = (svd.matrixV() * S.transpose() * svd.matrixU().adjoint());
 }
 
 /**

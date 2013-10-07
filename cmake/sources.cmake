@@ -26,6 +26,7 @@ set (PIPELINE_SOURCES
   src/utilities/NMSMax.h
   src/utilities/Utils.cpp
   src/utilities/AntennaPositions.cpp
+  src/utilities/Statistics.cpp
   src/utilities/Logger.cpp
 )
 
@@ -36,7 +37,13 @@ set (SERVER_SOURCES
   src/server/StreamChunker.cpp
   src/emulator/stream/StreamPacket.h
   src/utilities/Utils.cpp
+  src/utilities/Statistics.cpp
   src/utilities/Logger.cpp
+)
+
+# === Qt's MOC headers
+set (MOC_HEADERS
+  src/utilities/Statistics.h
 )
 
 # === Test sources
