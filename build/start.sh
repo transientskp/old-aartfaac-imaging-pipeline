@@ -9,6 +9,7 @@ PCONFIG=$ROOT/../src/xml/pipelineConfig.xml
 PIPELINES=1
 OPTIONSET=O1
 
+
 usage()
 {
 cat << EOF
