@@ -5,7 +5,7 @@
 #include "../../../utilities/AntennaPositions.h"
 #include "../../../utilities/Utils.h"
 #include "../../../utilities/NMSMax.h"
-#include "../../../utilities/Statistics.h"
+#include "../../../utilities/monitoring/Server.h"
 
 #include <pelican/utility/Config.h>
 #include <QtCore>
@@ -183,8 +183,8 @@ void Calibrator::run(const int channel, const StreamBlob *input, StreamBlob *out
     _a1++;
   }
 
-  ADD_STAT("calibration-gains", input->mHeader.time << " " << mFrequency << " " << mGains.transpose());
-  ADD_STAT("modelfitting-residues", input->mHeader.time << " " << mFrequency << " " << mMajorCycleResidue << " " << mMinorCycleResidue);
+  ADD_STAT("GAINS", input->mHeader.time << " " << mFrequency << " " << mGains.transpose());
+  ADD_STAT("RESIDUES", input->mHeader.time << " " << mFrequency << " " << mMajorCycleResidue << " " << mMinorCycleResidue);
 }
 
 void Calibrator::statCal(const MatrixXcf &inData,

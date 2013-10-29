@@ -5,7 +5,7 @@
 #include "modules/calibrator/Calibrator.h"
 #include "modules/flagger/Flagger.h"
 #include "../utilities/Utils.h"
-#include "../utilities/Statistics.h"
+#include "../utilities/monitoring/Server.h"
 #include <time.h>
 
 #ifdef ENABLE_OPENMP
@@ -80,7 +80,7 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
   qDebug("Processed subband (%d-%d) in %0.3f sec",
          data->mHeader.start_chan, data->mHeader.end_chan, duration);
 
-  ADD_STAT("chunks", time(NULL) << " " << num_channels << " " << duration);
+  ADD_STAT("CHUNKS", time(NULL) << " " << num_channels << " " << duration);
 
   // Output to stream(s), see modules/output
   dataOutput(data, "post");

@@ -1,6 +1,6 @@
 #include "StreamBlob.h"
 #include "../utilities/Utils.h"
-#include "../utilities/Statistics.h"
+#include "../utilities/monitoring/Server.h"
 #include "../utilities/AntennaPositions.h"
 
 #include <limits>
@@ -59,7 +59,7 @@ void StreamBlob::computeStats()
 {
   static const double distance = 320.0;
   mVisibilities.array() /= mNumChannels;
-  ADD_STAT("frobenius-norm", mHeader.time << " " << mVisibilities.norm());
+  ADD_STAT("FNORM", mHeader.time << " " << mVisibilities.norm());
 
   std::complex<float> sum;
   int count = 0;
@@ -78,7 +78,7 @@ void StreamBlob::computeStats()
   }
   sum /= count;
   // add fringe amplitude and phase
-  ADD_STAT("fringe", mHeader.time << " " << std::abs(sum) << " " << std::atan2(sum.imag(), sum.real()));
+  ADD_STAT("FRINGE", mHeader.time << " " << std::abs(sum) << " " << std::atan2(sum.imag(), sum.real()));
 }
 
 void StreamBlob::addVis(const quint16 channel,
