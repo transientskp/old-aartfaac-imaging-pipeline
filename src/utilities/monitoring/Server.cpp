@@ -48,13 +48,12 @@ void *Client::run()
         mStream->send(msg.c_str(), msg.size());
         mMessages.pop_front();
       }
-      else
-        usleep(1000);
     }
 
     running = mRunning;
     mConnected = connected;
     pthread_mutex_unlock(&mMutex);
+    usleep(1000);
   }
 
   printf("Client %lu disconnected\n", self());

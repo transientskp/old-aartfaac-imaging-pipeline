@@ -41,6 +41,10 @@ set (SERVER_SOURCES
   src/emulator/stream/StreamPacket.h
   src/utilities/Utils.cpp
   src/utilities/Logger.cpp
+  src/utilities/monitoring/Thread.cpp
+  src/utilities/monitoring/TcpStream.cpp
+  src/utilities/monitoring/TcpAcceptor.cpp
+  src/utilities/monitoring/Server.cpp
 )
 
 # === Test sources
@@ -65,13 +69,25 @@ set (pipelinetest_SOURCES
   src/utilities/Utils.cpp
   src/utilities/AntennaPositions.cpp
   src/utilities/NMSMax.h
+  src/utilities/monitoring/Thread.cpp
+  src/utilities/monitoring/TcpStream.cpp
+  src/utilities/monitoring/TcpAcceptor.cpp
+  src/utilities/monitoring/Server.cpp
 )
 
 set (servertest_SOURCES
   src/server/test/main.cpp
+  src/utilities/monitoring/Thread.cpp
+  src/utilities/monitoring/TcpStream.cpp
+  src/utilities/monitoring/TcpAcceptor.cpp
+  src/utilities/monitoring/Server.cpp
 )
 
 set (utilitiestest_SOURCES
   src/utilities/test/main.cpp
   src/utilities/test/UtilitiesTest.cpp
+  src/utilities/monitoring/Thread.cpp
+  src/utilities/monitoring/TcpStream.cpp
+  src/utilities/monitoring/TcpAcceptor.cpp
+  src/utilities/monitoring/Server.cpp
 )

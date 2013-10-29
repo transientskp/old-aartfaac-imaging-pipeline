@@ -132,12 +132,11 @@ if (ENABLE_TESTS)
       add_executable (${TEST} ${${TEST}_SOURCES})
       target_link_libraries (${TEST}
         ${CPPUNIT_LIBRARIES}
-        ${QT_QTCORE_LIBRARY}
-        ${QT_QTNETWORK_LIBRARY}
-        ${QT_QTXML_LIBRARY}
+        ${QT_LIBRARIES}
         ${PELICAN_LIBRARIES}
         ${CASACORE_LIBRARIES}
         -lfftw3f # can't use ${FFTW_LIBRARIES} here...
+        -lpthread
         ${LOFAR_LIBRARIES}
       )
       add_test (${TEST} ${TEST})
