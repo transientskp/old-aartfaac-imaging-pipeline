@@ -68,7 +68,7 @@ include_directories (${PROJECT_BINARY_DIR})
 # === Find and include dependencies.
 find_package (Eigen3 3.1 REQUIRED)
 find_package (FFTW REQUIRED)
-find_package (Qt4 COMPONENTS QtCore QtNetwork QtXml REQUIRED)
+find_package (Qt4 COMPONENTS QtCore QtNetwork QtXml QtGui REQUIRED)
 find_package (Pelican REQUIRED)
 find_package (Casacore REQUIRED)
 
@@ -97,6 +97,7 @@ target_link_libraries (${EMULATOR}
   ${LOFAR_LIBRARIES}
   ${PELICAN_LIBRARIES}
   ${CASACORE_LIBRARIES}
+  -lpthread
 )
 
 # === Create the pipeline binary.
@@ -107,6 +108,7 @@ target_link_libraries (${PIPELINE}
   ${QT_LIBRARIES}
   ${CASACORE_LIBRARIES}
   -lfftw3f # can't use ${FFTW_LIBRARIES} here...
+  -lpthread
   ${PELICAN_LIBRARIES}
 )
 
@@ -117,6 +119,7 @@ add_executable (${SERVER} ${SERVER_SOURCES} ${MOC_SOURCES})
 target_link_libraries (${SERVER}
   ${QT_LIBRARIES}
   ${PELICAN_LIBRARIES}
+  -lpthread
 )
 
 # === Testing framework
