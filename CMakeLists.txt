@@ -153,6 +153,9 @@ endif (ENABLE_TESTS)
 # add_doxygen_target (developer DoxyfileDeveloper)
 # add_doxygen_target (user DoxyfileUser)
 
+
+install(TARGETS ${SERVER} ${PIPELINE} ${EMULATOR} RUNTIME DESTINATION bin)
+
 # === Status report
 message (STATUS "")
 message (STATUS " C++:")
