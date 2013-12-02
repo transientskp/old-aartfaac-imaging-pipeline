@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <iomanip>
 
 #include "Thread.h"
 #include "TcpAcceptor.h"
@@ -53,13 +54,16 @@ private:
   static Server *sInstance;
 };
 
-#define ADD_STAT(name, msg)                  \
-  do {                                       \
-    std::stringstream ss;                    \
-    ss << PROTOCOL_VERSION << " ";           \
-    ss.setf(std::ios::scientific);           \
-    ss << name << " " << msg;                \
-    Server::Instance()->broadcast(ss.str()); \
+#define ADD_STAT(name, time, data)               \
+  do {                                           \
+    std::stringstream ss;                        \
+    ss << PROTOCOL_VERSION << " " << name << " ";\
+    ss.setf(std::ios::dec, std::ios::basefield); \
+    ss << std::setprecision(4);                  \
+    ss << time << " ";                           \
+    ss.setf(std::ios::scientific);               \
+    ss << data;                                  \
+    Server::Instance()->broadcast(ss.str());     \
   } while (0)
 
 #endif // SERVER_H

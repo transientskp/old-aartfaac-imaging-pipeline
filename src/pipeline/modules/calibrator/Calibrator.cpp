@@ -183,8 +183,9 @@ void Calibrator::run(const int channel, const StreamBlob *input, StreamBlob *out
     _a1++;
   }
 
-  ADD_STAT("GAINS", input->mHeader.time << " " << mFrequency << " " << mGains.transpose());
-  ADD_STAT("RESIDUES", input->mHeader.time << " " << mFrequency << " " << mMajorCycleResidue << " " << mMinorCycleResidue);
+  ADD_STAT("GAINS_" << mFrequency, input->mHeader.time, mGains.transpose());
+  ADD_STAT("MAJORRESIDUES_" << mFrequency, input->mHeader.time, mMajorCycleResidue);
+  ADD_STAT("MINORRESIDUES_" << mFrequency, input->mHeader.time, mMinorCycleResidue);
 }
 
 void Calibrator::statCal(const MatrixXcf &inData,

@@ -56,7 +56,7 @@ void Flagger::run(const int channel, const StreamBlob *input, StreamBlob *output
       output->mMasks[channel][XX_POL].col(a).setOnes();
       output->mMasks[channel][XX_POL].row(a).setOnes();
       output->mFlagged[channel][XX_POL].push_back(a);
-      ADD_STAT("FLAGGER", input->mHeader.time << " " << a << " " << mAntennas(a));
+      ADD_STAT("FLAGGER_" << a, input->mHeader.time, mAntennas(a));
     }
   }
 }

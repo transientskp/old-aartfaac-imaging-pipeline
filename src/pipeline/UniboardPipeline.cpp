@@ -80,7 +80,7 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
   qDebug("Processed subband (%d-%d) in %0.3f sec",
          data->mHeader.start_chan, data->mHeader.end_chan, duration);
 
-  ADD_STAT("CHUNKS", time(NULL) << " " << num_channels << " " << duration);
+  ADD_STAT("CHUNKS", data->mHeader.time, (duration/num_channels));
 
   // Output to stream(s), see modules/output
   dataOutput(data, "post");
