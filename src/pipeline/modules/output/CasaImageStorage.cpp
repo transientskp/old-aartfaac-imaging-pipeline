@@ -5,6 +5,7 @@
 
 #include <casacore/images/Images/PagedImage.h>
 #include <casacore/coordinates/Coordinates/CoordinateUtil.h>
+#include <casacore/coordinates/Coordinates.h>
 #include <QtCore>
 
 CasaImageStorage::CasaImageStorage(const ConfigNode &inConfigNode)
@@ -35,8 +36,22 @@ void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *i
                      utils::MJD2QDateTime(blob->mHeader.time).toString("dd-MM-yyyy_hh-mm-ss") +
                      ".image";
 
+  static casa::Matrix<Double> xform(2,2);
+  xform = 0.0; xform.diagonal() = 1.0;
+  static casa::Quantum<Double> refLon(0, "deg");
+  static casa::Quantum<Double> refLat(90, "deg");
+  static casa::Quantum<Double> incLon(-2.5e-2, "deg");
+  static casa::Quantum<Double> incLat(2.5e-2, "deg");
+  static casa::DirectionCoordinate azel(MDirection::AZEL,
+                            casa::Projection::SIN,
+                            refLon, refLat,
+                            incLon, incLat,
+                            xform,
+                            IMAGE_OUTPUT_SIZE/2, IMAGE_OUTPUT_SIZE/2);
+
   static casa::TiledShape map_shape(casa::IPosition(2, IMAGE_OUTPUT_SIZE, IMAGE_OUTPUT_SIZE));
-  static casa::CoordinateSystem coordinate_info = casa::CoordinateUtil::defaultCoords2D();
+  casa::CoordinateSystem coordinate_info; // = casa::CoordinateUtil::defaultCoords2D();
+  coordinate_info.addCoordinate(azel);
 
   casa::PagedImage<casa::Float> image(map_shape, coordinate_info, qPrintable(filename));
   for (int i = 0; i < IMAGE_OUTPUT_SIZE; i++)
