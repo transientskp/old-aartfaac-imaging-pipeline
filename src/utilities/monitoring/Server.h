@@ -58,11 +58,10 @@ private:
   do {                                           \
     std::stringstream ss;                        \
     ss << PROTOCOL_VERSION << " " << name << " ";\
-    ss.setf(std::ios::dec, std::ios::basefield); \
-    ss << std::setprecision(4);                  \
-    ss << time << " ";                           \
+    ss.setf(std::ios::fixed);                    \
+    ss << std::setprecision(4) << time << " ";   \
     ss.setf(std::ios::scientific);               \
-    ss << data;                                  \
+    ss << std::setprecision(5) << data;         \
     Server::Instance()->broadcast(ss.str());     \
   } while (0)
 
