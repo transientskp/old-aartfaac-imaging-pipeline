@@ -41,6 +41,13 @@ int main(int argc, char *argv[])
   pelican::Config config(config_file);
 
   std::cout << HUMAN_NAME << std::endl;
+  pelican::Config::TreeAddress address;
+  address << pelican::Config::NodeId("configuration","")
+          << pelican::Config::NodeId("server", "")
+          << pelican::Config::NodeId("chunkers", "");
+
+  pelican::ConfigNode chunker = config.get(address);
+  QList<pelican::ConfigNode> streams = chunker.getNodes("StreamChunker");
 
   int retcode = 1;
   try
@@ -48,8 +55,9 @@ int main(int argc, char *argv[])
     pelican::PelicanServer server(&config);
 
     //server.setVerbosity(10000);
-    server.addStreamChunker("StreamChunker", "Stream1");
-    server.addStreamChunker("StreamChunker", "Stream2");
+    for (int i = 0; i < streams.count(); i++)
+      server.addStreamChunker("StreamChunker", streams.at(i).name());
+
     server.addProtocol(new pelican::PelicanProtocol(), 2000);
 
     server.start();
