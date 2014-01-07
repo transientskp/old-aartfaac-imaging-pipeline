@@ -2,7 +2,6 @@
 <!DOCTYPE pelican>
 
 <configuration version="1.0">
-
   <server>
     <buffers>
       <StreamBlob>
@@ -13,15 +12,9 @@
     <chunkers>
       <StreamChunker name="Stream1">
         <data type="StreamBlob"/>
-        <stream subbands="1-7,8-14,15-21,22-28,29-63" numChannels="64" frequency="54786682.128906" width="3051.757812"/>
+        <stream subbands="1-7,8-14,15-21,22-28,29-35,36-42,43-49,50-56,57-63" numChannels="64" frequency="59669494.628906" width="3051.757812"/>
         <connection host="127.0.0.1" port="4100" timeout="30000"/>
-      </StreamChunker>
-      <StreamChunker name="Stream2">
-        <data type="StreamBlob"/>
-        <stream subbands="1-28,29-35,36-42,43-49,50-56,57-63" numChannels="64" frequency="54786682.128906" width="3051.757812"/>
-        <connection host="127.0.0.1" port="4101" timeout="30000"/>
       </StreamChunker>
     </chunkers>
   </server>
-
 </configuration>

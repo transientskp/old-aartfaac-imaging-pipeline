@@ -2,17 +2,9 @@
 <!DOCTYPE pelican>
 
 <configuration version="1.0">
-    <!-- ========= Option set 1 ========== -->
     <StreamEmulator     name="O1">
         <connection     host="127.0.0.1" port="4100" />
-        <measurementset name="/home/fhuizing/Workspace/Aartfaac/data/SB002_LBA_OUTER_SPREAD.MS.trimmed" />
-        <emulator       packetInterval="0"/>
-    </StreamEmulator>
-    
-    <!-- ========= Option set 2 ========== -->
-    <StreamEmulator     name="O2">
-        <connection     host="127.0.0.1" port="4101" />
-        <measurementset name="/home/fhuizing/Workspace/Aartfaac/data/SB000_LBA_OUTER_allch_1min.MS" />
-        <emulator       packetInterval="0"/>
+        <measurementset name="/media/data2/10s_avg_every_5min_64ch/SB000_115908_64ch.MS" />
+        <emulator       packetInterval="10"/>
     </StreamEmulator>
 </configuration>
