@@ -26,7 +26,7 @@ def msfreq(MS):
   for ms in MS:
     try:
       t = table(ms + "/SPECTRAL_WINDOW")
-      freqs.append((ms, t[0]["CHAN_FREQ"][0], t[0]["CHAN_WIDTH"][0]))
+      freqs.append((ms, t[0]["CHAN_FREQ"][0], t[0]["CHAN_WIDTH"][0], t[0]["NUM_CHAN"]))
     except RuntimeError:
       sys.stderr.write("Error: `%s' is an invalid MS\n" % (ms))
       sys.exit(1)
@@ -81,6 +81,7 @@ if __name__ == "__main__":
     root[0][1].append(copy.deepcopy(streamnode))
     streamnode.set('name', 'Stream%d' % (i+1))
     streamnode[1].set('subbands', cmd_args.subbands)
+    streamnode[1].set('numChannels', str(freq[3]))
     streamnode[1].set('frequency', str(freq[1]))
     streamnode[1].set('width', str(freq[2]))
     streamnode[2].set('port', str(EM_START_PORT+i))
@@ -91,6 +92,7 @@ if __name__ == "__main__":
     f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
     f.write('<!DOCTYPE pelican>\n\n')
     tree.write(f, 'utf-8')
+    f.close()
 
   time.sleep(0.1)
   processes.append(subprocess.Popen(['./aartfaac-server', SERVER_XML]))
@@ -107,6 +109,7 @@ if __name__ == "__main__":
     f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
     f.write('<!DOCTYPE pelican>\n\n')
     tree.write(f, 'utf-8')
+    f.close()
   time.sleep(0.1)
   num_pipelines = cmd_args.threads - len(freqs) - 1
   print "Starting %d pipelines" % (num_pipelines)
@@ -128,6 +131,7 @@ if __name__ == "__main__":
       f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
       f.write('<!DOCTYPE pelican>\n\n')
       tree.write(f, 'utf-8')
+      f.close()
     processes.append(subprocess.Popen(['./aartfaac-emulator', filename]))
     i += 1
 
