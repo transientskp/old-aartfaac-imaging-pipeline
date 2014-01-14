@@ -17,7 +17,7 @@
 void UniboardPipeline::init()
 {
 #ifdef ENABLE_OPENMP
-  mThreads = omp_get_max_threads();
+  omp_set_num_threads(mThreads);
   qDebug("OpenMP threads: %d", mThreads);
 #endif // ENABLE_OPENMP
 

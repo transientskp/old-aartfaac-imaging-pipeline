@@ -2,7 +2,7 @@
 <!DOCTYPE pelican>
 
 <configuration version="1.0">
-  <pipeline>
+  <pipeline monport="4200" threads="1">
     <clients>
       <PelicanServerClient>
         <server host="127.0.0.1" port="2000"/>

@@ -17,7 +17,7 @@ EM_START_PORT = 4100
 MON_START_PORT = 4200
 SERVER_XML = '/tmp/server.xml'
 EMULATOR_XML = '/tmp/emulator-%d.xml'
-PIPELINE_XML = '/tmp/pipeline.xml'
+PIPELINE_XML = '/tmp/pipeline-%d.xml'
 
 processes = []
 
@@ -45,15 +45,15 @@ if __name__ == "__main__":
   argparser = argparse.ArgumentParser(description=\
     'Starts an imaging pipeline.')
   argparser.add_argument('--threads', type=int, default=multiprocessing.cpu_count(), 
-    help='Max number of threads to spawn')
+    help='max number of threads to spawn')
   argparser.add_argument('--tpldir', type=str,
-    help='Template directory, should host: server, emulator and pipeline xml files')
+    help='template directory, should host: {server,emulator,pipeline}Config.xml')
   argparser.add_argument('--output', type=str,
-    help='Output directory, where to store pipeline output')
+    help='output directory, where to store pipeline output')
   argparser.add_argument('--subbands', type=str, default="1-64",
-    help='String of subbands with channels, e.g. "1-8,10-15,16-63"')
+    help='string of subbands with channels, e.g. "1-8,10-15,16-63"')
   argparser.add_argument('MS', metavar='MS', nargs='+',
-    help='A measurementset to read from')
+    help='atleast one measurementset to read from')
 
   cmd_args = argparser.parse_args()
 
@@ -69,7 +69,7 @@ if __name__ == "__main__":
   if (not os.path.isfile(pipeline)):
     sys.exit("Error: `%s' doesn't exist" % (pipeline))
 
-  # 1. Extract frequencies
+  # 1. Extract frequencies, channel width and number of channels
   freqs = msfreq(cmd_args.MS)
 
   # 2. Create the server xml and start it
@@ -100,25 +100,38 @@ if __name__ == "__main__":
 
   # 3. Compute number of pipelines to spawn, create the pipeline xml files and
   #    start the pipeline(s)
-  tree = ET.parse(pipeline)
-  root = tree.getroot()
-  node = root[0].find("output").find("streamers").find("CasaImageStorage")
-  node.set('active', 'true')
-  node.find("output").set('path', cmd_args.output)
-  with open(PIPELINE_XML, 'w') as f:
-    f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
-    f.write('<!DOCTYPE pelican>\n\n')
-    tree.write(f, 'utf-8')
-    f.close()
-  time.sleep(0.1)
   num_pipelines = cmd_args.threads - len(freqs) - 1
+  num_threads = 1
   print "Starting %d pipelines" % (num_pipelines)
   for i in range(num_pipelines):
-    processes.append(subprocess.Popen(['./aartfaac-pipeline', PIPELINE_XML]))
+    tree = ET.parse(pipeline)
+    root = tree.getroot()
+    node = root.find("pipeline")
+    node.set("monport", str(MON_START_PORT+i))
+    node.set("threads", str(num_threads))
+    node = root[0].find("output").find("streamers").find("CasaImageStorage")
+    node.set('active', 'true')
+    node.find("output").set('path', cmd_args.output)
+    filename = PIPELINE_XML % (i)
+    with open(filename, 'w') as f:
+      f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+      f.write('<!DOCTYPE pelican>\n\n')
+      tree.write(f, 'utf-8')
+      f.close()
+    time.sleep(0.1)
+    processes.append(subprocess.Popen(['./aartfaac-pipeline', filename]))
     
   time.sleep(1)
 
-  # 4. Setup xml for the emulators and start them
+  # 4. Setup the netcat processes
+  for i in range(num_pipelines):
+    filename = cmd_args.output + "/pipeline-%d.log" % (i) 
+    f = open(filename, "w")
+    processes.append(subprocess.Popen(['nc', 'localhost', '%d' % (MON_START_PORT+i)], stdout=f))
+    print "Writing monitoring stats for pipeline %d to `%s'" % (i, filename)
+  
+
+  # 5. Setup xml for the emulators and start them
   print "Starting %d emulators" % (len(freqs))
   i = 0
   for ms in cmd_args.MS:
@@ -135,6 +148,6 @@ if __name__ == "__main__":
     processes.append(subprocess.Popen(['./aartfaac-emulator', filename]))
     i += 1
 
-  # 5. Loop forever
+  # 6. Loop forever
   while True:
     time.sleep(1)

@@ -40,6 +40,7 @@ public:
 
   void broadcast(const string &msg);
   static Server *Instance();
+  static void CreateInstance(const int port, const char *address = "");
 
 private:
   void *run();

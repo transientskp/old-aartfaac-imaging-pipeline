@@ -1,11 +1,19 @@
 #include "Server.h"
+#include <QDebug>
 
 Server *Server::sInstance = NULL;
+
+void Server::CreateInstance(const int port, const char *address)
+{
+  if (sInstance == NULL)
+    sInstance = new Server(port, address);
+  qDebug("Created monitoring server at port %d", port);
+}
 
 Server *Server::Instance()
 {
   if (sInstance == NULL)
-    sInstance = new Server(9999);
+    qFatal("No server instance found");
 
   return sInstance;
 }
