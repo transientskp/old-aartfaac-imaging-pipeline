@@ -50,28 +50,19 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
   StreamBlob *data = static_cast<StreamBlob *>(inRemoteData["StreamBlob"]);
 
   // Start potential threads
-  int channel = 0;
   const int num_channels = data->mNumChannels;
 
   #pragma omp parallel
   {
-    #pragma omp single
-    while (channel < num_channels)
+    #pragma omp for
+    for (int i = 0; i < num_channels; i++)
     {
-      #pragma omp task shared(channel, data)
+      #pragma omp task
       {
-        int idx = 0;
-#ifdef ENABLE_OPENMP
-        idx = omp_get_thread_num();
-#endif // ENABLE_OPENMP
-
-        // Flag bad antennas/visibilities
-        mFlaggers[idx]->run(channel, data, data);
-        // Calibrate correlations
-        mCalibrators[idx]->run(channel, data, data);
+        int idx = omp_get_thread_num();
+        mFlaggers[idx]->run(i, data, data);
+        mCalibrators[idx]->run(i, data, data);
       }
-
-      channel++;
     }
   }
 
@@ -80,10 +71,10 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
 
   float duration = (mTimer.elapsed() / 1000.0f);
 
-  qDebug("Processed subband (%d-%d) in %0.3f sec",
-         data->mHeader.start_chan, data->mHeader.end_chan, duration);
+  qDebug("Processed subband (%d-%d) in %0.3f sec, %0.3f sec per channel",
+         data->mHeader.start_chan, data->mHeader.end_chan, duration, (duration/num_channels));
 
-  ADD_STAT("CHUNKS", data->mHeader.time, (duration/num_channels));
+  ADD_STAT("PERFORMANCE", data->mHeader.time, (duration/num_channels));
 
   // Output to stream(s), see modules/output
   dataOutput(data, "post");

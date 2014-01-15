@@ -154,7 +154,7 @@ if __name__ == "__main__":
       processes.append(subprocess.Popen(['./aartfaac-pipeline', filename]))
     
   if not cmd_args.dryrun:
-    time.sleep(1)
+    time.sleep(5)
 
   # 4. Setup the netcat processes
   for i in range(num_pipelines):
