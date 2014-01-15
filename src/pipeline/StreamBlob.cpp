@@ -18,6 +18,7 @@ StreamBlob::StreamBlob():
     {
       mData[c][p].resize(NUM_ANTENNAS, NUM_ANTENNAS);
       mMasks[c][p].resize(NUM_ANTENNAS, NUM_ANTENNAS);
+      mFlagged[c][p].clear();
     }
   }
 
