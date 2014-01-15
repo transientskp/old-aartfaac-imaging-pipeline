@@ -58,7 +58,7 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
     #pragma omp single
     while (channel < num_channels)
     {
-      #pragma omp task firstprivate(channel, data)
+      #pragma omp task shared(channel, data)
       {
         int idx = 0;
 #ifdef ENABLE_OPENMP
