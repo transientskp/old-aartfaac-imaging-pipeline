@@ -32,6 +32,7 @@ if (NOT CASACORE_FOUND)
         images
         lattices
         coordinates
+        measures
     )
 
     # For convenience, we want two include directories:

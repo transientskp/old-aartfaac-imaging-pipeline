@@ -6,6 +6,11 @@
 #include <casacore/images/Images/PagedImage.h>
 #include <casacore/coordinates/Coordinates/CoordinateUtil.h>
 #include <casacore/coordinates/Coordinates.h>
+#include <casacore/measures/Measures/Measure.h>
+#include <casacore/measures/Measures/MEpoch.h>
+#include <casacore/measures/Measures/MCEpoch.h>
+#include <casacore/casa/Quanta/MVPosition.h>
+#include <casacore/casa/Quanta.h>
 #include <QtCore>
 
 CasaImageStorage::CasaImageStorage(const ConfigNode &inConfigNode)
@@ -36,13 +41,14 @@ void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *i
                      utils::MJD2QDateTime(blob->mHeader.time).toString("dd-MM-yyyy_hh-mm-ss") +
                      ".image";
 
-  static casa::Matrix<Double> xform(2,2);
+  casa::Matrix<Double> xform(2,2);
   xform = 0.0; xform.diagonal() = 1.0;
-  static casa::Quantum<Double> refLon(0, "deg");
-  static casa::Quantum<Double> refLat(90, "deg");
-  static casa::Quantum<Double> incLon(-2.5e-2, "deg");
-  static casa::Quantum<Double> incLat(2.5e-2, "deg");
-  static casa::DirectionCoordinate azel(MDirection::AZEL,
+  double pixel_dist = asin(blob->mDl * (180.0/M_PI));
+  casa::Quantum<Double> refLon(0, "deg");
+  casa::Quantum<Double> refLat(90, "deg");
+  casa::Quantum<Double> incLon(pixel_dist, "deg");
+  casa::Quantum<Double> incLat(pixel_dist, "deg");
+  casa::DirectionCoordinate azel(MDirection::AZEL,
                             casa::Projection::SIN,
                             refLon, refLat,
                             incLon, incLat,
@@ -50,8 +56,14 @@ void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *i
                             IMAGE_OUTPUT_SIZE/2, IMAGE_OUTPUT_SIZE/2);
 
   static casa::TiledShape map_shape(casa::IPosition(2, IMAGE_OUTPUT_SIZE, IMAGE_OUTPUT_SIZE));
-  casa::CoordinateSystem coordinate_info; // = casa::CoordinateUtil::defaultCoords2D();
+  casa::CoordinateSystem coordinate_info;
   coordinate_info.addCoordinate(azel);
+  casa::ObsInfo obs_info;
+  obs_info.setObserver("AARTFAAC Project");
+  obs_info.setTelescope("AARTFAAC All Sky Monitor");
+  obs_info.setObsDate(MEpoch(MVEpoch(Quantity(blob->mHeader.time, "s")), MEpoch::Ref(MEpoch::UTC)));
+  obs_info.setTelescopePosition(MPosition(MVPosition(3826577.066110000, 461022.947639000, 5064892.786), casa::MPosition::ITRF));
+  coordinate_info.setObsInfo(obs_info);
 
   casa::PagedImage<casa::Float> image(map_shape, coordinate_info, qPrintable(filename));
   for (int i = 0; i < IMAGE_OUTPUT_SIZE; i++)

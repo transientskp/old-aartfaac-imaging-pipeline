@@ -9,7 +9,8 @@ StreamBlob::StreamBlob():
   DataBlob("StreamBlob"),
   mImageWidth(IMAGE_OUTPUT_SIZE),
   mImageHeight(IMAGE_OUTPUT_SIZE),
-  mNumChannels(0)
+  mNumChannels(0),
+  mDl(0.0f)
 {
   // Initialize eigen matrices
   for (int c = 0; c < MAX_MERGE_CHANNELS; c++)

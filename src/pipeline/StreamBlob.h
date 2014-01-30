@@ -26,6 +26,7 @@ public:
   int mImageWidth;
   int mImageHeight;
   int mNumChannels;
+  float mDl;
 
   /// Reset the blob for reuse
   void reset();
