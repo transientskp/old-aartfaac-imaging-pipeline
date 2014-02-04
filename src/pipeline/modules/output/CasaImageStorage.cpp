@@ -44,7 +44,7 @@ void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *i
   casa::Matrix<Double> xform(2,2);
   xform = 0.0; xform.diagonal() = 1.0;
   double pixel_dist = asin(blob->mDl * (180.0/M_PI));
-  casa::Quantum<Double> refLon(0, "deg");
+  casa::Quantum<Double> refLon(270, "deg");
   casa::Quantum<Double> refLat(90, "deg");
   casa::Quantum<Double> incLon(pixel_dist, "deg");
   casa::Quantum<Double> incLat(pixel_dist, "deg");
