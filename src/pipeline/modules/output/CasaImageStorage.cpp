@@ -55,12 +55,9 @@ void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *i
                             xform,
                             IMAGE_OUTPUT_SIZE/2, IMAGE_OUTPUT_SIZE/2);
 
-  casa::TiledShape map_shape(casa::IPosition(3, IMAGE_OUTPUT_SIZE, IMAGE_OUTPUT_SIZE, 1));
-  casa::Vector<Double> freqs(1, blob->mHeader.freq);
-  casa::SpectralCoordinate spectral_coord_info(casa::MFrequency::DEFAULT, freqs);
+  casa::TiledShape map_shape(casa::IPosition(2, IMAGE_OUTPUT_SIZE, IMAGE_OUTPUT_SIZE));
   casa::CoordinateSystem coordinate_info;
   coordinate_info.addCoordinate(azel);
-  coordinate_info.addCoordinate(spectral_coord_info);
   casa::ObsInfo obs_info;
   obs_info.setObserver("AARTFAAC Project");
   obs_info.setTelescope("AARTFAAC All Sky Monitor");
@@ -71,6 +68,6 @@ void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *i
   casa::PagedImage<casa::Float> image(map_shape, coordinate_info, qPrintable(filename));
   for (int i = 0; i < IMAGE_OUTPUT_SIZE; i++)
     for (int j = 0; j < IMAGE_OUTPUT_SIZE; j++)
-      image.putAt(blob->mSkyMap(i, j), casa::IPosition(3, j, i, 0));
+      image.putAt(blob->mSkyMap(i, j), casa::IPosition(2, j, i));
 }
 

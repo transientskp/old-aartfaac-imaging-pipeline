@@ -33,6 +33,7 @@ if (NOT CASACORE_FOUND)
         lattices
         coordinates
         measures
+        scimath
     )
 
     # For convenience, we want two include directories:

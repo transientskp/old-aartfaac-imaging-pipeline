@@ -47,6 +47,11 @@ set (SERVER_SOURCES
   src/utilities/monitoring/Server.cpp
 )
 
+# === Regridder sources
+set (REGRIDDER_SOURCES
+  src/regridder/regrid.cpp
+)
+
 # === Test sources
 set (TESTS emulatortest pipelinetest servertest utilitiestest)
 

@@ -122,6 +122,14 @@ target_link_libraries (${SERVER}
   -lpthread
 )
 
+# === Create regridding binary
+set (REGRIDDER regridder)
+add_executable(${REGRIDDER} ${REGRIDDER_SOURCES})
+
+target_link_libraries(${REGRIDDER}
+  ${CASACORE_LIBRARIES}
+)
+
 # === Testing framework
 if (ENABLE_TESTS)
   # === Find CppUnit library
