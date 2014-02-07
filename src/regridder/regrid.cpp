@@ -12,7 +12,9 @@ using namespace casa;
 
 int main(int argc, char *argv[])
 {
-    (void) argc;
+  if (argc != 2)
+    return 1;
+
   PagedImage<Float> input_image(argv[1]);
   IPosition dims = input_image.shape();
   const int output_size = dims(0);
@@ -74,15 +76,14 @@ int main(int argc, char *argv[])
   casa::CoordinateSystem wanted_cs;
   wanted_cs.addCoordinate(radec);
 
-  std::cout << input_image.coordinates().nCoordinates() << std::endl;
-  std::cout << wanted_cs.nCoordinates() << std::endl;
   casa::CoordinateSystem output_cs;
   LogIO os;
   output_cs = casa::ImageRegrid<casa::Float>::makeCoordinateSystem(
     os, wanted_cs, input_image.coordinates(), casa::IPosition(2, 0, 1)
   );
 
-  casa::PagedImage<casa::Float> output_image(map_shape, output_cs, "reproj.image");
+  String out = String("regrid-") + input_image.name(true);
+  casa::PagedImage<casa::Float> output_image(map_shape, output_cs, out);
 
   ImageRegrid<float> regridder;
   regridder.regrid(output_image, casa::Interpolate2D::CUBIC, casa::IPosition(2, 0, 1), input_image);
