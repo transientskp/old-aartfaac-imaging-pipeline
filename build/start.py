@@ -74,7 +74,7 @@ if __name__ == "__main__":
   argparser.add_argument('MS', metavar='MS', nargs='+',
     help='atleast one measurementset to read from')
   argparser.add_argument('--dryrun', action='store_true', default=False,
-    help='Do not start pipeline, just show various output')
+    help='do not start pipeline, just show various output and generate xml')
 
   cmd_args = argparser.parse_args()
 
@@ -124,7 +124,7 @@ if __name__ == "__main__":
 
   # 3. Compute number of pipelines to spawn, create the pipeline xml files and
   #    start the pipeline(s)
-  threads = cmd_args.threads - 1 # server thread
+  threads = max(1, cmd_args.threads - 1) # server thread
   maxchan = max(msdata, key=lambda x: x[3])[3]
   num_threads = min(threads, parse_subbands(cmd_args.subbands, maxchan))
   num_pipelines = int(max(1, math.floor(threads/float(num_threads))))
