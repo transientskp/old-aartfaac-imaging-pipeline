@@ -16,9 +16,9 @@ from pyrap.tables import table
 
 EM_START_PORT = 4100
 MON_START_PORT = 4200
-SERVER_XML = '/tmp/server.xml'
-EMULATOR_XML = '/tmp/emulator-%d.xml'
-PIPELINE_XML = '/tmp/pipeline-%d.xml'
+SERVER_XML   = '/tmp/' + os.getenv("USER") + '-server.xml'
+EMULATOR_XML = '/tmp/' + os.getenv("USER") + '-emulator-%d.xml'
+PIPELINE_XML = '/tmp/' + os.getenv("USER") + '-pipeline-%d.xml'
 
 processes = []
 
@@ -63,7 +63,7 @@ if __name__ == "__main__":
 
   argparser = argparse.ArgumentParser(description=\
     'Starts an imaging pipeline. Press <Ctrl+C> to stop')
-  argparser.add_argument('--threads', type=int, default=multiprocessing.cpu_count(), 
+  argparser.add_argument('--threads', type=int, default=1, 
     help='max number of threads to spawn')
   argparser.add_argument('--tpldir', type=str,
     help='template directory, should host: {server,emulator,pipeline}Config.xml')
