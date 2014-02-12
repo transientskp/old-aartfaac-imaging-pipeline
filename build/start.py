@@ -68,9 +68,9 @@ if __name__ == "__main__":
   argparser.add_argument('--tpldir', type=str,
     help='template directory, should host: {server,emulator,pipeline}Config.xml')
   argparser.add_argument('--output', type=str,
-    help='output directory, where to store pipeline output')
-  argparser.add_argument('--subbands', type=str, default="1-64",
-    help='string of subbands with channels, e.g. "1-8,10-15,16-63"')
+    help='output directory, where to store pipeline output, has to be a new directory')
+  argparser.add_argument('--subbands', type=str, default="1-63",
+    help='string of subbands with channels c in {0,...,63}, e.g. "1-8,5-15,16-63"')
   argparser.add_argument('MS', metavar='MS', nargs='+',
     help='atleast one measurementset to read from')
   argparser.add_argument('--dryrun', action='store_true', default=False,

@@ -72,15 +72,12 @@ void Calibrator::run(const int channel, const StreamBlob *input, StreamBlob *out
 
   if (mFlagged.size() != input->mFlagged[channel][XX_POL].size())
   {
-    #pragma omp critical
-    {
     mNormalizedData.resize(num_antennas, num_antennas);
     mSpatialFilterMask.resize(num_antennas, num_antennas);
     mMask.resize(num_antennas, num_antennas);
     mNoiseCovMatrix.resize(num_antennas, num_antennas);
     mAntennaLocalPosReshaped.resize(num_antennas, 3);
     mGains.resize(num_antennas);
-    }
   }
   mFlagged = input->mFlagged[channel][XX_POL];
 
