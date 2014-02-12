@@ -26,16 +26,32 @@ std::string extract_path(const std::string &s)
 
 int main(int argc, char *argv[])
 {
-  std::string infile;
-  std::string outfile;
+  std::string infile("");
+  std::string outfile("");
   switch(argc)
   {
-    case 2: print_help(); return 0; break;
+    case 2:
+      print_help();
+      return 0;
     case 3:
-      infile = extract_path(argv[1]);
-      outfile = extract_path(argv[2]);
+    {
+      std::string tmp(argv[1]);
+      if (tmp.compare(0, 2, "in") == 0)
+        infile = extract_path(argv[1]);
+      tmp = argv[2];
+      if (tmp.compare(0, 3, "out") == 0)
+        outfile = extract_path(argv[2]);
       break;
-    default: print_help(); return 1;
+    }
+    default:
+      print_help();
+      return 1;
+  }
+
+  if (infile.empty() || outfile.empty())
+  {
+    print_help();
+    return 1;
   }
 
   PagedImage<Float> input_image(infile.c_str());
@@ -109,6 +125,6 @@ int main(int argc, char *argv[])
 
   ImageRegrid<float> regridder;
   regridder.regrid(output_image, casa::Interpolate2D::CUBIC, casa::IPosition(2, 0, 1), input_image);
-
+  std::cout << "Stored new image at `" << outfile << "'" << std::endl;
   return 0;
 }
