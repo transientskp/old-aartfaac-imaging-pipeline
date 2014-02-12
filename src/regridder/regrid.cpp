@@ -5,17 +5,40 @@
 #include <images/Images/PagedImage.h>
 #include <images/Images/ImageRegrid.h>
 #include <scimath/Mathematics/Interpolate2D.h>
-
 #include <iostream>
+#include <string>
 
 using namespace casa;
 
+void print_help()
+{
+  printf("Usage: regridder in=/path/to/input.image out=/path/to/output.image\n");
+}
+
+std::string extract_path(const std::string &s)
+{
+  std::size_t pos = s.find_first_of('=');
+  if (pos > s.size())
+    exit(1);
+
+  return s.substr(pos+1);
+}
+
 int main(int argc, char *argv[])
 {
-  if (argc != 2)
-    return 1;
+  std::string infile;
+  std::string outfile;
+  switch(argc)
+  {
+    case 2: print_help(); return 0; break;
+    case 3:
+      infile = extract_path(argv[1]);
+      outfile = extract_path(argv[2]);
+      break;
+    default: print_help(); return 1;
+  }
 
-  PagedImage<Float> input_image(argv[1]);
+  PagedImage<Float> input_image(infile.c_str());
   IPosition dims = input_image.shape();
   const int output_size = dims(0);
   Table &table = input_image.table();
@@ -82,8 +105,7 @@ int main(int argc, char *argv[])
     os, wanted_cs, input_image.coordinates(), casa::IPosition(2, 0, 1)
   );
 
-  String out = String("regrid-") + input_image.name(true);
-  casa::PagedImage<casa::Float> output_image(map_shape, output_cs, out);
+  casa::PagedImage<casa::Float> output_image(map_shape, output_cs, outfile.c_str());
 
   ImageRegrid<float> regridder;
   regridder.regrid(output_image, casa::Interpolate2D::CUBIC, casa::IPosition(2, 0, 1), input_image);
