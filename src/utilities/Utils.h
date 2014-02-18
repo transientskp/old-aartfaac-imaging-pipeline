@@ -49,7 +49,7 @@ void pseudoInverse(const Matrix<T, Dynamic, Dynamic> &inA, Matrix<T, Dynamic, Dy
     return;
   }
 
-  static JacobiSVD<Matrix<T, Dynamic, Dynamic> > svd;
+  JacobiSVD<Matrix<T, Dynamic, Dynamic> > svd;
   svd.compute(inA, ComputeFullU | ComputeFullV);
 
   MatrixXf S = MatrixXf::Zero(outI.rows(), outI.cols());
