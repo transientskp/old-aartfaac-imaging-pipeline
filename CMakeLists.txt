@@ -163,6 +163,7 @@ endif (ENABLE_TESTS)
 
 
 install(TARGETS ${SERVER} ${PIPELINE} ${EMULATOR} RUNTIME DESTINATION bin)
+install(PROGRAMS scripts/aartfaac-system-start.py DESTINATION bin)
 
 # === Status report
 message (STATUS "")
