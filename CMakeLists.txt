@@ -163,7 +163,14 @@ endif (ENABLE_TESTS)
 
 
 install(TARGETS ${SERVER} ${PIPELINE} ${EMULATOR} RUNTIME DESTINATION bin)
-install(PROGRAMS scripts/aartfaac-system-start.py DESTINATION bin)
+configure_file(scripts/aartfaac-system-start.cmake aartfaac-system-start.py)
+install(PROGRAMS ${CMAKE_BINARY_DIR}/aartfaac-system-start.py DESTINATION bin)
+install(FILES src/xml/emulatorConfig.xml
+              src/xml/serverConfig.xml
+              src/xml/pipelineConfig.xml
+        DESTINATION share/aartfaac
+)
+
 
 # === Status report
 message (STATUS "")

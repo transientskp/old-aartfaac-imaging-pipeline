@@ -63,16 +63,17 @@ if __name__ == "__main__":
 
   argparser = argparse.ArgumentParser(description=\
     'Starts an imaging pipeline. Press <Ctrl+C> to stop')
-  argparser.add_argument('--threads', type=int, default=1, 
+  argparser.add_argument('--threads', type=int, default=1,
     help='max number of threads to spawn')
   argparser.add_argument('--tpldir', type=str,
-    help='template directory, should host: {server,emulator,pipeline}Config.xml')
+    help='template directory, should host: {server,emulator,pipeline}Config.xml'
+    default="${CMAKE_INSTALL_PREFIX}/share/aartfaac")
   argparser.add_argument('--output', type=str,
     help='output directory, where to store pipeline output, has to be a new directory')
   argparser.add_argument('--subbands', type=str, default="1-63",
     help='string of subbands with channels c in {0,...,63}, e.g. "1-8,5-15,16-63"')
   argparser.add_argument('MS', metavar='MS', nargs='+',
-    help='atleast one measurementset to read from')
+    help='at least one measurementset to read from')
   argparser.add_argument('--dryrun', action='store_true', default=False,
     help='do not start pipeline, just show various output and generate xml')
 
