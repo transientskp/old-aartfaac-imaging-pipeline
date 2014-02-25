@@ -168,6 +168,7 @@ install(PROGRAMS ${CMAKE_BINARY_DIR}/aartfaac-system-start.py DESTINATION bin)
 install(FILES src/xml/emulatorConfig.xml
               src/xml/serverConfig.xml
               src/xml/pipelineConfig.xml
+              data/posITRF.dat
         DESTINATION share/aartfaac
 )
 
