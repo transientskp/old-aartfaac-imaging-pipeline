@@ -7,8 +7,12 @@ ENV DEBIAN_FRONTEND noninteractive
 # Ensure the list of packages on the system is up to date.
 RUN apt-get update
 
+# We need the multiverse repository for pgplot5, which is required by libwcs4.
+RUN apt-get install -q -y python-software-properties lsb-release
+RUN apt-add-repository "deb http://nl.archive.ubuntu.com/ubuntu/ $(lsb_release -sc) multiverse"
+RUN apt-add-repository "deb http://nl.archive.ubuntu.com/ubuntu/ $(lsb_release -sc)-updates multiverse"
+
 # Add the SKA-SA packages.
-RUN apt-get install -q -y python-software-properties
 RUN apt-add-repository ppa:ska-sa/main
 RUN apt-get update
 RUN apt-get install -q -y casacore libcasacore-dev casacore-data
@@ -39,4 +43,4 @@ RUN mkdir -p /src/pelican/build && cd /src/pelican/build &&  \
 # Note that we remove any pre-existing build directory.
 ADD . /src/aartfaac
 RUN rm -rf /src/aartfaac/build && mkdir -p /src/aartfaac/build && \
-    cd /src/aartfaac/build && cmake -DENABLE_OPENMP=ON .. && make install
+    cd /src/aartfaac/build && cmake -DENABLE_OPENMP=ON .. && make -j install
