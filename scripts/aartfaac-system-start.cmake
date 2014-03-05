@@ -66,7 +66,7 @@ if __name__ == "__main__":
   argparser.add_argument('--threads', type=int, default=1,
     help='max number of threads to spawn')
   argparser.add_argument('--tpldir', type=str,
-    help='template directory, should host: {server,emulator,pipeline}Config.xml'
+    help='template directory, should host: {server,emulator,pipeline}Config.xml',
     default="${CMAKE_INSTALL_PREFIX}/share/aartfaac")
   argparser.add_argument('--output', type=str,
     help='output directory, where to store pipeline output, has to be a new directory')

@@ -389,8 +389,8 @@ int Calibrator::gainSolv(const MatrixXcf &inModel,
       data_calibrated.col(j) = outGains.array() * inModel.col(j).array();
   }
 
-  if (i >= max_iterations)
-    qCritical("[%s] No convergence after %d iterations", __FUNCTION__, i);
+//  if (i >= max_iterations)
+//    qCritical("[%s] No convergence after %d iterations", __FUNCTION__, i);
 
   return i;
 }
