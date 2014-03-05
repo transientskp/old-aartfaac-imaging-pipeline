@@ -22,7 +22,7 @@ RUN apt-get install -q -y casacore libcasacore-dev casacore-data
 # necessary, but it complains if it's not available.
 RUN apt-get install -q -y build-essential git cmake libqt4-dev libcppunit-dev \
                           libboost-program-options-dev libfftw3-dev           \
-                          wcslib-dev libicu-dev
+                          wcslib-dev libicu-dev gfortran
 
 # Need a more modern version of eigen3 than supplied by Ubuntu 12.04.
 # We are hard-coded to use the 3.2.0 release.
@@ -36,11 +36,30 @@ RUN mkdir -p /src/eigen &&                                            \
 # NB we are using the HEAD of master here -- should we use a tagged release?
 RUN cd /src && git clone https://github.com/pelican/pelican.git
 RUN mkdir -p /src/pelican/build && cd /src/pelican/build &&  \
-    cmake -DCMAKE_BUILD_TYPE=release ../pelican && \
+    cmake -DCMAKE_BUILD_TYPE=release ../pelican &&           \
     make -j && make install && ldconfig
+
+# The build environment contains both the AARTFAAC source and the SSH key
+# needed to access the LOFAR repository.
+ADD . /src/aartfaac
+
+# We will also need the LOFAR Storage Manager if we want to read correlated
+# data from disk with aartfaac-emulator.
+RUN mkdir /root/.ssh &&                                                      \
+    ln -s /src/aartfaac/data/lofar-release_2_1_1.deploy /root/.ssh/id_rsa && \
+    echo "StrictHostKeyChecking no" > /root/.ssh/config &&                   \
+    cd /src &&                                                               \
+    git clone git@github.com:aartfaac/lofar-release-2_1_1.git ./lofar &&     \
+    mkdir -p lofar/build/gnu_opt &&                                          \
+    cd lofar/build/gnu_opt &&                                                \
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_PACKAGES=LofarStMan      \
+          -DBUILD_SHARED_LIBS=ON  -DUSE_LOG4CPLUS=OFF ../.. &&               \
+    make -j install
 
 # Copy over this repository and build.
 # Note that we remove any pre-existing build directory.
-ADD . /src/aartfaac
-RUN rm -rf /src/aartfaac/build && mkdir -p /src/aartfaac/build && \
-    cd /src/aartfaac/build && cmake -DENABLE_OPENMP=ON .. && make -j install
+RUN rm -rf /src/aartfaac/build &&                         \
+    mkdir -p /src/aartfaac/build &&                       \
+    cd /src/aartfaac/build &&                             \
+    cmake -DENABLE_OPENMP=ON -DENABLE_LOFARSTMAN=ON .. && \
+    make -j install
