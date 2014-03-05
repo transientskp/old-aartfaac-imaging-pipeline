@@ -75,7 +75,7 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
 
   float duration = (mTimer.elapsed() / 1000.0f);
 
-  qDebug("Processed `%s' subband (%d-%d) in %0.3f sec (%s)",
+  qDebug("Processed `%s' subband (%d-%d) in %0.3f sec",
          qPrintable(utils::MJD2QDateTime(data->mHeader.time).toString("hh:mm:ss")),
          data->mHeader.start_chan, data->mHeader.end_chan, duration);
 
