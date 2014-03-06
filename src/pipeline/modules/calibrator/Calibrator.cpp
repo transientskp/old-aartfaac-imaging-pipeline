@@ -1,7 +1,6 @@
 #include "Calibrator.h"
 
 #include "../../StreamBlob.h"
-#include "../../../Constants.h"
 #include "../../../utilities/AntennaPositions.h"
 #include "../../../utilities/Utils.h"
 #include "../../../utilities/NMSMax.h"

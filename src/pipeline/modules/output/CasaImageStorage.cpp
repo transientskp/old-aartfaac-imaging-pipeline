@@ -1,6 +1,6 @@
 #include "CasaImageStorage.h"
 #include "../../StreamBlob.h"
-#include "../../../Constants.h"
+#include "Constants.h"
 #include "../../../utilities/Utils.h"
 
 #include <casacore/images/Images/PagedImage.h>

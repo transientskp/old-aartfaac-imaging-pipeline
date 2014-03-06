@@ -163,10 +163,11 @@ endif (ENABLE_TESTS)
 
 
 install(TARGETS ${SERVER} ${PIPELINE} ${EMULATOR} RUNTIME DESTINATION bin)
-configure_file(scripts/aartfaac-system-start.py.in aartfaac-system-start.py)
-configure_file(scripts/xml/emulatorConfig.xml.in emulatorConfig.xml)
-configure_file(scripts/xml/serverConfig.xml.in serverConfig.xml)
-configure_file(scripts/xml/pipelineConfig.xml.in pipelineConfig.xml)
+configure_file(scripts/aartfaac-system-start.py.in ${PROJECT_BINARY_DIR}/aartfaac-system-start.py)
+configure_file(scripts/xml/emulatorConfig.xml.in ${PROJECT_BINARY_DIR}/emulatorConfig.xml)
+configure_file(scripts/xml/serverConfig.xml.in ${PROJECT_BINARY_DIR}/serverConfig.xml)
+configure_file(scripts/xml/pipelineConfig.xml.in ${PROJECT_BINARY_DIR}/pipelineConfig.xml)
+configure_file(src/Constants.h.in ${PROJECT_BINARY_DIR}/Constants.h)
 install(PROGRAMS ${CMAKE_BINARY_DIR}/aartfaac-system-start.py DESTINATION bin)
 install(FILES ${CMAKE_BINARY_DIR}/emulatorConfig.xml
               ${CMAKE_BINARY_DIR}/serverConfig.xml

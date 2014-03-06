@@ -6,7 +6,7 @@
 #include <complex>
 #include <vector>
 #include <cmath>
-#include "../../../Constants.h"
+#include "Constants.h"
 #include "../../../utilities/Utils.h"
 
 using namespace pelican;

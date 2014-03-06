@@ -1,7 +1,7 @@
 #include "TiffStorage.h"
 #include "../../StreamBlob.h"
 #include "../../../utilities/Utils.h"
-#include "../../../Constants.h"
+#include "Constants.h"
 
 #include <limits>
 #include <cmath>

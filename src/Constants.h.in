@@ -43,4 +43,7 @@
 /** Lock file for synchronized file io */
 #define LOCK_FILE "/tmp/stat-lock"
 
+/** Location of the antenna positions in ITRF */
+#define POS_ITRF_FILE "@CMAKE_INSTALL_PREFIX@/share/aartfaac/posITRF.dat"
+
 #endif // CONSTANTS_H

@@ -1,7 +1,7 @@
 #ifndef STREAM_BLOB_H
 #define STREAM_BLOB_H
 
-#include "../Constants.h"
+#include "Constants.h"
 #include "../emulator/stream/StreamPacket.h"
 #include <pelican/data/DataBlob.h>
 #include <eigen3/Eigen/Dense>

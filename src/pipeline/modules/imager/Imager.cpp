@@ -3,7 +3,7 @@
 #include "../../StreamBlob.h"
 #include "../../../utilities/AntennaPositions.h"
 #include "../../../utilities/Utils.h"
-#include "../../../Constants.h"
+#include "Constants.h"
 
 #include <pelican/utility/Config.h>
 #include <QtCore>

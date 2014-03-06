@@ -4,7 +4,7 @@
 #include <QtCore>
 #include <complex>
 
-#include "../../Constants.h"
+#include "Constants.h"
 
 struct StreamHeader
 {

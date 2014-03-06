@@ -1,6 +1,6 @@
 #include "StreamAdapter.h"
 #include "StreamBlob.h"
-#include "../Constants.h"
+#include "Constants.h"
 #include "../emulator/stream/StreamPacket.h"
 
 #include <complex>

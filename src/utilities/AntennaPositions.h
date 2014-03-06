@@ -4,7 +4,7 @@
 #include <eigen3/Eigen/Dense>
 #include <QString>
 
-#include "../Constants.h"
+#include "Constants.h"
 
 using namespace Eigen;
 
@@ -33,7 +33,7 @@ private:
   MatrixXd mWCoords;  ///< a1_z - a2_z;
 };
 
-static AntennaPositions ap("../data/posITRF.dat");
+static AntennaPositions ap(POS_ITRF_FILE);
 
 #define ANT_UVW(a, b) ap.GetUVW(a, b)
 #define ANT_U() ap.GetAllU()
