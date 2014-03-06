@@ -22,11 +22,11 @@
       </Flagger>
 
       <Calibrator>
-        <positrf path="../data/posITRF.dat"/>
+        <positrf path="${CMAKE_INSTALL_PREFIX}/share/aartfaac/posITRF.dat"/>
       </Calibrator>
 
       <Imager>
-        <positrf path="../data/posITRF.dat"/>
+        <positrf path="${CMAKE_INSTALL_PREFIX}/share/aartfaac/posITRF.dat"/>
       </Imager>
     </modules>
 

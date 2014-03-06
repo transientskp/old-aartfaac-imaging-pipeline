@@ -120,7 +120,7 @@ if __name__ == "__main__":
   if cmd_args.dryrun:
     print "Generated %s" % (SERVER_XML)
   else:
-    processes.append(subprocess.Popen(['./aartfaac-server', SERVER_XML]))
+    processes.append(subprocess.Popen(['aartfaac-server', SERVER_XML]))
     time.sleep(2)
 
   # 3. Compute number of pipelines to spawn, create the pipeline xml files and
@@ -152,7 +152,7 @@ if __name__ == "__main__":
     if cmd_args.dryrun:
       print "Generated %s" % (filename)
     else:
-      processes.append(subprocess.Popen(['./aartfaac-pipeline', filename]))
+      processes.append(subprocess.Popen(['aartfaac-pipeline', filename]))
     
   if not cmd_args.dryrun:
     time.sleep(5)
@@ -183,7 +183,7 @@ if __name__ == "__main__":
     if cmd_args.dryrun:
       print "Generated %s" % (filename)
     else:
-      processes.append(subprocess.Popen(['./aartfaac-emulator', filename]))
+      processes.append(subprocess.Popen(['aartfaac-emulator', filename]))
     i += 1
 
   # 6. Loop forever

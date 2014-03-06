@@ -1,6 +1,4 @@
 .*swp
 *.autosave
-build/*
-!build/*.py
-!build/*.sh
+build/
 CMakeLists.txt.user*
