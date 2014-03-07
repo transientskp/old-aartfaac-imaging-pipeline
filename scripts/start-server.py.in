@@ -21,19 +21,20 @@ TEMPLATE_XML = Template("""
     </buffers>
 
     <chunkers>
-      <StreamChunker name="${stream_chunker_name}">
-        <data type="StreamBlob"/>
-        <stream subbands="${subbands}"
-                numChannels="${num_channels}"
-                frequency="${start_frequency}"
-                width="${channel_width}" />
-        <connection host="${input_host}"
-                    port="${input_port}"
-                    timeout="${input_timeout}" />
-      </StreamChunker>
+      ${chunker_definitions}
     </chunkers>
   </server>
 </configuration>
+""".strip())
+TEMPLATE_CHUNKER = Template("""
+<StreamChunker name="${stream_chunker_name}">
+  <data type="StreamBlob"/>
+  <stream subbands="${subbands}"
+          numChannels="${num_channels}"
+          frequency="${start_frequency}"
+          width="${channel_width}" />
+  <connection host="${input_host}" port="${input_port}" />
+</StreamChunker>
 """.strip())
 
 def generate_xml(save_xml, **kwargs):
@@ -47,41 +48,45 @@ def generate_xml(save_xml, **kwargs):
         print "Saved XML file as %s" % (xmlfile.name,)
     return xmlfile
 
+def generate_chunkers(config):
+    chunkers = []
+    for i, stream_info in enumerate(config.stream):
+        name = "Stream%d" % (i,)
+        port = config.input_port_start + i
+        print "Chunker %s listening on port %d" % (name, port)
+        chunkers.append(
+            TEMPLATE_CHUNKER.substitute(
+                stream_chunker_name=name,
+                subbands=",".join("-".join(x) for x in config.subband),
+                num_channels = stream_info[0],
+                start_frequency = stream_info[1],
+                channel_width = stream_info[2],
+                input_host = config.input_host,
+                input_port = port
+            )
+        )
+    return "\n".join(chunkers)
+
 def get_configuration():
     """Rerturns a populated configuration"""
     parser = argparse.ArgumentParser()
     parser.add_argument("--buffer-max-size", help="???", default=4294967296)
     parser.add_argument("--buffer-max-chunk-size", help="???", default=4294967296)
     parser.add_argument("--stream-chunker-name", help="StreamChunker name", default="Stream1")
-    parser.add_argument("--input-host", help="Address to listen for incoming data", default="0.0.0.0")
-    parser.add_argument("--input-port", help="Port to listen for incoming data", default="4100")
-    parser.add_argument("--input-timeout", help="???", default="4100")
+    parser.add_argument("--input-host", help="Address for incoming data", default="0.0.0.0")
+    parser.add_argument("--input-port-start", help="First port for incoming data (increases with chunkers)", default=4100, type=int)
     parser.add_argument("--save-xml", help="Don't delete XML file", action="store_true")
-    parser.add_argument("num_channels", help="Number of channels", type=int)
-    parser.add_argument("start_frequency", help="Frequency of first channel (Hz)", type=float)
-    parser.add_argument("channel_width", help="Width of each channel (Hz)", type=float)
+    parser.add_argument("--stream", help="Add stream: <num_channels> <start_freq> <channel_width> (units of Hz)", action="append", nargs=3)
     parser.add_argument("subband", help="Define a subband: <first channel>-<last channel> (inclusive)", type=lambda x: x.split('-'), nargs="*")
     return parser.parse_args()
 
 if __name__ == "__main__":
     config = get_configuration()
 
-    # Sanity check on subband definitions: no channels less than 0
-    # or greater than the maximum.
-    assert min(int(x) for x in chain(*config.subband)) >= 0
-    assert max(int(x) for x in chain(*config.subband)) < int(config.num_channels)
-
     xmlfile = generate_xml(
         config.save_xml,
         buffer_max_size=config.buffer_max_size,
         buffer_max_chunk_size=config.buffer_max_chunk_size,
-        stream_chunker_name=config.stream_chunker_name,
-        subbands=",".join("-".join(x) for x in config.subband),
-        num_channels=config.num_channels,
-        start_frequency=config.start_frequency,
-        channel_width=config.channel_width,
-        input_host=config.input_host,
-        input_port=config.input_port,
-        input_timeout=config.input_timeout
+        chunker_definitions=generate_chunkers(config)
     )
     subprocess.call([SERVER_CMD, xmlfile.name])
