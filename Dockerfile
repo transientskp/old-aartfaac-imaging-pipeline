@@ -61,5 +61,5 @@ RUN mkdir /root/.ssh &&                                                      \
 RUN rm -rf /src/aartfaac/build &&                         \
     mkdir -p /src/aartfaac/build &&                       \
     cd /src/aartfaac/build &&                             \
-    cmake -DENABLE_OPENMP=ON -DENABLE_LOFARSTMAN=ON .. && \
+    cmake -DENABLE_OPENMP=ON -DENABLE_LOFARSTMAN=ON -DENABLE_TESTS=OFF .. && \
     make -j install
