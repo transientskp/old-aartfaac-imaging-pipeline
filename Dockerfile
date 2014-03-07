@@ -26,7 +26,7 @@ RUN apt-get install -q -y build-essential git cmake libqt4-dev libcppunit-dev \
 
 # Clone and install Pelican; will end up in /usr/local.
 # NB we are using the HEAD of master here -- should we use a tagged release?
-RUN cd /src &&                                               \
+RUN mkdir -p /src && cd /src &&                              \
     git clone https://github.com/pelican/pelican.git &&      \
     mkdir -p /src/pelican/build && cd /src/pelican/build &&  \
     cmake -DCMAKE_BUILD_TYPE=release ../pelican &&           \
