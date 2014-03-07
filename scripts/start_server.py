@@ -34,12 +34,15 @@ TEMPLATE_XML = Template("""
 </configuration>
 """.strip())
 
-def generate_xml(**kwargs):
+def generate_xml(save_xml, **kwargs):
     """Returns a temporary file object"""
-    xmlfile = tempfile.NamedTemporaryFile()
+    xmlfile = tempfile.NamedTemporaryFile(delete=(not save_xml))
     xmlfile.write(
         TEMPLATE_XML.substitute(**kwargs)
     )
+    if save_xml:
+        print "Saved XML file as %s" % (xmlfile.name,)
+    xmlfile.flush()
     return xmlfile
 
 def get_configuration():
@@ -51,6 +54,7 @@ def get_configuration():
     parser.add_argument("--input-host", help="Address to listen for incoming data", default="0.0.0.0")
     parser.add_argument("--input-port", help="Port to listen for incoming data", default="4100")
     parser.add_argument("--input-timeout", help="???", default="4100")
+    parser.add_argument("--save-xml", help="Don't delete XML file", action="store_true")
     parser.add_argument("num_channels", help="Number of channels", type=int)
     parser.add_argument("start_frequency", help="Frequency of first channel (Hz)", type=float)
     parser.add_argument("channel_width", help="Width of each channel (Hz)", type=float)
@@ -66,6 +70,7 @@ if __name__ == "__main__":
     assert max(int(x) for x in chain(*config.subband)) < int(config.num_channels)
 
     xmlfile = generate_xml(
+        config.save_xml,
         buffer_max_size=config.buffer_max_size,
         buffer_max_chunk_size=config.buffer_max_chunk_size,
         stream_chunker_name=config.stream_chunker_name,
@@ -78,3 +83,4 @@ if __name__ == "__main__":
         input_timeout=config.input_timeout
     )
     subprocess.call([SERVER_CMD, xmlfile.name])
+    subprocess.call(cmd, shell=True)
