@@ -22,11 +22,11 @@
       </Flagger>
 
       <Calibrator>
-        <positrf path="${CMAKE_INSTALL_PREFIX}/share/aartfaac/antennasets/lba_outer.dat"/>
+        <positrf path="@CMAKE_INSTALL_PREFIX@/share/aartfaac/antennasets/lba_outer.dat"/>
       </Calibrator>
 
       <Imager>
-        <positrf path="${CMAKE_INSTALL_PREFIX}/share/aartfaac/antennasets/lba_outer.dat"/>
+        <positrf path="@CMAKE_INSTALL_PREFIX@/share/aartfaac/antennasets/lba_outer.dat"/>
       </Imager>
     </modules>
 

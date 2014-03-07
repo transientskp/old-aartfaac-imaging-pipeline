@@ -105,8 +105,8 @@ set (SCRIPTS
 )
 
 set (DATAFILES
-  data/xml/emulatorConfig.xml.in
-  data/xml/serverConfig.xml.in
-  data/xml/pipelineConfig.xml.in
-  data/antennasets/lba_outer.data.in
+  data/xml/emulatorConfig.xml
+  data/xml/serverConfig.xml
+  data/xml/pipelineConfig.xml
+  data/antennasets/lba_outer.dat
 )

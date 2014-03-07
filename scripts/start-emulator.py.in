@@ -7,7 +7,7 @@ import argparse
 import os
 
 DEFAULT_SERVER_NAME = "AARTFAAC_SERVER"
-EMULATOR_CMD = "aartfaac-emulator"
+EMULATOR_CMD = "@CMAKE_INSTALL_PREFIX@/bin/aartfaac-emulator"
 TEMPLATE_XML = Template("""
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE pelican>

@@ -7,7 +7,7 @@ import tempfile
 import argparse
 import os
 
-SERVER_CMD = "aartfaac-server"
+SERVER_CMD = "@CMAKE_INSTALL_PREFIX@/bin/aartfaac-server"
 TEMPLATE_XML = Template("""
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE pelican>

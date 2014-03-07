@@ -4,7 +4,7 @@
 <configuration version="1.0">
     <StreamEmulator     name="O1">
         <connection     host="127.0.0.1" port="4100" />
-        <measurementset name="/media/data2/10s_avg_every_5min_64ch/SB000_115908_64ch.MS" />
-        <emulator       packetInterval="0"/>
+        <measurementset name="/data/observation.MS" />
+        <emulator       packetInterval="0" />
     </StreamEmulator>
 </configuration>

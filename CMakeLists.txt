@@ -160,14 +160,14 @@ endif (ENABLE_TESTS)
 # add_doxygen_target (user DoxyfileUser)
 
 foreach (SCRIPT ${SCRIPTS})
-  configure_file(${SCRIPT}.in ${PROJECT_BINARY_DIR}/${SCRIPT})
+  configure_file(${SCRIPT}.in ${PROJECT_BINARY_DIR}/${SCRIPT} @ONLY)
   install(PROGRAMS ${CMAKE_BINARY_DIR}/${SCRIPT} DESTINATION bin)
 endforeach (SCRIPT)
 
 foreach (DATAFILE ${DATAFILES})
-  configure_file(${DATAFILE}.in ${PROJECT_BINARY_DIR}/${DATAFILE})
-  install(FILES ${PROJECT_BINARY_DIR}/${DATAFILE} DESTINATION share/aartfaac)
+  configure_file(${DATAFILE}.in ${PROJECT_BINARY_DIR}/${DATAFILE} @ONLY)
 endforeach (DATAFILE)
+install (DIRECTORY ${PROJECT_BINARY_DIR}/data/ DESTINATION share/aartfaac)
 
 install(TARGETS ${SERVER} ${PIPELINE} ${EMULATOR} RUNTIME DESTINATION bin)
 

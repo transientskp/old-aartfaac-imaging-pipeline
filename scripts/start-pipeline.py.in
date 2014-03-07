@@ -6,7 +6,7 @@ import tempfile
 import argparse
 import os
 
-PIPELINE_CMD = "aartfaac-pipeline"
+PIPELINE_CMD = "@CMAKE_INSTALL_PREFIX@/bin/aartfaac-pipeline"
 TEMPLATE_XML = Template("""
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE pelican>
@@ -75,7 +75,7 @@ def get_configuration():
     parser.add_argument("--flagger-deviation-multiplier", help="Offset from variance", type=int, default=4)
     parser.add_argument("--antenna-positions",
         help="Path to file containing ordered IRTF positions of all antennae",
-        default="${CMAKE_INSTALL_PREFIX}/share/aartfaac/antennasets/lba_outer.dat"
+        default="@CMAKE_INSTALL_PREFIX@/share/aartfaac/antennasets/lba_outer.dat"
     )
     parser.add_argument("--casa", help="Store CASA images", action="store_true")
     parser.add_argument("--tiff", help="Store TIFF images", action="store_true")
