@@ -21,7 +21,7 @@ TEMPLATE_XML = Template("""
 def generate_xml(**kwargs):
     """Returns a temporary file object"""
     xmlfile = tempfile.NamedTemporaryFile()
-    xmlfile.write(TEMPLATE_XML.substitute(**kwargs)))
+    xmlfile.write(TEMPLATE_XML.substitute(**kwargs))
     xmlfile.flush()
     return xmlfile
 
@@ -41,7 +41,7 @@ def get_configuration():
     parser.add_argument("--stream-name", help="Stream name", default="O1")
     parser.add_argument("--server-host", help="Server hostname", default=default_host)
     parser.add_argument("--server-port", help="Server port", default=default_port)
-    parser.add_argument("--packet-interval", help="Packet interval (ms)", type=int default=10)
+    parser.add_argument("--packet-interval", help="Packet interval (ms)", type=int, default=10)
     parser.add_argument("ms", help="MeasurementSet containing data to send")
     return parser.parse_args()
 

@@ -53,7 +53,7 @@ RUN mkdir /root/.ssh &&                                                      \
     mkdir -p lofar/build/gnu_opt &&                                          \
     cd lofar/build/gnu_opt &&                                                \
     cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_PACKAGES=LofarStMan      \
-          -DBUILD_SHARED_LIBS=ON  -DUSE_LOG4CPLUS=OFF ../.. &&               \
+          -DBUILD_SHARED_LIBS=ON  -DUSE_LOG4CPLUS=OFF -DENABLE_LIB64=OFF ../.. && \
     make -j install
 
 # Copy over this repository and build.
