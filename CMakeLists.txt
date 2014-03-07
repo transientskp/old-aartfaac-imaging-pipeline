@@ -56,10 +56,8 @@ execute_process (
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-configure_file (
-  ${PROJECT_SOURCE_DIR}/cmake/version.h.in
-  ${PROJECT_BINARY_DIR}/version.h
-)
+configure_file (cmake/version.h.in ${PROJECT_BINARY_DIR}/version.h)
+configure_file (src/Constants.h.in ${PROJECT_BINARY_DIR}/Constants.h)
 
 # === Include sources.
 include (cmake/sources.cmake)
@@ -161,24 +159,17 @@ endif (ENABLE_TESTS)
 # add_doxygen_target (developer DoxyfileDeveloper)
 # add_doxygen_target (user DoxyfileUser)
 
+foreach (SCRIPT ${SCRIPTS})
+  configure_file(${SCRIPT}.in ${PROJECT_BINARY_DIR}/${SCRIPT})
+  install(PROGRAMS ${CMAKE_BINARY_DIR}/${SCRIPT} DESTINATION bin)
+endforeach (SCRIPT)
+
+foreach (DATAFILE ${DATAFILES})
+  configure_file(${DATAFILE}.in ${PROJECT_BINARY_DIR}/${DATAFILE})
+  install(FILES ${PROJECT_BINARY_DIR}/${DATAFILE} DESTINATION share/aartfaac)
+endforeach (DATAFILE)
 
 install(TARGETS ${SERVER} ${PIPELINE} ${EMULATOR} RUNTIME DESTINATION bin)
-configure_file(scripts/aartfaac-system-start.py.in ${PROJECT_BINARY_DIR}/aartfaac-system-start.py)
-configure_file(scripts/xml/emulatorConfig.xml.in ${PROJECT_BINARY_DIR}/emulatorConfig.xml)
-configure_file(scripts/xml/serverConfig.xml.in ${PROJECT_BINARY_DIR}/serverConfig.xml)
-configure_file(scripts/xml/pipelineConfig.xml.in ${PROJECT_BINARY_DIR}/pipelineConfig.xml)
-configure_file(src/Constants.h.in ${PROJECT_BINARY_DIR}/Constants.h)
-install(PROGRAMS ${CMAKE_BINARY_DIR}/aartfaac-system-start.py DESTINATION bin)
-install(FILES ${CMAKE_BINARY_DIR}/emulatorConfig.xml
-              ${CMAKE_BINARY_DIR}/serverConfig.xml
-              ${CMAKE_BINARY_DIR}/pipelineConfig.xml
-        DESTINATION share/aartfaac
-)
-install(FILES data/antennasets/lba_outer.dat
-        DESTINATION share/aartfaac/antennasets
-)
-
-
 
 # === Status report
 message (STATUS "")

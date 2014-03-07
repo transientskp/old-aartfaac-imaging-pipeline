@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from string import Template
 from itertools import chain
 import subprocess

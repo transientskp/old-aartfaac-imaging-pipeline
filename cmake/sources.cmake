@@ -96,3 +96,17 @@ set (utilitiestest_SOURCES
   src/utilities/monitoring/TcpAcceptor.cpp
   src/utilities/monitoring/Server.cpp
 )
+
+set (SCRIPTS
+  scripts/aartfaac-system-start.py
+  scripts/start-emulator.py
+  scripts/start-server.py
+  scripts/start-pipeline.py
+)
+
+set (DATAFILES
+  data/xml/emulatorConfig.xml.in
+  data/xml/serverConfig.xml.in
+  data/xml/pipelineConfig.xml.in
+  data/antennasets/lba_outer.data.in
+)
