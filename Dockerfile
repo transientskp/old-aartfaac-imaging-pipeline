@@ -24,6 +24,14 @@ RUN apt-get install -q -y build-essential git cmake libqt4-dev libcppunit-dev \
                           libboost-program-options-dev libfftw3-dev           \
                           wcslib-dev libicu-dev gfortran
 
+# Clone and install Pelican; will end up in /usr/local.
+# NB we are using the HEAD of master here -- should we use a tagged release?
+RUN cd /src &&                                               \
+    git clone https://github.com/pelican/pelican.git &&      \
+    mkdir -p /src/pelican/build && cd /src/pelican/build &&  \
+    cmake -DCMAKE_BUILD_TYPE=release ../pelican &&           \
+    make -j && make install && ldconfig
+
 # Need a more modern version of eigen3 than supplied by Ubuntu 12.04.
 # We are hard-coded to use the 3.2.0 release.
 ADD http://bitbucket.org/eigen/eigen/get/3.2.0.tar.bz2 /src/eigen.tar.bz2
@@ -31,13 +39,6 @@ RUN mkdir -p /src/eigen &&                                            \
     tar jxvf /src/eigen.tar.bz2 --strip-components=1 -C /src/eigen && \
     mkdir -p /src/eigen/build && cd /src/eigen/build &&               \
     cmake .. && make install
-
-# Clone and install Pelican; will end up in /usr/local.
-# NB we are using the HEAD of master here -- should we use a tagged release?
-RUN cd /src && git clone https://github.com/pelican/pelican.git
-RUN mkdir -p /src/pelican/build && cd /src/pelican/build &&  \
-    cmake -DCMAKE_BUILD_TYPE=release ../pelican &&           \
-    make -j && make install && ldconfig
 
 # The build environment contains both the AARTFAAC source and the SSH key
 # needed to access the LOFAR repository.
@@ -53,13 +54,14 @@ RUN mkdir /root/.ssh &&                                                      \
     mkdir -p lofar/build/gnu_opt &&                                          \
     cd lofar/build/gnu_opt &&                                                \
     cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_PACKAGES=LofarStMan      \
-          -DBUILD_SHARED_LIBS=ON  -DUSE_LOG4CPLUS=OFF -DENABLE_LIB64=OFF ../.. && \
+          -DBUILD_SHARED_LIBS=ON  -DUSE_LOG4CPLUS=OFF -DENABLE_LIB64=OFF     \
+          ../.. &&                                                           \
     make -j install
 
 # Copy over this repository and build.
 # Note that we remove any pre-existing build directory.
-RUN rm -rf /src/aartfaac/build &&                         \
-    mkdir -p /src/aartfaac/build &&                       \
-    cd /src/aartfaac/build &&                             \
+RUN rm -rf /src/aartfaac/build &&                                            \
+    mkdir -p /src/aartfaac/build &&                                          \
+    cd /src/aartfaac/build &&                                                \
     cmake -DENABLE_OPENMP=ON -DENABLE_LOFARSTMAN=ON -DENABLE_TESTS=OFF .. && \
     make -j install
