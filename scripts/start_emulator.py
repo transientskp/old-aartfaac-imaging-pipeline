@@ -30,8 +30,8 @@ def generate_xml(save_xml, **kwargs):
 
 def read_environment(name, port):
     """Returns a hostname, port tuple"""
-    host_env_var = DEFAULT_SERVER_NAME + "_" + str(port) + "_TCP_ADDR"
-    port_env_var = DEFAULT_SERVER_NAME + "_" + str(port) + "_TCP_PORT"
+    host_env_var = DEFAULT_SERVER_NAME + "_PORT_" + str(port) + "_TCP_ADDR"
+    port_env_var = DEFAULT_SERVER_NAME + "_PORT_" + str(port) + "_TCP_PORT"
     if host_env_var in os.environ and port_env_var in os.environ:
         server_name = os.environ[host_env_var]
         server_port = os.environ[port_env_var]
