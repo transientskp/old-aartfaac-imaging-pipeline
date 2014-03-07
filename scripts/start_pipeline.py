@@ -67,7 +67,7 @@ def get_configuration():
     """Rerturns a populated configuration"""
     parser = argparse.ArgumentParser()
     parser.add_argument("--nthreads", help="Number of threads", type=int, default=1)
-    parser.add_argument("--monitor-port", help="Port on which to publish monitoring data", default="2000")
+    parser.add_argument("--monitor-port", help="Port on which to publish monitoring data", default="4200")
     parser.add_argument("--server-host", help="Address of Pelican server", default="127.0.0.1")
     parser.add_argument("--server-port", help="Address of Pelican server", default="2000")
     parser.add_argument("--flagger-deviation-multiplier", help="???", type=int, default=4)
@@ -105,5 +105,4 @@ if __name__ == "__main__":
         store_casa=config.casa,
         output_path=config.output_path
     )
-    print xmlfile.name
-    #subprocess.call([PIPELINE_CMD, xmlfile.name])
+    subprocess.call([PIPELINE_CMD, xmlfile.name])
