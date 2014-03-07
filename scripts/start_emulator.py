@@ -4,6 +4,7 @@ import tempfile
 import argparse
 import os
 
+DEFAULT_SERVER_NAME = "AARTFAAC_SERVER"
 EMULATOR_CMD = "aartfaac-emulator"
 TEMPLATE_XML = Template("""
 <?xml version="1.0" encoding="UTF-8"?>
@@ -18,32 +19,42 @@ TEMPLATE_XML = Template("""
 </configuration>
 """.strip())
 
-def generate_xml(**kwargs):
+def generate_xml(save_xml, **kwargs):
     """Returns a temporary file object"""
-    xmlfile = tempfile.NamedTemporaryFile()
+    xmlfile = tempfile.NamedTemporaryFile(delete=(not save_xml))
     xmlfile.write(TEMPLATE_XML.substitute(**kwargs))
     xmlfile.flush()
+    if save_xml:
+        print "Saved XML file as %s" % (xmlfile.name,)
     return xmlfile
 
-def read_environment(variable_name="AARTFAAC_SERVER_PORT"):
-    """Returns (host, port)"""
-    # If defined, we expect the environment variable to be set by Docker to
-    # something in the format "tcp://hostname:port".
-    if variable_name in os.environ:
-        return os.environ[variable_name][6:].split(":")
+def read_environment(name, port):
+    """Returns a hostname, port tuple"""
+    host_env_var = DEFAULT_SERVER_NAME + "_" + str(port) + "_TCP_ADDR"
+    port_env_var = DEFAULT_SERVER_NAME + "_" + str(port) + "_TCP_PORT"
+    if host_env_var in os.environ and port_env_var in os.environ:
+        server_name = os.environ[host_env_var]
+        server_port = os.environ[port_env_var]
     else:
-        return "localhost", "4100"
+        raise Exception("AARTFAAC server not found")
+    print "Found AARTFAAC server at %s:%s" % (server_name, server_port)
+    return server_name, server_port
 
 def get_configuration():
-    """Rerturns a populated configuration"""
-    default_host, default_port = read_environment()
+    """Returns a populated configuration"""
     parser = argparse.ArgumentParser()
     parser.add_argument("--stream-name", help="Stream name", default="O1")
-    parser.add_argument("--server-host", help="Server hostname", default=default_host)
-    parser.add_argument("--server-port", help="Server port", default=default_port)
+    parser.add_argument("--server-host", help="Server hostname", default="<search environment>")
+    parser.add_argument("--server-port", help="Server port", default=4100)
     parser.add_argument("--packet-interval", help="Packet interval (ms)", type=int, default=10)
+    parser.add_argument("--save-xml", help="Don't delete XML file", action="store_true")
     parser.add_argument("ms", help="MeasurementSet containing data to send")
-    return parser.parse_args()
+    config = parser.parse_args()
+    if config.server_host == "<search environment>":
+        config.server_host, config.server_port = read_environment(
+            DEFAULT_SERVER_NAME, config.server_port
+        )
+    return config
 
 if __name__ == "__main__":
     config = get_configuration()
@@ -52,6 +63,7 @@ if __name__ == "__main__":
     assert(os.path.exists(config.ms))
 
     xmlfile = generate_xml(
+        config.save_xml,
         name=config.stream_name,
         host=config.server_host,
         port=config.server_port,
