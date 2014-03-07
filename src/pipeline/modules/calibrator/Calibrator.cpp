@@ -10,6 +10,8 @@
 #include <QtCore>
 #include <QDebug>
 
+#define MAX_MAJOR_CYCLES 50
+#define MAX_MINOR_CYCLES 30
 
 Calibrator::Calibrator(const ConfigNode &inConfig):
   AbstractModule(inConfig)
@@ -61,6 +63,7 @@ void Calibrator::run(const int channel, const StreamBlob *input, StreamBlob *out
   static const double max_restriction = 60.0;                 ///< avoid vis. above this much meters
   static const Vector3d normal(0.598753, 0.072099, 0.797682); ///< Normal to CS002 (central antenna)
 
+  mHasConverged = true;
   mFrequency = input->mHeader.freq + (input->mHeader.start_chan + channel)*input->mHeader.chan_width;
   double uvdist_cutoff = std::min(min_restriction*(C_MS/mFrequency), max_restriction);
 
@@ -125,6 +128,12 @@ void Calibrator::run(const int channel, const StreamBlob *input, StreamBlob *out
       j++;
     }
   statCal(mNormalizedData, mFrequency, mMask, mGains, mFluxes, mNoiseCovMatrix);
+
+  if (!mHasConverged)
+  {
+    output->mHasConverged[channel] = false;
+    return;
+  }
 
   // ====================================
   // ==== 3. WSF Position Estimation ====
@@ -220,7 +229,6 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
                                       VectorXf  &outSourcePowers,   // sigmas
                                       MatrixXcf &outNoiseCovMatrix) // Sigma_n
 {
-  static const int max_iterations = 50;
   static const float epsilon = 1e-3f;
 
   Q_ASSERT(outNoiseCovMatrix.rows() == inData.rows());
@@ -239,7 +247,7 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
   MatrixXcf data(n, 1);
   MatrixXcf pinv(inFluxes.size(), inFluxes.size());
   int i;
-  for (i = 1; i <= max_iterations; i++)
+  for (i = 1; i <= MAX_MAJOR_CYCLES; i++)
   {
     // ======================================================
     // ==== 1. Per sensor gain estimation using gainSolv ====
@@ -319,8 +327,11 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
   outGains = cur_gains;
   outSourcePowers = cur_fluxes;
 
-  if (i >= max_iterations)
+  if (i >= MAX_MAJOR_CYCLES)
+  {
+    mHasConverged = false;
     qCritical("[%s] No convergence after %d iterations", __FUNCTION__, i);
+  }
 
   return i;
 }
@@ -344,7 +355,6 @@ int Calibrator::gainSolv(const MatrixXcf &inModel,
   VectorXcf estimated_calibration(n);
   VectorXcf tmp(n);
 
-  static const int max_iterations = 30;
   static const float epsilon = 1e-6f;
 
   for (int i = 0; i < n; i++)
@@ -357,7 +367,7 @@ int Calibrator::gainSolv(const MatrixXcf &inModel,
   }
 
   int i;
-  for (i = 1; i <= max_iterations; i++)
+  for (i = 1; i <= MAX_MINOR_CYCLES; i++)
   {
     for (int j = 0; j < n; j++)
     {
@@ -388,7 +398,7 @@ int Calibrator::gainSolv(const MatrixXcf &inModel,
       data_calibrated.col(j) = outGains.array() * inModel.col(j).array();
   }
 
-//  if (i >= max_iterations)
+//  if (i >= MAX_MINOR_CYCLES)
 //    qCritical("[%s] No convergence after %d iterations", __FUNCTION__, i);
 
   return i;

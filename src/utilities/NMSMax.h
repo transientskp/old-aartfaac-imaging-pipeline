@@ -213,8 +213,8 @@ Matrix<D, Dynamic, 1> Simplex(
 #ifndef NDEBUG
   if (k >= iterations)
     qWarning("[%s] Max iterations %d exceeded", __FUNCTION__, iterations);
-  else
-    qDebug("[%s] f = %9.4e iters = %d/%d f(x) calls = %d", __FUNCTION__, fun(x), k, iterations, nf);
+//  else
+//    qDebug("[%s] f = %9.4e iters = %d/%d f(x) calls = %d", __FUNCTION__, fun(x), k, iterations, nf);
 #endif
 
   return x;

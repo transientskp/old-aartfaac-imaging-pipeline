@@ -59,7 +59,6 @@ int main(int argc, char *argv[])
       server.addStreamChunker("StreamChunker", streams.at(i).name());
 
     server.addProtocol(new pelican::PelicanProtocol(), 2000);
-
     server.start();
 
     while (!server.isReady())

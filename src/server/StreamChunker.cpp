@@ -51,7 +51,7 @@ QIODevice *StreamChunker::newDevice()
   }
 
   mServer->waitForNewConnection(mTimeOut);
-  qDebug("[%s] Created new connection %s:%d",
+  qWarning("[%s] Created new connection %s:%d",
          __PRETTY_FUNCTION__, qPrintable(host()), port());
   return mServer->nextPendingConnection();
 }

@@ -93,6 +93,7 @@ private:
   double mFrequency;
   float mMajorCycleResidue;
   float mMinorCycleResidue;
+  bool mHasConverged;
 };
 
 PELICAN_DECLARE_MODULE(Calibrator)

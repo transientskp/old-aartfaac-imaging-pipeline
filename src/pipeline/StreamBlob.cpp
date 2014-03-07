@@ -45,6 +45,7 @@ void StreamBlob::reset()
   }
   mSkyMap.setZero();
   mVisibilities.setZero();
+  mHasConverged.resize(mNumChannels, true);
 }
 
 void StreamBlob::serialise(QIODevice &out) const

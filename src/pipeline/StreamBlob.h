@@ -21,6 +21,7 @@ public:
   Eigen::MatrixXf mMasks[MAX_MERGE_CHANNELS][NUM_POLARIZATIONS]; // 1.0f is flagged
   Eigen::MatrixXcf mVisibilities;
   std::vector<int> mFlagged[MAX_MERGE_CHANNELS][NUM_POLARIZATIONS]; // flagged ants
+  std::vector<bool> mHasConverged;
 
   Eigen::MatrixXf mSkyMap;
   int mImageWidth;
