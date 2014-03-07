@@ -40,9 +40,9 @@ def generate_xml(save_xml, **kwargs):
     xmlfile.write(
         TEMPLATE_XML.substitute(**kwargs)
     )
+    xmlfile.flush()
     if save_xml:
         print "Saved XML file as %s" % (xmlfile.name,)
-    xmlfile.flush()
     return xmlfile
 
 def get_configuration():
@@ -83,4 +83,3 @@ if __name__ == "__main__":
         input_timeout=config.input_timeout
     )
     subprocess.call([SERVER_CMD, xmlfile.name])
-    subprocess.call(cmd, shell=True)
