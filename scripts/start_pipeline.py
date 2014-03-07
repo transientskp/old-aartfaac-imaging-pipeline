@@ -60,6 +60,7 @@ def generate_xml(**kwargs):
     """Returns a temporary file object"""
     xmlfile = tempfile.NamedTemporaryFile(delete=False)
     xmlfile.write(TEMPLATE_XML.substitute(**kwargs))
+    xmlfile.flush()
     return xmlfile
 
 def get_configuration():

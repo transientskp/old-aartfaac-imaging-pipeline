@@ -22,6 +22,7 @@ def generate_xml(**kwargs):
     """Returns a temporary file object"""
     xmlfile = tempfile.NamedTemporaryFile()
     xmlfile.write(TEMPLATE_XML.substitute(**kwargs)))
+    xmlfile.flush()
     return xmlfile
 
 def read_environment(variable_name="AARTFAAC_SERVER_PORT"):
