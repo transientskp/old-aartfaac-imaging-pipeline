@@ -40,7 +40,6 @@ private:
 
   // Must be defined in serverConf.xml
   std::vector<Subband> mSubbands;
-  int mTimeOut;
   int mNumChannels;
   double mFrequency;
   double mChannelWidth;

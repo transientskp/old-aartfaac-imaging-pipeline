@@ -14,7 +14,7 @@
         <data type="StreamBlob"/>
         <!-- subband numbering ranges from 0 to n-1 -->
         <stream subbands="1-7,8-14,15-21,22-28,29-35,36-42,43-49,50-56,57-63" numChannels="64" frequency="59669494.628906" width="3051.757812"/>
-        <connection host="127.0.0.1" port="4100" timeout="30000"/>
+        <connection host="127.0.0.1" port="4100"/>
       </StreamChunker>
     </chunkers>
   </server>

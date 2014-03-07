@@ -23,8 +23,6 @@ StreamChunker::StreamChunker(const ConfigNode &config):
     qDebug("  (%2d-%2d)\t(%d) chunksize %lu bytes",
            mSubbands[i].c1, mSubbands[i].c2, mSubbands[i].channels, mSubbands[i].size);
 
-  mTimeOut = config.getOption("connection", "timeout", "5000").toInt();
-
   // NOTE: These defaults are associated with SB002_LBA_OUTER_SPREAD.MS.trimmed
   mNumChannels = config.getOption("stream", "numChannels", "1").toInt();
   mFrequency = config.getOption("stream", "frequency", "54873657.226562").toDouble();
@@ -50,7 +48,7 @@ QIODevice *StreamChunker::newDevice()
     mServer->listen(QHostAddress(host()), port());
   }
 
-  mServer->waitForNewConnection(mTimeOut);
+  mServer->waitForNewConnection(-1);
   qWarning("[%s] Created new connection %s:%d",
          __PRETTY_FUNCTION__, qPrintable(host()), port());
   return mServer->nextPendingConnection();
