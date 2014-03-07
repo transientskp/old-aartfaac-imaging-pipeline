@@ -83,6 +83,9 @@ def get_configuration():
 if __name__ == "__main__":
     config = get_configuration()
 
+    if not (config.stream and config.subband):
+        raise Exception("Need at least one stream and one subband")
+
     xmlfile = generate_xml(
         config.save_xml,
         buffer_max_size=config.buffer_max_size,
