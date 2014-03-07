@@ -94,7 +94,7 @@ if __name__ == "__main__":
 
     # Ensure the output directory exists
     if not os.path.exists(config.output_path):
-        os.makedirs(output_path)
+        os.makedirs(config.output_path)
 
     xmlfile = generate_xml(
         nthreads=config.nthreads,
