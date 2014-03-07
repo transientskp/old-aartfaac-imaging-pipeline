@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from string import Template
 import subprocess
 import tempfile
@@ -70,10 +72,10 @@ def get_configuration():
     parser.add_argument("--monitor-port", help="Port on which to publish monitoring data", default="4200")
     parser.add_argument("--server-host", help="Address of Pelican server", default="127.0.0.1")
     parser.add_argument("--server-port", help="Address of Pelican server", default="2000")
-    parser.add_argument("--flagger-deviation-multiplier", help="???", type=int, default=4)
+    parser.add_argument("--flagger-deviation-multiplier", help="Offset from variance", type=int, default=4)
     parser.add_argument("--antenna-positions",
         help="Path to file containing ordered IRTF positions of all antennae",
-        default="../data/posITRF.dat" # TODO: Use installed version of this file.
+        default="${CMAKE_INSTALL_PREFIX}/share/aartfaac/antennasets/lba_outer.dat"
     )
     parser.add_argument("--casa", help="Store CASA images", action="store_true")
     parser.add_argument("--tiff", help="Store TIFF images", action="store_true")

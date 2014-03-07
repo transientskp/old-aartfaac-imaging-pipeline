@@ -22,21 +22,21 @@
       </Flagger>
 
       <Calibrator>
-        <positrf path="${CMAKE_INSTALL_PREFIX}/share/aartfaac/posITRF.dat"/>
+        <positrf path="${CMAKE_INSTALL_PREFIX}/share/aartfaac/antennasets/lba_outer.dat"/>
       </Calibrator>
 
       <Imager>
-        <positrf path="${CMAKE_INSTALL_PREFIX}/share/aartfaac/posITRF.dat"/>
+        <positrf path="${CMAKE_INSTALL_PREFIX}/share/aartfaac/antennasets/lba_outer.dat"/>
       </Imager>
     </modules>
 
     <output>
       <streamers>
         <TiffStorage active="false">
-          <output path="/local5/AARTFAAC/19Jul13/LBA_OUTER_BAND60/output"/>
+          <output path="/data"/>
         </TiffStorage>
         <CasaImageStorage active="true">
-          <output path="/media/data2/results"/>
+          <output path="/data"/>
         </CasaImageStorage>
       </streamers>
       <dataStreams>

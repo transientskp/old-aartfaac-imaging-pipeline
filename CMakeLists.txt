@@ -172,9 +172,12 @@ install(PROGRAMS ${CMAKE_BINARY_DIR}/aartfaac-system-start.py DESTINATION bin)
 install(FILES ${CMAKE_BINARY_DIR}/emulatorConfig.xml
               ${CMAKE_BINARY_DIR}/serverConfig.xml
               ${CMAKE_BINARY_DIR}/pipelineConfig.xml
-              data/posITRF.dat
         DESTINATION share/aartfaac
 )
+install(FILES data/antennasets/lba_outer.dat
+        DESTINATION share/aartfaac/antennasets
+)
+
 
 
 # === Status report
