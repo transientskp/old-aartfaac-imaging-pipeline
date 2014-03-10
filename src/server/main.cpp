@@ -11,7 +11,7 @@
 
 void sighandler(int signal)
 {
-  qCritical("Caught signal %d (%s), shutting down", signal, strsignal(signal));
+  qCritical("Received signal %d (%s), exit now", signal, strsignal(signal));
   exit(signal);
 }
 

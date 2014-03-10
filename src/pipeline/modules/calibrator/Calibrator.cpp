@@ -330,7 +330,7 @@ int Calibrator::walsCalibration(const MatrixXcf &inModel,  					// A
   if (i >= MAX_MAJOR_CYCLES)
   {
     mHasConverged = false;
-    qCritical("[%s] No convergence after %d iterations", __FUNCTION__, i);
+//    qCritical("[%s] No convergence after %d iterations", __FUNCTION__, i);
   }
 
   return i;
