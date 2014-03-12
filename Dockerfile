@@ -27,12 +27,21 @@ RUN apt-get install -q -y build-essential git cmake libqt4-dev libcppunit-dev \
                           libboost-program-options-dev libfftw3-dev           \
                           wcslib-dev libicu-dev gfortran
 
+# The build environment contains both the AARTFAAC source and the SSH key
+# needed to access the LOFAR repository.
+ADD . /src/aartfaac
+
 # Clone and install Pelican; will end up in /usr/local.
 # NB we are using the HEAD of master here -- should we use a tagged release?
-RUN mkdir -p /src && cd /src &&                              \
-    git clone https://github.com/pelican/pelican.git &&      \
-    mkdir -p /src/pelican/build && cd /src/pelican/build &&  \
-    cmake -DCMAKE_BUILD_TYPE=release ../pelican &&           \
+# We are also applying Folkert's workaround for pure virtual method errors on
+# Pelican server startup.
+RUN mkdir -p /src && cd /src &&                             \
+    git clone https://github.com/pelican/pelican.git &&     \
+    cd /src/pelican &&                                      \
+    cp /src/aartfaac/data/virtfix.patch . &&                \
+    git am virtfix.patch &&                                 \
+    mkdir -p /src/pelican/build && cd /src/pelican/build && \
+    cmake -DCMAKE_BUILD_TYPE=release ../pelican &&          \
     make -j && make install && ldconfig
 
 # Need a more modern version of eigen3 than supplied by Ubuntu 12.04.
@@ -42,10 +51,6 @@ RUN mkdir -p /src/eigen &&                                            \
     tar jxvf /src/eigen.tar.bz2 --strip-components=1 -C /src/eigen && \
     mkdir -p /src/eigen/build && cd /src/eigen/build &&               \
     cmake .. && make install
-
-# The build environment contains both the AARTFAAC source and the SSH key
-# needed to access the LOFAR repository.
-ADD . /src/aartfaac
 
 # We will also need the LOFAR Storage Manager if we want to read correlated
 # data from disk with aartfaac-emulator.

@@ -1,0 +1,26 @@
+From 40437d91664d3d0d7d470f66ca78a0850e015988 Mon Sep 17 00:00:00 2001
+From: Error323 <folkerthuizinga@gmail.com>
+Date: Wed, 12 Mar 2014 12:15:14 +0100
+Subject: [PATCH] Fix: pure virtual method called
+
+---
+ pelican/server/src/DataReceiver.cpp |    3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/pelican/server/src/DataReceiver.cpp b/pelican/server/src/DataReceiver.cpp
+index 2f234c5..49a60d4 100644
+--- a/pelican/server/src/DataReceiver.cpp
++++ b/pelican/server/src/DataReceiver.cpp
+@@ -79,6 +79,9 @@ void DataReceiver::run()
+ {
+     _active = true;
+ 
++    // Make sure the chunker exists before calling its pure virtual
++    sleep(1);
++
+     // Open up the device to use.
+     // N.B. must be done in this thread (i.e. in run())
+     _setupDevice();
+-- 
+1.7.9.5
+
