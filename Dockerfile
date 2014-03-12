@@ -4,6 +4,9 @@ MAINTAINER John Swinbank <j.swinbank@uva.nl>
 # Do not prompt for debconf
 ENV DEBIAN_FRONTEND noninteractive
 
+# LOFAR libraries will be installed in /usr/local/lib
+ENV LD_LIBRARY_PATH /usr/local/lib
+
 # Ensure the list of packages on the system is up to date.
 RUN apt-get update
 
