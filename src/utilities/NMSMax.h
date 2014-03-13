@@ -59,6 +59,7 @@ template<typename D, class F>
 Matrix<D, Dynamic, 1> Simplex(
         F &fun,                      // target function
         Matrix<D, Dynamic, 1> x,     // initial params
+        int &iteration,              // iterations used
   const D tolerance = 1e-5,          // termination criteria
   const int iterations = 1e3         // max iterations
 )
@@ -113,13 +114,13 @@ Matrix<D, Dynamic, 1> Simplex(
 
   D alpha = 1.0, beta = 0.5, gamma = 2.0;
 
-  int k = 0;
+  iteration = 0;
   while (true)
   {
-    k++;
+    iteration++;
 
     // Max iterations reached, break from the loop
-    if (k > iterations)
+    if (iteration > iterations)
       break;
 
 #ifdef NM_TRACE

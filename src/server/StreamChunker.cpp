@@ -119,10 +119,10 @@ void StreamChunker::next(QIODevice *inDevice)
 
   float usage = (usedSize(name()) / float(maxBufferSize(name()))) * 100.0f;
   if (usage > 90.0f)
-    qCritical("Chunker %s is at %0.1f of its buffer", qPrintable(name()), usage);
+    qCritical("Chunker `%s' is at %0.1f%% of its buffer", qPrintable(name()), usage);
   else
   if (usage > 75.0f)
-    qWarning("Chunker %s is at %0.1f of its buffer", qPrintable(name()), usage);
+    qWarning("Chunker `%s' is at %0.1f%% of its buffer", qPrintable(name()), usage);
 
 #ifndef NDEBUG
   for (int i = 0, n = mSubbands.size(); i < n; i++)

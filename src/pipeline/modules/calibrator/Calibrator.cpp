@@ -194,6 +194,8 @@ void Calibrator::run(const int channel, const StreamBlob *input, StreamBlob *out
   ADD_STAT("GAINS_" << mFrequency, input->mHeader.time, mGains.transpose());
   ADD_STAT("MAJORRESIDUES_" << mFrequency, input->mHeader.time, mMajorCycleResidue);
   ADD_STAT("MINORRESIDUES_" << mFrequency, input->mHeader.time, mMinorCycleResidue);
+  ADD_STAT("MAJORCYCLES_" << mFrequency, input->mHeader.time, mMajorCycles);
+  ADD_STAT("SIMPLEXCYCLES_" << mFrequency, input->mHeader.time, mSimplexCycles);
 }
 
 void Calibrator::statCal(const MatrixXcf &inData,
@@ -216,7 +218,7 @@ void Calibrator::statCal(const MatrixXcf &inData,
   MatrixXcf data = inData.array() * mask.array();
   data.resize(inData.rows()*inData.cols(), 1);
   VectorXf flux = (AA.inverse() * KA.adjoint() * data).array().real();
-  walsCalibration(A, inData, flux, mask, outCalibrations, outSigmas, outVisibilities);
+  mMajorCycles = walsCalibration(A, inData, flux, mask, outCalibrations, outSigmas, outVisibilities);
   outCalibrations = (1.0f/outCalibrations.array()).conjugate();
 }
 
@@ -444,7 +446,7 @@ void Calibrator::wsfSrcPos(const MatrixXcf &inData,
 
   WSFCost wsf_cost(EsWEs, G, inFreq, mAntennaLocalPosReshaped, nsrc);
 
-  init = NM::Simplex(wsf_cost, init, 1e-4);
+  init = NM::Simplex(wsf_cost, init, mSimplexCycles, 1e-4, 1e3);
 
   ioPositions.col(0) = init.head(nsrc).array().cos() * init.tail(nsrc).array().cos();
   ioPositions.col(1) = init.head(nsrc).array().sin() * init.tail(nsrc).array().cos();

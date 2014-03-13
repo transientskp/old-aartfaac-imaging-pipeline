@@ -152,13 +152,7 @@ if (ENABLE_TESTS)
   endforeach (TEST)
 endif (ENABLE_TESTS)
 
-# === Doxygen documentation targets.
-# include (UseDoxygen)
-# set (PDFLATEX_COMPILER TRUE)
-# add_doxygen_target (api DoxyfileAPI)
-# add_doxygen_target (developer DoxyfileDeveloper)
-# add_doxygen_target (user DoxyfileUser)
-
+# === Install project
 foreach (SCRIPT ${SCRIPTS})
   configure_file(${SCRIPT}.in ${PROJECT_BINARY_DIR}/${SCRIPT} @ONLY)
   install(PROGRAMS ${CMAKE_BINARY_DIR}/${SCRIPT} DESTINATION bin)
