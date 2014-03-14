@@ -87,9 +87,9 @@ are available the server does the following.
 
 1. Parse the header
 2. Check for the correct magic
-3. Read a precomputed number of bytes [#]_ from the stream and restructure them into
-   chunks according to subbands. In this case 2 chunks, one with channels 1-7 and
-   the other with channels 57-63.
+3. Read a precomputed number of bytes [#]_ from the stream and restructure them
+   into chunks according to the subbands defined in the xml. In this case 2
+   chunks, one with channels 1-7 and the other with channels 57-63.
 4. Send each chunk of to an available pipeline
 5. Wait for the next 512 bytes to be ready and goto step 1
 
@@ -97,32 +97,87 @@ As previously stated, one can connect multiple streams to the server. These are
 represented in the xml as StreamChunkers with a unique ``name``. Each stream
 gets its own StreamChunker which applies the above. Furthermore, one defines
 ``maxSize`` and ``maxChunkSize`` in the buffers section to determine the
-maximum numer of chunks in bytes and number of bytes in a chunk respectively.
+maximum numer of chunks in bytes and max number of bytes in a chunk
+respectively.
 
 
 Pipeline
 --------
 
-The pipeline...
+The pipeline is the workhorse of the system. When it receives a chunk from the
+server, it restructures it into a StreamBlob via the StreamAdapter after which
+it can process the data. The base configuration for the pipeline is located at
+``data/xml/configPipeline.xml.in`` and has the following structure.
 
+.. code-block:: xml
 
-Configurations
-==============
+  <configuration version="1.0">
+    <pipeline monport="4200" threads="1">
+      <clients>
+        <PelicanServerClient>
+          <server host="127.0.0.1" port="2000"/>
+          <data type="StreamBlob" adapter="StreamAdapter"/>
+        </PelicanServerClient>
+      </clients>
+  
+      <adapters>
+        <StreamAdapter>
+          <!-- No specific settings -->
+        </StreamAdapter>
+      </adapters>
+  
+      <modules>
+        <Flagger>
+          <deviation multiplier="4.0"/>
+        </Flagger>
+  
+        <Calibrator>
+          <positrf path="@CMAKE_INSTALL_PREFIX@/share/aartfaac/antennasets/lba_outer.dat"/>
+        </Calibrator>
+  
+        <Imager>
+          <positrf path="@CMAKE_INSTALL_PREFIX@/share/aartfaac/antennasets/lba_outer.dat"/>
+        </Imager>
+      </modules>
+  
+      <output>
+        <streamers>
+          <TiffStorage active="false">
+            <output path="/data"/>
+          </TiffStorage>
+          <CasaImageStorage active="true">
+            <output path="/data"/>
+          </CasaImageStorage>
+        </streamers>
+        <dataStreams>
+          <stream name="post" listeners="TiffStorage"/>
+          <stream name="post" listeners="CasaImageStorage"/>
+        </dataStreams>
+      </output>
+    </pipeline>
+  </configuration>
 
-Configuration of the imaging system is defined via xml files. Each component of
-the pipline has its own configuration, giving us three xml files defined in
-``data/xml``
+The pipeline consists of three major components, an adapter, modules and output
+streamers. As stated the adapter structures the data into a blob such that we
+can call useful functions on the data. The modules perform flagging,
+calibration and imaging. The flagger requires a ``deviation multiplier`` which
+determines the max deviation an antenna may have from the variance of all
+antennas. Both the calibrator and imager require the itrf antenna positions for
+the current configuration, LBA_OUTER in this case. The output streams send the
+processed streams to the defined path. In the future they will send the data
+over the network to the TRAP. 
 
-Emulator
---------
-
-
+One can also define the number of threads used for each pipeline. Each thread
+flags and calibrates a channel in parallel. Its recommended to set this to the
+minimal number of channels in a subband.  Finally each pipeline also allows for
+listening on a monitoring port ``monport`` which, once connected shows realtime
+diagnostics of the data being processed in ascii [#]_.
 
 Definitions
 ===========
 
 AARTFAAC
-  Amsterdam-Astron Radio Transients Facility And Analysis Center
+  Amsterdam-Astron Radio Transients Facility And Analysis Center.
 
 ACM
   Array Correlation Matrix. A 288x288 matrix consisting of the visibilities
@@ -147,3 +202,4 @@ Subband
 .. [#] *Pipeline for Extensible, Lightweight Imaging and CAlibratioN*. See https://github.com/pelican/pelican for more information.
 .. [#] This can be multiple emulators or the correlator with multiple connections.
 .. [#] See https://github.com/aartfaac/imaging/blob/master/src/server/StreamChunker.cpp#L62 for the full details.
+.. [#] A webbased interface called Cherimoya will be connected. See https://github.com/gijzelaerr/cherimoya
