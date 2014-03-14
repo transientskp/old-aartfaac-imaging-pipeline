@@ -68,10 +68,10 @@ void StreamBlob::computeStats()
   int count = 0;
   for (int a1 = 0; a1 < NUM_ANTENNAS; a1++)
   {
-    Eigen::RowVector3d pos_a1 = ap.GetPosLocal(a1);
+    Eigen::RowVector3d pos_a1 = ANT_XYZ(a1);
     for (int a2 = a1 + 1; a2 < NUM_ANTENNAS; a2++)
     {
-      Eigen::RowVector3d pos_a2 = ap.GetPosLocal(a2);
+      Eigen::RowVector3d pos_a2 = ANT_XYZ(a2);
       if ((pos_a1 - pos_a2).norm() > distance)
       {
         sum += mVisibilities(a1, a2);

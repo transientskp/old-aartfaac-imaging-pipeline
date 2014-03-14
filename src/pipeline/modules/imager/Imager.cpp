@@ -13,6 +13,7 @@ Imager::Imager(const ConfigNode &inConfig):
  AbstractModule(inConfig),
  mDuv(2.5f)
 {
+  AntennaPositions::CreateInstance(inConfig.getOption("positrf", "path"));
   mGridded.resize(IMAGE_OUTPUT_SIZE, IMAGE_OUTPUT_SIZE);
 
   mUCoords.resize(NUM_ANTENNAS, NUM_ANTENNAS);

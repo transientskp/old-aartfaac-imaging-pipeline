@@ -2,6 +2,8 @@
 
 #include <QtCore>
 
+AntennaPositions *AntennaPositions::sInstance = NULL;
+
 AntennaPositions::AntennaPositions(const QString &filename)
 {
   QFile file(filename);
@@ -54,11 +56,19 @@ AntennaPositions::AntennaPositions(const QString &filename)
   }
 }
 
+AntennaPositions *AntennaPositions::CreateInstance(const QString &filename)
+{
+  if (!sInstance)
+    sInstance = new AntennaPositions(filename);
+
+  return sInstance;
+}
+
 Vector3d AntennaPositions::GetUVW(const int a1, const int a2)
 {
   return Vector3d(
-    mUCoords(a1, a2), 
-    mVCoords(a1, a2), 
+    mUCoords(a1, a2),
+    mVCoords(a1, a2),
     mWCoords(a1, a2)
   );
 }

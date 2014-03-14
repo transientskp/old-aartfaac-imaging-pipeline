@@ -16,6 +16,8 @@
 Calibrator::Calibrator(const ConfigNode &inConfig):
   AbstractModule(inConfig)
 {
+  AntennaPositions::CreateInstance(inConfig.getOption("positrf", "path"));
+
   mAntennaLocalPosReshaped = ANT_ITRF();
 
   mMask.resize(NUM_ANTENNAS, NUM_ANTENNAS);

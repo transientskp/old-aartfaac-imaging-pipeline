@@ -14,6 +14,9 @@ public:
   AntennaPositions(const QString &inFileName);
   ~AntennaPositions() {}
 
+  static AntennaPositions *CreateInstance(const QString &filename);
+  static AntennaPositions *Instance() { return sInstance; }
+
   Vector3d GetPosLocal(const int a);
   Vector3d GetITRF(const int a);
   Vector3d GetUVW(const int a1, const int a2);
@@ -31,16 +34,16 @@ private:
   MatrixXd mUCoords;  ///< a1_x - a2_x;
   MatrixXd mVCoords;  ///< a1_y - a2_y;
   MatrixXd mWCoords;  ///< a1_z - a2_z;
+
+  static AntennaPositions *sInstance;
 };
 
-static AntennaPositions ap(POS_ITRF_FILE);
-
-#define ANT_UVW(a, b) ap.GetUVW(a, b)
-#define ANT_U() ap.GetAllU()
-#define ANT_V() ap.GetAllV()
-#define ANT_W() ap.GetAllW()
-#define ANT_ITRF() ap.GetAllITRF()
-#define ANT_LOCAL() ap.GetAllLocal()
-#define ANT_XYZ(a) ap.GetPosLocal(a)
+#define ANT_UVW(a, b) AntennaPositions::Instance()->GetUVW(a, b)
+#define ANT_U() AntennaPositions::Instance()->GetAllU()
+#define ANT_V() AntennaPositions::Instance()->GetAllV()
+#define ANT_W() AntennaPositions::Instance()->GetAllW()
+#define ANT_ITRF() AntennaPositions::Instance()->GetAllITRF()
+#define ANT_LOCAL() AntennaPositions::Instance()->GetAllLocal()
+#define ANT_XYZ(a) AntennaPositions::Instance()->GetPosLocal(a)
 
 #endif // ANTENNA_POSITONS_H
