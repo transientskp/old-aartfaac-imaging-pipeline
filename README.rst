@@ -45,17 +45,17 @@ streams are restructured into chunks via the StreamChunkers and send to the
 available pipelines. The server expects the following header on the incomming
 stream.
 
-+------------+------+--------------+
-| Header            | Size (bytes) |
-+------------+------+--------------+
-| magic      | pad0 | 8            |
-+------------+------+--------------+
-| start time        | 8            |
-+------------+------+--------------+
-| end time          | 8            |
-+------------+------+--------------+
-| pad1              | 488          |
-+------------+------+--------------+
++------------+------+------------------+
+| **Header**        | **Size (bytes)** |
++------------+------+------------------+
+| magic      | pad0 | 8                |
++------------+------+------------------+
+| start time        | 8                |
++------------+------+------------------+
+| end time          | 8                |
++------------+------+------------------+
+| pad1              | 488              |
++------------+------+------------------+
 
 Where the magic is defined as 4 byte integer ``0x3B98F002`` and the start/end
 times as doubles.  The final padding ``pad1`` ensures a 512 byte header. The
