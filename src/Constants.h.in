@@ -40,10 +40,4 @@
 /** Speed of light in meters per second */
 #define C_MS 299792458.0
 
-/** Lock file for synchronized file io */
-#define LOCK_FILE "/tmp/stat-lock"
-
-/** Location of the antenna positions in ITRF */
-#define POS_ITRF_FILE "@CMAKE_INSTALL_PREFIX@/share/aartfaac/antennasets/lba_outer.dat"
-
 #endif // CONSTANTS_H
