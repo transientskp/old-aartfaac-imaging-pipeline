@@ -11,6 +11,7 @@ The overal system can be split up into three main programs through which data
 flows. The emulator, the server and the pipeline which we will explain in more
 detail below.
 
+
 Emulator
 --------
 
@@ -35,6 +36,7 @@ Where the ``packetInterval`` defines the time interval in *microseconds*
 between packets. Furthermore, one can define multiple StreamEmulator blocks
 with different names and pick one on the command line e.g. ``aartfaac-emulator
 O2``.
+
 
 Server
 ------
@@ -194,6 +196,18 @@ StreamBlob
   data, and should provide methods to interact with that data. Their main
   function is to act as an interface between pipeline modules. The streamblob
   contains an ACM for each polarisation.
+
+StreamAdapter
+  Adapters are the final components of the data-import chain, and provide a
+  mechanism to convert chunks of raw binary data into the data members of a
+  Pelican data-blob (a specialised C++ container for holding data used by the
+  Pelican pipeline; see below). The most basic function of an adapter is to
+  de-serialise chunks of data, although re-ordering and re-factoring of the
+  data to a form that is convenient for subsequent pipeline processing may also
+  be carried out. Pelican currently provides support for two categories of
+  adapters, distinguished by the type of input data chunks they are expected to
+  process: these are stream data adapters and service data adapters, which
+  operate on the relevant data types.
 
 Subband
   A sequence of channels between 0 and 63.
