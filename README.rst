@@ -161,7 +161,16 @@ Server
 ------
 
 The ``aartfaac-server`` ``<configuration />`` contains a single ``<server />``
-element as follows:
+element. The ``<server />`` contains ``<buffers />`` and ``<chunkers />``
+elements; ``<buffers />`` contains a single ``<StreamBlob />``, while
+``<chunkers />`` contains one or more ``<StreamChunkers />``.
+
+Each ``<StreamChunker />`` corresponds to a separate TCP stream from the
+correlator (or, alternatively, to the output of a single emulator). Each
+chunker listens on a separate TCP port and receives its own, independent,
+selection of channels.
+
+.. todo:: Check the above for correctness!
 
 .. code-block:: xml
 
@@ -183,14 +192,41 @@ element as follows:
     </server>
   </configuration>
 
-The following attributes may be specified:
+The following attributes may be specified by the end user:
 
 ``<buffer maxSize />``, ``<buffer maxChunkSize />``
   The maximum number of chunks in byts and the maximum number of bytes per
   chunk, respectively. After these thresholds are exceed, the server will
   start discarding old data to make space for new.
 
-.. todo:: finish!
+``<StreamChunker name />``
+  An arbitrary string to identify the chunker.
+
+``<stream subbands />``
+  A series of comma-separated ``start`` - ``end`` (inclusive) channel ranges.
+  Each range of channels is regarded as a "subband", which is sent to a single
+  pipeline and results in a single output image. Note that the subbands are
+  0-indexed (i.e., the first subband is labelled ``0``).
+
+``<stream numChannels />``
+  The total number of channels in the stream.
+
+``<stream frequency />``
+  The central frequency of the first channel in the stream in Hz.
+
+``<stream width />``
+  The width of the channels in the stream in Hz. Note that channels are
+  assumed to all be of equal width.
+
+``<connection host />``, ``<connection port />``
+  The TCP host and port to which the server will bind to listen for incoming
+  data. Specifying a host of ``0.0.0.0`` will cause the server to bind to all
+  available interfaces.
+
+.. todo:: Check: is the subband definition inclusive?
+
+.. todo:: Check: is the frequency the *central* frequency or the *edge*
+          frequency?
 
 Pipeline
 --------
