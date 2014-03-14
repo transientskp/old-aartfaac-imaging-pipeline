@@ -17,7 +17,7 @@ frequency channels. These will be supplied to the AARTFAAC imaging system at
 
 Data arriving from the correlator is ingested by the *server*. The server
 groups the data into "subbands", which consist of arbitrary (but see the
-`Current Limitations`_) groups of channels which will be processed together to
+Limitations_) groups of channels which will be processed together to
 form a single image. Each subband is processed independently of the others.
 
 One or more *pipelines* perform the flagging, calibration and imaging. When a
@@ -90,7 +90,6 @@ TIFF files.
 .. todo:: Document metadata provided in images.
 
 .. todo:: Reference to LOFAR image format definition.
-
 
 Pipeline Configuration
 ======================
@@ -233,8 +232,24 @@ Pipeline
 
 The pipeline is the workhorse of the system. When it receives a chunk from the
 server, it restructures it into a StreamBlob via the StreamAdapter after which
-it can process the data. The base configuration for the pipeline is located at
-``data/xml/configPipeline.xml.in`` and has the following structure.
+it can process the data through a series of modules, which normally include
+flagging, calibration and imaging..
+
+``aartfaac-pipeline`` takes a configuration file which defines a ``<pipeline
+/>`` element. The pipeline contains a list of ``<clients />``: normally only
+one, which connects to the Server_. It specifies a list of ``<modules />``,
+which configure the data processing to be done on the data received. Finally,
+it specifies how the resultant data products are stored in the ``<output />``
+element.
+
+Note that the ``<module />`` definitions do not define *what* processing is
+performed on the data: the pipeline code explicitly flags, then calibrates,
+then images. Here we define only the configuration parameters used during
+those steps.
+
+.. todo:: Check: is that correct?
+
+An example pipeline configuration is as follows:
 
 .. code-block:: xml
 
@@ -284,26 +299,61 @@ it can process the data. The base configuration for the pipeline is located at
     </pipeline>
   </configuration>
 
-The pipeline consists of three major components, an adapter, modules and output
-streamers. As stated the adapter structures the data into a blob such that we
-can call useful functions on the data. The modules perform flagging,
-calibration and imaging. The flagger requires a ``deviation multiplier`` which
-determines the max deviation an antenna may have from the variance of all
-antennas. Both the calibrator and imager require the itrf antenna positions for
-the current configuration, LBA_OUTER in this case. The output streams send the
-processed streams to the defined path. In the future they will send the data
-over the network to the TRAP. 
+The following parameters may be configured:
 
-One can also define the number of threads used for each pipeline. Each thread
-flags and calibrates a channel in parallel. Its recommended to set this to the
-minimal number of channels in a subband.  Finally each pipeline also allows for
-listening on a monitoring port ``monport`` which, once connected shows realtime
-diagnostics of the data being processed in ascii [#]_.
+``<pipeline monport />``
+  The pipeline also allows for listening on a monitoring port, ``monport``,
+  which, once connected shows realtime diagnostics of the data being processed
+  in ascii [#]_.
 
-Current Limitations
-===================
+``<pipeline threads />``
+  Sets the number of threads of execution used by the pipeline. Channels may
+  be flagged and calibrated concurrently, so that multi-core architectures can
+  be exploited, but note that all data in the subband is combined and imaged
+  by a single thread.
 
+``<PelicanServerClient host />``, ``<PelicanServerClient port />``
+  The host and port of the server from which to fetch data.
 
+``<deviation multiplier />``
+  The maximum deviation an antenna may have from the variance of all antennas.
+
+``<positrf path />``
+  The full path to a file providing the IRTF positions of the antennae
+  currently being correlated. Note that ordering of this file must correspond
+  to the ordering of data being produced by the correlator.
+
+``<TiffStorage active />``
+  If true, store output images in TIFF format.
+
+``<CasaImageStorage active />``
+  If true, store output images as CASA tables.
+
+``<output path />``
+  Directory into which output images will be written. Every image will be
+  written into this path under a unique filename.
+
+.. todo:: To which interface does monport bind?
+
+.. todo:: deviation multiplier requires more explanation. We don't have a
+          value per antenna; we have a value per baseline!
+
+.. todo:: Specify how ordering of antennae must is determined.
+
+.. todo:: How are image filenames generated?
+
+Note that currently the only output methods supported write files to disk. In
+future, we expect to stream output image data directly over the network to the
+transients detection pipeline.
+
+.. todo:: Don't we also support output of calibrated visibilities? Where is
+          that configured?
+
+Limitations
+===========
+
+It is not (currently) possible to specify a subband which contains channels
+from different streams. This is issue #30.
 
 Glossary
 ========
@@ -344,7 +394,6 @@ StreamAdapter
 
 Subband
   A sequence of channels between 0 and 63.
-
 
 .. [#] *Pipeline for Extensible, Lightweight Imaging and CAlibratioN*. See https://github.com/pelican/pelican for more information.
 .. [#] This can be multiple emulators or the correlator with multiple connections.
