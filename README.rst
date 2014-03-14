@@ -35,6 +35,52 @@ Each server, pipeline or emulator in the system is a separate process: an
 instance of the executables ``aartfaac-server``, ``aartfaac-pipeline`` or
 ``aartfaac-emulator``, respectively.
 
+Data Formats
+============
+
+From Correlator to Server
+-------------------------
+
+The server is the redistribution centre of the system. One or more incomming
+streams [#]_ connect to the server and send the data over TCP/IP. Next, these
+streams are restructured into chunks via the StreamChunkers and send to the
+available pipelines. The server expects the following header on the incomming
+stream.
+
++------------+------+------------------+
+| **Header**        | **Size (bytes)** |
++------------+------+------------------+
+| magic      | pad0 | 8                |
++------------+------+------------------+
+| start time        | 8                |
++------------+------+------------------+
+| end time          | 8                |
++------------+------+------------------+
+| pad1              | 488              |
++------------+------+------------------+
+
+Where the magic is defined as 4 byte integer ``0x3B98F002`` and the start/end
+times as doubles.  The final padding ``pad1`` ensures a 512 byte header.
+
+Visibility Output
+-----------------
+
+Pipelines may be configured to store calibrated visibilities in the CASA
+MeasurementSet format.
+
+.. todo:: Reference to MeasurementSet definition for LOFAR.
+
+Image Output
+------------
+
+Pipelines may be configured to output images in either CASA Table format or as
+TIFF files.
+
+.. todo:: Document metadata provided in images.
+
+.. todo:: Reference to LOFAR image format definition.
+
+
 Pipeline Configuration
 ======================
 
@@ -101,26 +147,7 @@ been transmitted.
 Server
 ------
 
-The server is the redistribution centre of the system. One or more incomming
-streams [#]_ connect to the server and send the data over TCP/IP. Next, these
-streams are restructured into chunks via the StreamChunkers and send to the
-available pipelines. The server expects the following header on the incomming
-stream.
-
-+------------+------+------------------+
-| **Header**        | **Size (bytes)** |
-+------------+------+------------------+
-| magic      | pad0 | 8                |
-+------------+------+------------------+
-| start time        | 8                |
-+------------+------+------------------+
-| end time          | 8                |
-+------------+------+------------------+
-| pad1              | 488              |
-+------------+------+------------------+
-
-Where the magic is defined as 4 byte integer ``0x3B98F002`` and the start/end
-times as doubles.  The final padding ``pad1`` ensures a 512 byte header. The
+The
 base configuration for the server is located at
 ``data/xml/configServer.xml.in`` and has the following structure.
 
@@ -133,7 +160,7 @@ base configuration for the server is located at
           <buffer maxSize="1024" maxChunkSize="1024"/>
         </StreamBlob>
       </buffers>
-  
+
       <chunkers>
         <StreamChunker name="Stream1">
           <data type="StreamBlob"/>
@@ -181,27 +208,27 @@ it can process the data. The base configuration for the pipeline is located at
           <data type="StreamBlob" adapter="StreamAdapter"/>
         </PelicanServerClient>
       </clients>
-  
+
       <adapters>
         <StreamAdapter>
           <!-- No specific settings -->
         </StreamAdapter>
       </adapters>
-  
+
       <modules>
         <Flagger>
           <deviation multiplier="4.0"/>
         </Flagger>
-  
+
         <Calibrator>
           <positrf path="@CMAKE_INSTALL_PREFIX@/share/aartfaac/antennasets/lba_outer.dat"/>
         </Calibrator>
-  
+
         <Imager>
           <positrf path="@CMAKE_INSTALL_PREFIX@/share/aartfaac/antennasets/lba_outer.dat"/>
         </Imager>
       </modules>
-  
+
       <output>
         <streamers>
           <TiffStorage active="false">
