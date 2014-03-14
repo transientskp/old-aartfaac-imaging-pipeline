@@ -62,6 +62,17 @@ stream.
 Where the magic is defined as 4 byte integer ``0x3B98F002`` and the start/end
 times as doubles.  The final padding ``pad1`` ensures a 512 byte header.
 
+When an incomming stream connects to the server sends 512 bytes
+of data, the server does the following:
+
+#. Parse the header.
+#. Check for the correct magic.
+#. Read a precomputed number of bytes [#]_ from the stream and restructure them
+   into chunks according to the subbands defined in the xml. In this case 2
+   chunks, one with channels 1-7 and the other with channels 57-63.
+#. Send each chunk of to an available pipeline.
+#. Wait for the next 512 bytes to be ready and go to step 1.
+
 Visibility Output
 -----------------
 
@@ -104,6 +115,8 @@ That is, the configuration file should look broadly like:
 Each of the executables takes the path to the configuration file as a
 (non-optional) command line argument.
 
+Template versions of all of the configuration files are place in
+``${PREFIX}/share/aartfaac/xml`` when the imaging system is installed.
 
 Emulator
 --------
@@ -147,9 +160,8 @@ been transmitted.
 Server
 ------
 
-The
-base configuration for the server is located at
-``data/xml/configServer.xml.in`` and has the following structure.
+The ``aartfaac-server`` ``<configuration />`` contains a single ``<server />``
+element as follows:
 
 .. code-block:: xml
 
@@ -171,24 +183,14 @@ base configuration for the server is located at
     </server>
   </configuration>
 
-When an incomming stream connects on ``host:port`` to the server and 512 bytes
-are available the server does the following.
+The following attributes may be specified:
 
-1. Parse the header
-2. Check for the correct magic
-3. Read a precomputed number of bytes [#]_ from the stream and restructure them
-   into chunks according to the subbands defined in the xml. In this case 2
-   chunks, one with channels 1-7 and the other with channels 57-63.
-4. Send each chunk of to an available pipeline
-5. Wait for the next 512 bytes to be ready and goto step 1
+``<buffer maxSize />``, ``<buffer maxChunkSize />``
+  The maximum number of chunks in byts and the maximum number of bytes per
+  chunk, respectively. After these thresholds are exceed, the server will
+  start discarding old data to make space for new.
 
-As previously stated, one can connect multiple streams to the server. These are
-represented in the xml as StreamChunkers with a unique ``name``. Each stream
-gets its own StreamChunker which applies the above. Furthermore, one defines
-``maxSize`` and ``maxChunkSize`` in the buffers section to determine the
-maximum numer of chunks in bytes and max number of bytes in a chunk
-respectively.
-
+.. todo:: finish!
 
 Pipeline
 --------
