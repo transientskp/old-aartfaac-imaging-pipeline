@@ -1,42 +1,102 @@
-Aartfaac Imaging Pipeline
+AARTFAAC Imaging Pipeline
 =========================
 
-The Aartfaac Imaging Pipeline is a realtime imaging system for the aartfaac all
-sky monitor. The ASM uses the main core of the LOFAR radio telescope to look
-for transients on a 24/7 basis. This document describes a generic overview of
-the system and howto configure it for usage. The pipeline is build upon the
-Pelican Framework [#]_. 
+The AARTFAAC Imaging Pipeline is a realtime imaging system for the AARTFAAC
+All Sky Monitor. The ASM uses the main core of the LOFAR radio telescope to
+look for transients on a 24/7 basis. This document describes a generic
+overview of the system and how to configure it for usage. The pipeline is
+built upon the Pelican Framework [#]_.
 
-The overal system can be split up into three main programs through which data
-flows. The emulator, the server and the pipeline which we will explain in more
-detail below.
+Pipeline Structure
+==================
+
+The AARTFAAC Correlator will produce (up to) several hundred independent
+frequency channels. These will be supplied to the AARTFAAC imaging system at
+(approximately) one second intervals over multiple TCP connections (or
+"streams").
+
+Data arriving from the correlator is ingested by the *server*. The server
+groups the data into "subbands", which consist of arbitrary (but see the
+`Current Limitations`_) groups of channels which will be processed together to
+form a single image. Each subband is processed independently of the others.
+
+One or more *pipelines* perform the flagging, calibration and imaging. When a
+pipeline is idle, it polls the server for the next "chunk" of data,
+corresponding to a single integration of a particular subband. The
+pipeline processes this data, ultimately writing out the data product to disk,
+then returns to ask the server for more work.
+
+For testing and commissioning purposes, it is convenient to be able to process
+pre-correlated visibilities stored on disk. This task is handled by the
+*emulator*, which reads a MeasurementSet from disk and streams it to the server
+in the same way as if it had just been produced by the correlator.
+
+Each server, pipeline or emulator in the system is a separate process: an
+instance of the executables ``aartfaac-server``, ``aartfaac-pipeline`` or
+``aartfaac-emulator``, respectively.
+
+Pipeline Configuration
+======================
+
+All three components are configured by means of an XML file. This file should
+be UTF-8 encoded and should comply with the ``pelican`` document type
+definition. The XML document consists of a ``<configuration />`` element with
+the attribute ``version="1.0"``. The contents of the ``<configuration />`` are
+specific to the particular pipeline component.
+
+That is, the configuration file should look broadly like:
+
+.. code-block:: xml
+
+   <?xml version="1.0" encoding="UTF-8"?>
+   <!DOCTYPE pelican>
+
+   <configuration version="1.0">
+     <!-- Component specific configuration -->
+   </configuration>
+
+Each of the executables takes the path to the configuration file as a
+(non-optional) command line argument.
 
 
 Emulator
 --------
 
-The StreamEmulator reads a measurement set of disk and sends it to the Server_.
-Its main goal however, is to emulate the behavior of the correlator developed
-at ASTRON.
-
-The base configuration for the emulator is located at
-``data/xml/configEmulator.xml.in`` and has the following structure.
+In the case of ``aartfaac-emulator``, the ``<configuration />`` contains one
+or more ``<StreamEmulator />`` elements according to the following pattern:
 
 .. code-block:: xml
 
-  <configuration version="1.0">
-      <StreamEmulator     name="O1">
-          <connection     host="127.0.0.1" port="4100" />
-          <measurementset name="/path/to/data.MS" />
-          <emulator       packetInterval="0" />
-      </StreamEmulator>
-  </configuration>
+   <StreamEmulator     name="O1">
+       <connection     host="127.0.0.1" port="4100" />
+       <measurementset name="/path/to/data.MS" />
+       <emulator       packetInterval="0" />
+   </StreamEmulator>
 
-Where the ``packetInterval`` defines the time interval in *microseconds*
-between packets. Furthermore, one can define multiple StreamEmulator blocks
-with different names and pick one on the command line e.g. ``aartfaac-emulator
-O2``.
+The following attributes may be specified:
 
+``<StreamEmulator name />``
+  An arbitrary name by which to refer to this emulator. Note that, unless an
+  alternative name is specified on the command line, at least one
+  ``<StreamEmualtor />`` with the name ``O1`` must be defined, and will be
+  used by default.
+
+``<connection host />``, ``connection port/>``
+  Host name and TCP port of the server to which to send data.
+
+``<measurementset name />``
+  Path to MeasurementSet from which to read data.
+
+``<emulator packetInterval />``
+  The time interval in microseconds between packets sent by the emulator.
+
+``aartfaac-emulator`` takes an optional second command line argument which
+specifies the name of the ``<StreamEmulator />`` to use. If this name is not
+specified, the value of ``O1`` is assumed. A ``<StreamEmulator />`` with the
+given name must be defined in the configuration file.
+
+``aartfaac-emulator`` will exit once all the data in the MeasurementSet has
+been transmitted.
 
 Server
 ------
@@ -175,8 +235,13 @@ minimal number of channels in a subband.  Finally each pipeline also allows for
 listening on a monitoring port ``monport`` which, once connected shows realtime
 diagnostics of the data being processed in ascii [#]_.
 
-Definitions
-===========
+Current Limitations
+===================
+
+
+
+Glossary
+========
 
 AARTFAAC
   Amsterdam-Astron Radio Transients Facility And Analysis Center.
@@ -184,6 +249,9 @@ AARTFAAC
 ACM
   Array Correlation Matrix. A 288x288 matrix consisting of the visibilities
   layed out in the antenna structure.
+
+MeasurementSet
+  An AIPS++/CASA/casacore Table containing visibility data.
 
 StreamChunker
   The function of the chunker is to take an incoming data stream and turn it
