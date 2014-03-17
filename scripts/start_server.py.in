@@ -45,7 +45,7 @@ def generate_xml(save_xml, **kwargs):
     )
     xmlfile.flush()
     if save_xml:
-        print "Saved XML file as %s" % (xmlfile.name,)
+        print "Saved server XML file as %s" % (xmlfile.name,)
     return xmlfile
 
 def generate_chunkers(config):

@@ -58,11 +58,13 @@ TEMPLATE_XML = Template("""
 </configuration>
 """.strip())
 
-def generate_xml(**kwargs):
+def generate_xml(save_xml, **kwargs):
     """Returns a temporary file object"""
-    xmlfile = tempfile.NamedTemporaryFile(delete=False)
+    xmlfile = tempfile.NamedTemporaryFile(delete=(not save_xml))
     xmlfile.write(TEMPLATE_XML.substitute(**kwargs))
     xmlfile.flush()
+    if save_xml:
+        print "Saved pipline XML file as %s" % (xmlfile.name)
     return xmlfile
 
 def get_configuration():
@@ -79,6 +81,7 @@ def get_configuration():
     )
     parser.add_argument("--casa", help="Store CASA images", action="store_true")
     parser.add_argument("--tiff", help="Store TIFF images", action="store_true")
+    parser.add_argument("--save-xml", help="Don't delete XML file", action="store_true")
     parser.add_argument("output_path", help="Root directory for image output")
     return parser.parse_args()
 
@@ -97,6 +100,7 @@ if __name__ == "__main__":
         os.makedirs(config.output_path)
 
     xmlfile = generate_xml(
+        config.save-xml,
         nthreads=config.nthreads,
         monitor_port=config.monitor_port,
         server_host=config.server_host,

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import os
 import sys
@@ -21,7 +21,7 @@ PROCESSES      = []
 
 def get_configuration():
   """Returns a populated configuration"""
-  parser = argparse.ArgumentParser()
+  parser = argparse.ArgumentParser(description='Start a full aartfaac pipeline, press ^C to stop')
   parser.add_argument('--threads', type=int, default=1,
     help='Max number of threads to spawn')
   parser.add_argument('--output', type=str,
@@ -76,7 +76,7 @@ if __name__ == "__main__":
 
   # Start server
   xmlfile = server.generate_xml(
-    False,
+    config.dryrun,
     buffer_max_size=4294967296,
     buffer_max_chunk_size=0,
     chunker_definitions=server.generate_chunkers(config)
@@ -94,6 +94,7 @@ if __name__ == "__main__":
 
   for i in range(num_pipelines):
     xmlfile = pipeline.generate_xml(
+      config.dryrun,
       nthreads=num_threads,
       monitor_port=MON_START_PORT + i,
       server_host="127.0.0.1",
@@ -119,7 +120,7 @@ if __name__ == "__main__":
 
   # Start emulator
   xmlfile = emulator.generate_xml(
-    False,
+    config.dryrun,
     host="127.0.0.1",
     port=EM_START_PORT,
     ms=config.MS,
