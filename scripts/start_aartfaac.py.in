@@ -21,7 +21,9 @@ PROCESSES      = []
 
 def get_configuration():
   """Returns a populated configuration"""
-  parser = argparse.ArgumentParser(description='Start a full aartfaac pipeline, press ^C to stop')
+  parser = argparse.ArgumentParser(
+    description='Start a full aartfaac pipeline, press ^C to stop'
+  )
   parser.add_argument('--threads', type=int, default=1,
     help='Max number of threads to spawn')
   parser.add_argument('--output', type=str,
@@ -31,6 +33,10 @@ def get_configuration():
     type=lambda x: x.split('-'), nargs="+")
   parser.add_argument('--dryrun', action='store_true', default=False,
     help='Do not start pipeline, just show various output and generate xml')
+  parser.add_argument('--antenna-positions',
+    help="Path to file containing ordered ITRF positions of all antennae",
+    default="@CMAKE_INSTALL_PREFIX@/share/aartfaac/antennasets/lba_outer.dat"
+  )
   parser.add_argument('MS', help='MeasurementSet containing data to send')
 
   return parser.parse_args()
@@ -100,7 +106,7 @@ if __name__ == "__main__":
       server_host="127.0.0.1",
       server_port=2000,
       flagger_deviation_multiplier=4,
-      antenna_positions="@CMAKE_INSTALL_PREFIX@/share/aartfaac/antennasets/lba_outer.dat",
+      antenna_positions=config.antenna_positions,
       store_tiff=False,
       store_casa=True,
       output_path=config.output
