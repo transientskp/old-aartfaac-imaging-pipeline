@@ -98,15 +98,12 @@ set (utilitiestest_SOURCES
 )
 
 set (SCRIPTS
-  scripts/aartfaac-system-start.py
-  scripts/start-emulator.py
-  scripts/start-server.py
-  scripts/start-pipeline.py
+  scripts/start_aartfaac.py
+  scripts/start_emulator.py
+  scripts/start_server.py
+  scripts/start_pipeline.py
 )
 
 set (DATAFILES
-  data/xml/emulatorConfig.xml
-  data/xml/serverConfig.xml
-  data/xml/pipelineConfig.xml
   data/antennasets/lba_outer.dat
 )
