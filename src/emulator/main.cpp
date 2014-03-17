@@ -19,41 +19,33 @@ void sighandler(int signal)
 
 void usage(int signal)
 {
-  std::cout << "Usage: aartfaac-emulator <XML> [OPTION]" << std::endl;
+  std::cout << "Usage: aartfaac-emulator <XML>" << std::endl;
   std::cout << " Emulates the gpu-based correlator using a casa ms." << std::endl;
   std::cout << " Configurable through xml file." << std::endl;
-  std::cout << " Example: aartfaac-emulator emulator.xml O2" << std::endl << std::endl;
+  std::cout << " Example: aartfaac-emulator emulator.xml" << std::endl << std::endl;
 
   std::cout << " XML\tlocation of the xml config file" << std::endl;
-  std::cout << " OPTION\toption set in the xml config file" << std::endl;
   exit(signal);
 }
 
 int main(int argc, char *argv[])
 {
-  signal(SIGTERM, &sighandler);
+  if (argc != 2)
+    usage(EXIT_FAILURE);  signal(SIGTERM, &sighandler);
+
   signal(SIGINT, &sighandler);
 
   Logger::open("aartfaac-emulator");
   qInstallMsgHandler(Logger::messageHandler);
 
+  QString xml_file(argv[1]);
   QCoreApplication app(argc, argv);
-  QString xml_file;
-  QString option;
-
-  switch (argc)
-  {
-  case 2: xml_file = argv[1]; option = "O1"; break;
-  case 3: xml_file = argv[1]; option = argv[2]; break;
-  default: usage(EXIT_FAILURE);
-  }
 
   try
   {
     pelican::Config config(xml_file);
     pelican::Config::TreeAddress address;
     address << pelican::Config::NodeId("configuration", "");
-    address << pelican::Config::NodeId("StreamEmulator", option);
     pelican::ConfigNode settings;
 
     if (config.verifyAddress(address))
