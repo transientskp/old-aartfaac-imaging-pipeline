@@ -59,11 +59,8 @@ def get_ms_data(config):
 
 def parse_subbands(subbands):
   """Returns the size of the smallest subband"""
-  n = 1000
+  n = float('+Inf')
   for subband in subbands:
-    if len(subband) == 1:
-      return 1
-
     n = min(n, int(subband[1]) - int(subband[0]) + 1)
 
   return n
