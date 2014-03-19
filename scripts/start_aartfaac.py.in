@@ -26,6 +26,9 @@ def get_configuration():
   )
   parser.add_argument('--threads', type=int, default=1,
     help='Max number of threads to spawn')
+  parser.add_argument('--server-buffersize', default="4G",
+    help='Max amount of memory to host chunks on the server e.g. 10M or 3G',
+    type=lambda x: int(x[:-1]) * 1024**['B','K','M','G'].index(x[-1].upper()))
   parser.add_argument('--output', type=str,
     help='Output directory, where to store pipeline output')
   parser.add_argument("--subband", 
@@ -76,6 +79,7 @@ if __name__ == "__main__":
 
   # Get commandline config
   config = get_configuration()
+  print config
 
   # Parse metadata from ms and add to config
   config = get_ms_data(config)
@@ -83,7 +87,7 @@ if __name__ == "__main__":
   # Start server
   xmlfile = server.generate_xml(
     config.dryrun,
-    buffer_max_size=4294967296,
+    buffer_max_size=config.server_buffersize,
     buffer_max_chunk_size=0,
     chunker_definitions=server.generate_chunkers(config)
   )
@@ -115,7 +119,9 @@ if __name__ == "__main__":
       PROCESSES.append(subprocess.Popen([pipeline.PIPELINE_CMD, xmlfile.name]))
 
   # Start monitoring
-  time.sleep(1)
+  if not config.dryrun:
+    time.sleep(1)
+
   for i in range(num_pipelines):
     filename = config.output + "/pipeline-%d.log" % (i) 
     if config.dryrun:
