@@ -79,7 +79,6 @@ if __name__ == "__main__":
 
   # Get commandline config
   config = get_configuration()
-  print config
 
   # Parse metadata from ms and add to config
   config = get_ms_data(config)
