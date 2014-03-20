@@ -1,0 +1,141 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import time
+import math
+import signal
+import multiprocessing
+import subprocess
+import argparse
+
+import start_emulator as emulator
+import start_server as server
+import start_pipeline as pipeline
+
+from pyrap.tables import table
+
+EM_START_PORT  = 4100
+MON_START_PORT = 4200
+PROCESSES      = []
+
+def get_configuration():
+  """Returns a populated configuration"""
+  parser = argparse.ArgumentParser(
+    description='Start a full aartfaac pipeline, press ^C to stop'
+  )
+  parser.add_argument('--threads', type=int, default=1,
+    help='Max number of threads to spawn')
+  parser.add_argument('--server-buffersize', default="4G",
+    help='Max amount of memory to host chunks on the server e.g. 10M or 3G',
+    type=lambda x: int(x[:-1]) * 1024**['B','K','M','G'].index(x[-1].upper()))
+  parser.add_argument('--output', type=str,
+    help='Output directory, where to store pipeline output')
+  parser.add_argument("--subband", 
+    help="Define a subband: <first channel>-<last channel> (inclusive)", 
+    type=lambda x: x.split('-'), nargs="+")
+  parser.add_argument('--dryrun', action='store_true', default=False,
+    help='Do not start pipeline, just show various output and generate xml')
+  parser.add_argument('--antenna-positions',
+    help="Path to file containing ordered ITRF positions of all antennae",
+    default="@CMAKE_INSTALL_PREFIX@/share/aartfaac/antennasets/lba_outer.dat"
+  )
+  parser.add_argument('MS', help='MeasurementSet containing data to send')
+
+  return parser.parse_args()
+
+def get_ms_data(config):
+  """Returns ms related data"""
+  try:
+    t = table(config.MS + "::SPECTRAL_WINDOW")
+    config.stream = [[t[0]["NUM_CHAN"], t[0]["CHAN_FREQ"][0], t[0]["CHAN_WIDTH"][0]]]
+  except RuntimeError:
+    sys.stderr.write("Error: `%s' is an invalid MS\n" % (config.MS))
+    sys.exit(1)
+  config.input_port_start = EM_START_PORT
+  config.input_host = "127.0.0.1"
+
+  return config
+
+def parse_subbands(subbands):
+  """Returns the size of the smallest subband"""
+  n = float('+Inf')
+  for subband in subbands:
+    n = min(n, int(subband[1]) - int(subband[0]) + 1)
+
+  return n
+
+def sighandler(signum, frame):
+  for p in PROCESSES:
+    p.kill()
+  sys.exit(0)
+
+if __name__ == "__main__":
+  signal.signal(signal.SIGTERM, sighandler)
+  signal.signal(signal.SIGINT, sighandler)
+
+  # Get commandline config
+  config = get_configuration()
+
+  # Parse metadata from ms and add to config
+  config = get_ms_data(config)
+
+  # Start server
+  xmlfile = server.generate_xml(
+    config.dryrun,
+    buffer_max_size=config.server_buffersize,
+    buffer_max_chunk_size=0,
+    chunker_definitions=server.generate_chunkers(config)
+  )
+  if not config.dryrun:
+    PROCESSES.append(subprocess.Popen([server.SERVER_CMD, xmlfile.name]))
+    time.sleep(1)
+    
+  # Start pipelines
+  if not os.path.exists(config.output):
+    os.makedirs(config.output)
+
+  num_threads = min(config.threads, parse_subbands(config.subband))
+  num_pipelines = int(max(1, math.floor(config.threads/float(num_threads))))
+
+  for i in range(num_pipelines):
+    xmlfile = pipeline.generate_xml(
+      config.dryrun,
+      nthreads=num_threads,
+      monitor_port=MON_START_PORT + i,
+      server_host="127.0.0.1",
+      server_port=2000,
+      flagger_deviation_multiplier=4,
+      antenna_positions=config.antenna_positions,
+      store_tiff=False,
+      store_casa=True,
+      output_path=config.output
+    )
+    if not config.dryrun:
+      PROCESSES.append(subprocess.Popen([pipeline.PIPELINE_CMD, xmlfile.name]))
+
+  # Start monitoring
+  if not config.dryrun:
+    time.sleep(1)
+
+  for i in range(num_pipelines):
+    filename = config.output + "/pipeline-%d.log" % (i) 
+    if config.dryrun:
+      print "Writing monitoring stats for pipeline %d to `%s'" % (i, filename)
+    else:
+      f = open(filename, "w")
+      PROCESSES.append(subprocess.Popen(['nc', 'localhost', '%d' % (MON_START_PORT+i)], stdout=f))
+
+  # Start emulator
+  xmlfile = emulator.generate_xml(
+    config.dryrun,
+    host="127.0.0.1",
+    port=EM_START_PORT,
+    ms=config.MS,
+    packet_interval=0
+  )
+  if not config.dryrun:
+    PROCESSES.append(subprocess.Popen([emulator.EMULATOR_CMD, xmlfile.name]))
+
+  while not config.dryrun:
+    time.sleep(1)

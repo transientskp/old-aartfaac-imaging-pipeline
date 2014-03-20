@@ -15,16 +15,24 @@ void sighandler(int signal)
   exit(signal);
 }
 
+void usage(int signal)
+{
+  std::cout << "Usage: aartfaac-server <XML>" << std::endl;
+  std::cout << " Starts an aartfaac server." << std::endl;
+  std::cout << " Configurable through xml file." << std::endl;
+  std::cout << " Example: aartfaac-server server.xml" << std::endl << std::endl;
+
+  std::cout << " XML\tlocation of the xml config file" << std::endl;
+  exit(signal);
+}
+
 int main(int argc, char *argv[])
 {
+  if (argc != 2)
+    usage(EXIT_FAILURE);
+
   Logger::open("aartfaac-server");
   qInstallMsgHandler(Logger::messageHandler);
-
-  if (argc != 2)
-  {
-    std::cerr << "Usage: aartfaac-server <config.xml>" << std::endl;
-    return EXIT_FAILURE;
-  }
 
   signal(SIGTERM, &sighandler);
   signal(SIGINT, &sighandler);

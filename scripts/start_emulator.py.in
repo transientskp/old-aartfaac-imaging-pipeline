@@ -13,11 +13,9 @@ TEMPLATE_XML = Template("""
 <!DOCTYPE pelican>
 
 <configuration version="1.0">
-    <StreamEmulator     name="${name}">
-        <connection     host="${host}" port="${port}" />
-        <measurementset name="${ms}" />
-        <emulator       packetInterval="${packet_interval}"/>
-    </StreamEmulator>
+  <connection     host="${host}" port="${port}" />
+  <measurementset name="${ms}" />
+  <emulator       packetInterval="${packet_interval}"/>
 </configuration>
 """.strip())
 
@@ -27,7 +25,7 @@ def generate_xml(save_xml, **kwargs):
     xmlfile.write(TEMPLATE_XML.substitute(**kwargs))
     xmlfile.flush()
     if save_xml:
-        print "Saved XML file as %s" % (xmlfile.name,)
+        print "Saved emulator XML file as %s" % (xmlfile.name)
     return xmlfile
 
 def read_environment(name, port):
@@ -45,7 +43,6 @@ def read_environment(name, port):
 def get_configuration():
     """Returns a populated configuration"""
     parser = argparse.ArgumentParser()
-    parser.add_argument("--stream-name", help="Stream name", default="O1")
     parser.add_argument("--server-host", help="Server hostname", default="<search environment>")
     parser.add_argument("--server-port", help="Server port", default=4100)
     parser.add_argument("--packet-interval", help="Packet interval (ms)", type=int, default=10)
@@ -66,7 +63,6 @@ if __name__ == "__main__":
 
     xmlfile = generate_xml(
         config.save_xml,
-        name=config.stream_name,
         host=config.server_host,
         port=config.server_port,
         ms=config.ms,
