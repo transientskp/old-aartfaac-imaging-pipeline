@@ -71,15 +71,16 @@ void StreamChunker::next(QIODevice *inDevice)
 
   qDebug("Stream Header");
   qDebug("  magic 0x%X", stream_header.magic);
-  qDebug("  start %s", qPrintable(utils::MJD2QDateTime(stream_header.start_time).toString("hh:mm:ss")));
-  qDebug("  end   %s", qPrintable(utils::MJD2QDateTime(stream_header.end_time).toString("hh:mm:ss")));
+  qDebug("  start %s", qPrintable(QDateTime::fromTime_t(stream_header.start_time).toString("hh:mm:ss")));
+  qDebug("  end   %s", qPrintable(QDateTime::fromTime_t(stream_header.end_time).toString("hh:mm:ss")));
 
   // Allocate chunk memory for each subband and write chunker header
   std::vector<WritableData> chunks(mSubbands.size());
   std::vector<size_t> bytes(mSubbands.size(), 0);
   ChunkHeader chunk_header;
 
-  chunk_header.time = stream_header.end_time;
+  // F-NOTE: This is a realtime fix! and breaks emulator code
+  chunk_header.time = utils::UnixTime2MJD(stream_header.end_time);
   for (int i = 0, n = mSubbands.size(); i < n; i++)
   {
     chunk_header.freq = mFrequency;
@@ -122,7 +123,7 @@ void StreamChunker::next(QIODevice *inDevice)
     }
   }
 
-  float usage = (usedSize(name()) / float(maxBufferSize(name()))) * 100.0f;
+  float usage = (usedSize() / float(maxBufferSize())) * 100.0f;
   if (usage > 90.0f)
     qCritical("Chunker `%s' is at %0.1f%% of its buffer", qPrintable(name()), usage);
   else

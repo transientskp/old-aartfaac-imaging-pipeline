@@ -21,6 +21,12 @@ namespace utils
 QDateTime MJD2QDateTime(const double inMJD);
 
 /**
+ * @brief UnixTime2MJD
+ * Converts a unix time to modified julian date
+ */
+quint32 UnixTime2MJD(const double inUnixTime);
+
+/**
  * @brief WriteStats
  * Write stats to disk
  */

@@ -17,6 +17,12 @@ QDateTime MJD2QDateTime(const double inMJD)
   return QDateTime::fromTime_t(unix_time).toUTC();
 }
 
+quint32 UnixTime2MJD(const double inUnixTime)
+{
+  static const double secs_in_day = 24.0 * 60.0 * 60.0;
+  return static_cast<quint32>(inUnixTime - secs_in_day * (2400000.5 - 2440587.5));
+}
+
 void sunRaDec(const double inJD, double &outRa, double &outDec)
 {
   double n = inJD - 2451545.0;
