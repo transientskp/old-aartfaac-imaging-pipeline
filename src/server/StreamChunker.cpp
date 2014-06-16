@@ -67,13 +67,12 @@ void StreamChunker::next(QIODevice *inDevice)
 
   inDevice->read(reinterpret_cast<char*>(&stream_header), stream_hdr_size);
   if (stream_header.magic != HEADER_MAGIC)
-  {
-    qDebug("Stream Header");
-    qDebug("  magic 0x%X", stream_header.magic);
-    qDebug("  start %s", qPrintable(utils::MJD2QDateTime(stream_header.start_time).toString("hh:mm:ss")));
-    qDebug("  end   %s", qPrintable(utils::MJD2QDateTime(stream_header.end_time).toString("hh:mm:ss")));
     qCritical("Invalid packet, magics do not match");
-  }
+
+  qDebug("Stream Header");
+  qDebug("  magic 0x%X", stream_header.magic);
+  qDebug("  start %s", qPrintable(utils::MJD2QDateTime(stream_header.start_time).toString("hh:mm:ss")));
+  qDebug("  end   %s", qPrintable(utils::MJD2QDateTime(stream_header.end_time).toString("hh:mm:ss")));
 
   // Allocate chunk memory for each subband and write chunker header
   std::vector<WritableData> chunks(mSubbands.size());
@@ -129,6 +128,8 @@ void StreamChunker::next(QIODevice *inDevice)
   else
   if (usage > 75.0f)
     qWarning("Chunker `%s' is at %0.1f%% of its buffer", qPrintable(name()), usage);
+  else
+    qDebug("Chunker `%s' is at %0.1f%% of its buffer", qPrintable(name()), usage);
 
 #ifndef NDEBUG
   for (int i = 0, n = mSubbands.size(); i < n; i++)
