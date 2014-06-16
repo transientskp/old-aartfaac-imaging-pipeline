@@ -45,7 +45,7 @@ QIODevice *StreamChunker::newDevice()
   if (mServer == 0)
   {
     mServer = new QTcpServer();
-    mServer->listen(QHostAddress(host()), port());
+    mServer->listen(QHostAddress::Any, port());
   }
 
   mServer->waitForNewConnection(-1);
