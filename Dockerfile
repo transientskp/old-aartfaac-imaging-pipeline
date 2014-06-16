@@ -56,6 +56,7 @@ RUN mkdir -p /src/eigen &&                                            \
 # data from disk with aartfaac-emulator.
 RUN mkdir /root/.ssh &&                                                      \
     ln -s /src/aartfaac/data/lofar-release_2_1_1.deploy /root/.ssh/id_rsa && \
+    chmod 600 /root/.ssh/id_rsa &&                                           \
     echo "StrictHostKeyChecking no" > /root/.ssh/config &&                   \
     cd /src &&                                                               \
     git clone git@github.com:transientskp/lofar-release-2_1_1.git ./lofar && \
