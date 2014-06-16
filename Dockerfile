@@ -58,7 +58,7 @@ RUN mkdir /root/.ssh &&                                                      \
     ln -s /src/aartfaac/data/lofar-release_2_1_1.deploy /root/.ssh/id_rsa && \
     echo "StrictHostKeyChecking no" > /root/.ssh/config &&                   \
     cd /src &&                                                               \
-    git clone git@github.com:aartfaac/lofar-release-2_1_1.git ./lofar &&     \
+    git clone git@github.com:transientskp/lofar-release-2_1_1.git ./lofar && \
     mkdir -p lofar/build/gnu_opt &&                                          \
     cd lofar/build/gnu_opt &&                                                \
     cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_PACKAGES=LofarStMan      \
