@@ -67,7 +67,13 @@ void StreamChunker::next(QIODevice *inDevice)
 
   inDevice->read(reinterpret_cast<char*>(&stream_header), stream_hdr_size);
   if (stream_header.magic != HEADER_MAGIC)
+  {
+    qDebug("Stream Header");
+    qDebug("  magic 0x%X", stream_header.magic);
+    qDebug("  start %s", qPrintable(utils::MJD2QDateTime(stream_header.start_time).toString("hh:mm:ss")));
+    qDebug("  end   %s", qPrintable(utils::MJD2QDateTime(stream_header.end_time).toString("hh:mm:ss")));
     qFatal("Invalid packet, magics do not match");
+  }
 
   // Allocate chunk memory for each subband and write chunker header
   std::vector<WritableData> chunks(mSubbands.size());
