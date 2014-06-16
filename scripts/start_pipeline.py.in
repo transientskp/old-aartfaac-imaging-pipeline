@@ -100,7 +100,7 @@ if __name__ == "__main__":
         os.makedirs(config.output_path)
 
     xmlfile = generate_xml(
-        config.save-xml,
+        config.save_xml,
         nthreads=config.nthreads,
         monitor_port=config.monitor_port,
         server_host=config.server_host,
