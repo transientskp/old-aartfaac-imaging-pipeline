@@ -106,4 +106,5 @@ set (SCRIPTS
 
 set (DATAFILES
   data/antennasets/lba_outer.dat
+  data/antennasets/lba_inner.dat
 )
