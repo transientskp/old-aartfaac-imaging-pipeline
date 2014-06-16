@@ -72,7 +72,7 @@ void StreamChunker::next(QIODevice *inDevice)
     qDebug("  magic 0x%X", stream_header.magic);
     qDebug("  start %s", qPrintable(utils::MJD2QDateTime(stream_header.start_time).toString("hh:mm:ss")));
     qDebug("  end   %s", qPrintable(utils::MJD2QDateTime(stream_header.end_time).toString("hh:mm:ss")));
-    qFatal("Invalid packet, magics do not match");
+    qCritical("Invalid packet, magics do not match");
   }
 
   // Allocate chunk memory for each subband and write chunker header
