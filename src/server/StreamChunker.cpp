@@ -88,7 +88,10 @@ void StreamChunker::next(QIODevice *inDevice)
 
     chunks[i] = getDataStorage(mSubbands[i].size);
     if (!chunks[i].isValid())
-      qFatal("[%s()] Not enough memory", __FUNCTION__);
+    {
+      qCritical("[%s()] Not enough memory", __FUNCTION__);
+      return;
+    }
 
     chunks[i].write(static_cast<void*>(&chunk_header), sizeof(ChunkHeader), bytes[i]);
     bytes[i] += sizeof(ChunkHeader);
@@ -111,7 +114,7 @@ void StreamChunker::next(QIODevice *inDevice)
       {
         for (int p = 0; p < NUM_POLARIZATIONS; p++)
         {
-          chunks[i].write(static_cast<void*>(&mVisibilities[(c)*NUM_POLARIZATIONS+p]),
+          chunks[i].write(static_cast<void*>(&mVisibilities[c*mNumChannels+p]),
                           sizeof(std::complex<float>),
                           bytes[i]);
 
