@@ -1,4 +1,5 @@
 #include "StreamEmulator.h"
+#include "../../utilities/Utils.h"
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QStringList>
@@ -70,7 +71,7 @@ void StreamEmulator::getPacketData(char *&data, unsigned long &size)
   // Set the packet header
   header->magic = HEADER_MAGIC;
   header->start_time = header->end_time;
-  header->end_time = mMSColumns->time()(mRowIndex);
+  header->end_time = utils::MJD2UnixTime(MSColumns->time()(mRowIndex));
 
   // Load the data per baseline
   size_t baseline_size = mTotalChannels*NUM_POLARIZATIONS*sizeof(std::complex<float>);

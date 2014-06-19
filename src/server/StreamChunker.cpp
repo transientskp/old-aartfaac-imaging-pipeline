@@ -69,17 +69,15 @@ void StreamChunker::next(QIODevice *inDevice)
   if (stream_header.magic != HEADER_MAGIC)
     qCritical("Invalid packet, magics do not match");
 
-  qDebug("Stream Header");
-  qDebug("  magic 0x%X", stream_header.magic);
-  qDebug("  start %s", qPrintable(QDateTime::fromTime_t(stream_header.start_time).toString("hh:mm:ss")));
-  qDebug("  end   %s", qPrintable(QDateTime::fromTime_t(stream_header.end_time).toString("hh:mm:ss")));
+  qDebug("Stream '%s' %s-%s", qPrintable(name()),
+         qPrintable(QDateTime::fromTime_t(stream_header.start_time).toString("hh:mm:ss")),
+         qPrintable(QDateTime::fromTime_t(stream_header.end_time).toString("hh:mm:ss")));
 
   // Allocate chunk memory for each subband and write chunker header
   std::vector<WritableData> chunks(mSubbands.size());
   std::vector<size_t> bytes(mSubbands.size(), 0);
   ChunkHeader chunk_header;
 
-  // F-NOTE: This is a realtime fix! and breaks emulator code
   chunk_header.time = utils::UnixTime2MJD(stream_header.end_time);
   for (int i = 0, n = mSubbands.size(); i < n; i++)
   {

@@ -23,6 +23,11 @@ quint32 UnixTime2MJD(const double inUnixTime)
   return static_cast<quint32>(inUnixTime - secs_in_day * (2400000.5 - 2440587.5));
 }
 
+double MJD2UnixTime(const double inMJD)
+{
+  return (inMJD + secs_in_day * (2400000.5 - 2440587.5));
+}
+
 void sunRaDec(const double inJD, double &outRa, double &outDec)
 {
   double n = inJD - 2451545.0;

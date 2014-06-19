@@ -27,6 +27,12 @@ QDateTime MJD2QDateTime(const double inMJD);
 quint32 UnixTime2MJD(const double inUnixTime);
 
 /**
+ * @brief MJD2UnixTime
+ * Convert a modified julian date in seconds to unix time
+ */
+double MJD2UnixTime(const double inMJD);
+
+/**
  * @brief WriteStats
  * Write stats to disk
  */

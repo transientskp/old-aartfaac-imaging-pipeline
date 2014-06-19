@@ -66,7 +66,7 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
         int idx = 0;
 #endif
         mFlaggers[idx]->run(i, data, data);
-        mCalibrators[idx]->run(i, data, data);
+//        mCalibrators[idx]->run(i, data, data);
       }
     }
   }
