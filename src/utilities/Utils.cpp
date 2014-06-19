@@ -7,10 +7,10 @@
 
 namespace utils
 {
+static const double secs_in_day = 24.0 * 60.0 * 60.0;
+
 QDateTime MJD2QDateTime(const double inMJD)
 {
-  static const double secs_in_day = 24.0 * 60.0 * 60.0;
-
   // Convert modified julian date to unix time
   quint32 unix_time = static_cast<quint32>(inMJD + secs_in_day * (2400000.5 - 2440587.5));
 
@@ -19,13 +19,12 @@ QDateTime MJD2QDateTime(const double inMJD)
 
 quint32 UnixTime2MJD(const double inUnixTime)
 {
-  static const double secs_in_day = 24.0 * 60.0 * 60.0;
   return static_cast<quint32>(inUnixTime - secs_in_day * (2400000.5 - 2440587.5));
 }
 
 double MJD2UnixTime(const double inMJD)
 {
-  return (inMJD + secs_in_day * (2400000.5 - 2440587.5));
+  return inMJD + secs_in_day * (2400000.5 - 2440587.5);
 }
 
 void sunRaDec(const double inJD, double &outRa, double &outDec)

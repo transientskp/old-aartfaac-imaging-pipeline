@@ -7,6 +7,7 @@ set (EMULATOR_SOURCES
   src/emulator/stream/StreamPacket.h
   src/emulator/stream/StreamEmulator.cpp
   src/utilities/Logger.cpp
+  src/utilities/Utils.cpp
 )
 
 # === Pipeline sources
