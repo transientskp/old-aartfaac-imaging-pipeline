@@ -5,7 +5,11 @@ import subprocess
 import tempfile
 import argparse
 import os
+import time
+import signal
+import sys
 
+PROCESSES    = []
 PIPELINE_CMD = "@CMAKE_INSTALL_PREFIX@/bin/aartfaac-pipeline"
 TEMPLATE_XML = Template("""
 <?xml version="1.0" encoding="UTF-8"?>
@@ -85,7 +89,14 @@ def get_configuration():
     parser.add_argument("output_path", help="Root directory for image output")
     return parser.parse_args()
 
+def sighandler(signum, frame):
+    for p in PROCESSES:
+      p.kill()
+    sys.exit(0)
+
 if __name__ == "__main__":
+    signal.signal(signal.SIGTERM, sighandler)
+    signal.signal(signal.SIGINT, sighandler)
     config = get_configuration()
 
     # Sanity check: we need at least one of CASA and TIFF output
@@ -111,4 +122,7 @@ if __name__ == "__main__":
         store_casa=config.casa,
         output_path=config.output_path
     )
-    subprocess.call([PIPELINE_CMD, xmlfile.name])
+    PROCESSES.append(subprocess.Popen([PIPELINE_CMD, xmlfile.name]))
+
+    while PROCESSES[0].poll() == None:
+      time.sleep(1)
