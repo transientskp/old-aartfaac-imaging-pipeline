@@ -34,7 +34,6 @@ TiffStorage::~TiffStorage()
 void TiffStorage::sendStream(const QString &inStreamName, const DataBlob *inDataBlob)
 {
   const StreamBlob *blob = static_cast<const StreamBlob *>(inDataBlob);
-  static int img_index = 0;
 
   if (blob->type() != "StreamBlob")
   {
@@ -51,8 +50,11 @@ void TiffStorage::sendStream(const QString &inStreamName, const DataBlob *inData
 
   skymap = (skymap.array() - min) / (max - min);
 
-  QString filename = mPath + "/img-" + QString::number(img_index) + ".png";
-  img_index++;
+  QString filename = mPath + "/F" + QString::number(blob->mHeader.freq) + "_S" +
+      QString::number(blob->mHeader.start_chan) + "-" +
+      QString::number(blob->mHeader.end_chan) + "_T" +
+      utils::MJD2QDateTime(blob->mHeader.time).toString("dd-MM-yyyy_hh-mm-ss") +
+      ".tiff";
 
   for (int i = 0; i < skymap.size(); i++)
     *(mImage.bits() + i) = (uchar) roundf(std::pow(skymap(i), gamma) * 255.0f);
