@@ -171,7 +171,7 @@ void Calibrator::run(const int channel, const StreamBlob *input, StreamBlob *out
   // ==== 5. A-team subtraction ====
   // ===============================
   MatrixXcf ATeam = A * mFluxes.asDiagonal() * A.adjoint();
-//  mNormalizedData.array() -= ATeam.array();
+  mNormalizedData.array() -= ATeam.array();
 
   // ================================================================
   // ==== 6. Reconstruct the full ACM from the reshaped matrices ====

@@ -8,6 +8,7 @@
 #include <QtCore>
 #include <QtNetwork/QTcpServer>
 #include <utility>
+#include <vector>
 
 using namespace pelican;
 
@@ -35,7 +36,7 @@ private:
     }
   };
 
-  std::complex<float> *mVisibilities;
+  std::vector<std::complex<float> > mVisibilities;
   QTcpServer *mServer; ///< TCP/IP server, created in newDevice()
 
   // Must be defined in serverConf.xml

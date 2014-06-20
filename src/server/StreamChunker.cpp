@@ -31,13 +31,12 @@ StreamChunker::StreamChunker(const ConfigNode &config):
   qDebug("Channels in stream(%d):", mNumChannels);
   qDebug("  Frequency ref: %f", mFrequency);
   qDebug("  Channel width: %f", mChannelWidth);
-  mVisibilities = new std::complex<float>[mNumChannels*NUM_POLARIZATIONS];
+  mVisibilities.resize(NUM_BASELINES*mNumChannels*NUM_POLARIZATIONS);
 }
 
 StreamChunker::~StreamChunker()
 {
   delete mServer;
-  delete[] mVisibilities;
 }
 
 QIODevice *StreamChunker::newDevice()
@@ -97,15 +96,15 @@ void StreamChunker::next(QIODevice *inDevice)
     bytes[i] += sizeof(ChunkHeader);
   }
 
+  qint64 size = mVisibilities.size()*sizeof(std::complex<float>);
+  while (inDevice->bytesAvailable() < size)
+    inDevice->waitForReadyRead(-1);
+
+  inDevice->read(reinterpret_cast<char*>(mVisibilities.data()), size);
+
   // Start reading data from device and write to the appropriate chunk/subband
   for (int b = 0; b < NUM_BASELINES; b++)
   {
-    qint64 baseline_size = mNumChannels*NUM_POLARIZATIONS*sizeof(std::complex<float>);
-    while (inDevice->bytesAvailable() < baseline_size)
-      inDevice->waitForReadyRead(-1);
-
-    inDevice->read(reinterpret_cast<char*>(mVisibilities), baseline_size);
-
     for (int i = 0, n = mSubbands.size(); i < n; i++)
     {
       Subband &s = mSubbands[i];
@@ -114,7 +113,7 @@ void StreamChunker::next(QIODevice *inDevice)
       {
         for (int p = 0; p < NUM_POLARIZATIONS; p++)
         {
-          chunks[i].write(static_cast<void*>(&mVisibilities[c*mNumChannels+p]),
+          chunks[i].write(reinterpret_cast<void*>(&mVisibilities[p+c*NUM_POLARIZATIONS+b*NUM_POLARIZATIONS*mNumChannels]),
                           sizeof(std::complex<float>),
                           bytes[i]);
 

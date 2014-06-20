@@ -28,19 +28,17 @@ void StreamAdapter::deserialise(QIODevice *inDevice)
     inDevice->waitForReadyRead(100);
 
   std::complex<float> v[NUM_POLARIZATIONS];
-  int a2 = 0;
-  while (a2 < NUM_ANTENNAS)
+  char *ptr = reinterpret_cast<char*>(v);
+  for (int a2 = 0; a2 < NUM_ANTENNAS; a2++)
   {
     for (int a1 = 0; a1 < (a2 + 1); a1++)
     {
       for (int c = blob->mHeader.start_chan; c <= blob->mHeader.end_chan; c++)
       {
-        bytes_read += inDevice->read(reinterpret_cast<char*>(v),
-                                     sizeof(std::complex<float>)*NUM_POLARIZATIONS);
+        bytes_read += inDevice->read(ptr, sizeof(std::complex<float>)*NUM_POLARIZATIONS);
         blob->addVis(c, a1, a2, v);
       }
     }
-    a2++;
   }
 
   blob->computeStats();
