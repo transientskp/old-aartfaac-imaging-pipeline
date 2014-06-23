@@ -66,7 +66,10 @@ void StreamChunker::next(QIODevice *inDevice)
 
   inDevice->read(reinterpret_cast<char*>(&stream_header), stream_hdr_size);
   if (stream_header.magic != HEADER_MAGIC)
+  {
     qCritical("Invalid packet, magics do not match");
+    return;
+  }
 
   qDebug("Stream '%s' %s-%s", qPrintable(name()),
          qPrintable(QDateTime::fromTime_t(stream_header.start_time).toString("hh:mm:ss")),
@@ -129,8 +132,6 @@ void StreamChunker::next(QIODevice *inDevice)
   else
   if (usage > 75.0f)
     qWarning("Chunker `%s' is at %0.1f%% of its buffer", qPrintable(name()), usage);
-  else
-    qDebug("Chunker `%s' is at %0.1f%% of its buffer", qPrintable(name()), usage);
 
 #ifndef NDEBUG
   for (int i = 0, n = mSubbands.size(); i < n; i++)

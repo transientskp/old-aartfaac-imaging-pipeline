@@ -40,6 +40,8 @@ def get_configuration():
     help="Path to file containing ordered ITRF positions of all antennae",
     default="@CMAKE_INSTALL_PREFIX@/share/aartfaac/antennasets/lba_outer.dat"
   )
+  parser.add_argument("--casa", help="Store CASA images", action="store_true")
+  parser.add_argument("--tiff", help="Store TIFF images", action="store_true")
   parser.add_argument('MS', help='MeasurementSet containing data to send')
 
   return parser.parse_args()
@@ -107,8 +109,8 @@ if __name__ == "__main__":
       server_port=2000,
       flagger_deviation_multiplier=4,
       antenna_positions=config.antenna_positions,
-      store_tiff=False,
-      store_casa=True,
+      store_tiff=config.tiff,
+      store_casa=config.casa,
       output_path=config.output
     )
     if not config.dryrun:
