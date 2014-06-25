@@ -79,7 +79,7 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
   std::stringstream failed("");
   for (int i = 0, n = data->mHasConverged.size(); i < n; i++)
     if (!data->mHasConverged[i])
-      failed << i << ",";
+      failed << i + data->mHeader.start_chan << ",";
 
   qDebug("Processed `%s' subband (%d-%d) failed (%s) in %0.3f sec",
          qPrintable(utils::MJD2QDateTime(data->mHeader.time).toString("hh:mm:ss")),
