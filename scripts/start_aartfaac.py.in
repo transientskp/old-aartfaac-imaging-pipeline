@@ -102,7 +102,7 @@ if __name__ == "__main__":
 
   for i in range(num_pipelines):
     xmlfile = pipeline.generate_xml(
-      config.dryrun,
+      True,
       nthreads=num_threads,
       monitor_port=MON_START_PORT + i,
       server_host="127.0.0.1",
@@ -115,6 +115,7 @@ if __name__ == "__main__":
     )
     if not config.dryrun:
       PROCESSES.append(subprocess.Popen([pipeline.PIPELINE_CMD, xmlfile.name]))
+      xmlfile.close()
 
   # Start monitoring
   if not config.dryrun:

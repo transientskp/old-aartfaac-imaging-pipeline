@@ -30,6 +30,7 @@ TEMPLATE_CHUNKER = Template("""
 <StreamChunker name="${stream_chunker_name}">
   <data type="StreamBlob"/>
   <stream subbands="${subbands}"
+          interval="${interval}"
           numChannels="${num_channels}"
           frequency="${start_frequency}"
           width="${channel_width}" />
@@ -61,6 +62,7 @@ def generate_chunkers(config):
                 num_channels = stream_info[0],
                 start_frequency = stream_info[1],
                 channel_width = stream_info[2],
+                interval = config.interval,
                 input_host = config.input_host,
                 input_port = port
             )
@@ -73,6 +75,7 @@ def get_configuration():
     parser.add_argument("--buffer-max-size", help="???", default=4294967296)
     parser.add_argument("--buffer-max-chunk-size", help="???", default=4294967296)
     parser.add_argument("--stream-chunker-name", help="StreamChunker name", default="Stream1")
+    parser.add_argument("--interval", help="Interval in seconds between visibilities to process", default="0", type=int)
     parser.add_argument("--input-host", help="Address for incoming data", default="0.0.0.0")
     parser.add_argument("--input-port-start", help="First port for incoming data (increases with chunkers)", default=4100, type=int)
     parser.add_argument("--save-xml", help="Don't delete XML file", action="store_true")

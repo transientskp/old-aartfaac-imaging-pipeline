@@ -10,6 +10,7 @@ StreamChunker::StreamChunker(const ConfigNode &config):
   AbstractChunker(config),
   mServer(0),
   mNumChannels(0),
+  mMinInterval(0),
   mFrequency(0.0),
   mChannelWidth(0.0)
 {
@@ -24,6 +25,7 @@ StreamChunker::StreamChunker(const ConfigNode &config):
            mSubbands[i].c1, mSubbands[i].c2, mSubbands[i].channels, mSubbands[i].size);
 
   // NOTE: These defaults are associated with SB002_LBA_OUTER_SPREAD.MS.trimmed
+  mMinInterval = config.getOption("stream", "interval", "0").toInt();
   mNumChannels = config.getOption("stream", "numChannels", "1").toInt();
   mFrequency = config.getOption("stream", "frequency", "54873657.226562").toDouble();
   mChannelWidth = config.getOption("stream", "width", "3051.757812").toDouble();
@@ -71,9 +73,25 @@ void StreamChunker::next(QIODevice *inDevice)
     return;
   }
 
-  qDebug("Stream '%s' %s-%s", qPrintable(name()),
-         qPrintable(QDateTime::fromTime_t(stream_header.start_time).toString("hh:mm:ss")),
-         qPrintable(QDateTime::fromTime_t(stream_header.end_time).toString("hh:mm:ss")));
+  // Read in an entire block of visibilities
+  qint64 size = mVisibilities.size()*sizeof(std::complex<float>);
+  while (inDevice->bytesAvailable() < size)
+    inDevice->waitForReadyRead(-1);
+
+  inDevice->read(reinterpret_cast<char*>(mVisibilities.data()), size);
+
+  // Only process every Nth second
+  if (stream_header.start_time - mStartInterval > mMinInterval)
+  {
+    qDebug("Stream '%s' %s-%s", qPrintable(name()),
+           qPrintable(QDateTime::fromTime_t(stream_header.start_time).toString("hh:mm:ss")),
+           qPrintable(QDateTime::fromTime_t(stream_header.end_time).toString("hh:mm:ss")));
+    mStartInterval = stream_header.start_time;
+  }
+  else
+  {
+    return;
+  }
 
   // Allocate chunk memory for each subband and write chunker header
   std::vector<WritableData> chunks(mSubbands.size());
@@ -98,12 +116,6 @@ void StreamChunker::next(QIODevice *inDevice)
     chunks[i].write(static_cast<void*>(&chunk_header), sizeof(ChunkHeader), bytes[i]);
     bytes[i] += sizeof(ChunkHeader);
   }
-
-  qint64 size = mVisibilities.size()*sizeof(std::complex<float>);
-  while (inDevice->bytesAvailable() < size)
-    inDevice->waitForReadyRead(-1);
-
-  inDevice->read(reinterpret_cast<char*>(mVisibilities.data()), size);
 
   // Start reading data from device and write to the appropriate chunk/subband
   for (int b = 0; b < NUM_BASELINES; b++)
