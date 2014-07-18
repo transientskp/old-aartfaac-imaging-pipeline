@@ -82,14 +82,13 @@ void StreamChunker::next(QIODevice *inDevice)
   inDevice->read(reinterpret_cast<char*>(mVisibilities.data()), size);
 
   // Only process every Nth second
-  if (stream_header.start_time - mStartInterval > mMinInterval)
-  {
-    qDebug("Stream '%s' %s-%s", qPrintable(name()),
-           qPrintable(QDateTime::fromTime_t(stream_header.start_time).toString("hh:mm:ss")),
-           qPrintable(QDateTime::fromTime_t(stream_header.end_time).toString("hh:mm:ss")));
-    mStartInterval = stream_header.start_time;
-  }
-  else return;
+  if (stream_header.start_time - mStartInterval < mMinInterval)
+    return;
+
+  mStartInterval = stream_header.start_time;
+  qDebug("Stream '%s' %s-%s", qPrintable(name()),
+         qPrintable(QDateTime::fromTime_t(stream_header.start_time).toString("hh:mm:ss")),
+         qPrintable(QDateTime::fromTime_t(stream_header.end_time).toString("hh:mm:ss")));
 
   // Allocate chunk memory for each subband and write chunker header
   std::vector<WritableData> chunks(mSubbands.size());
