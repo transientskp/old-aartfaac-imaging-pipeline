@@ -26,6 +26,8 @@ def get_configuration():
   )
   parser.add_argument('--threads', type=int, default=1,
     help='Max number of threads to spawn')
+  parser.add_argument('--interval', type=int, default=0,
+    help='Interval between visibility blocks to image')
   parser.add_argument('--server-buffersize', default="4G",
     help='Max amount of memory to host chunks on the server e.g. 10M or 3G',
     type=lambda x: int(x[:-1]) * 1024**['B','K','M','G'].index(x[-1].upper()))

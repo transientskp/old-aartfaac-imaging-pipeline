@@ -12,7 +12,8 @@ StreamChunker::StreamChunker(const ConfigNode &config):
   mNumChannels(0),
   mMinInterval(0),
   mFrequency(0.0),
-  mChannelWidth(0.0)
+  mChannelWidth(0.0),
+  mStartInterval(0.0)
 {
   QString s = config.getOption("stream", "subbands");
   mSubbands = ParseSubbands(s);
@@ -62,11 +63,11 @@ void StreamChunker::next(QIODevice *inDevice)
 
   // Wait for enough bytes and parse the streaming header
   StreamHeader stream_header;
-  qint64 stream_hdr_size = sizeof(StreamHeader);
-  while (inDevice->bytesAvailable() < stream_hdr_size)
+  qint64 size = sizeof(StreamHeader);
+  while (inDevice->bytesAvailable() < size)
     inDevice->waitForReadyRead(-1);
 
-  inDevice->read(reinterpret_cast<char*>(&stream_header), stream_hdr_size);
+  inDevice->read(reinterpret_cast<char*>(&stream_header), size);
   if (stream_header.magic != HEADER_MAGIC)
   {
     qCritical("Invalid packet, magics do not match");
@@ -74,7 +75,7 @@ void StreamChunker::next(QIODevice *inDevice)
   }
 
   // Read in an entire block of visibilities
-  qint64 size = mVisibilities.size()*sizeof(std::complex<float>);
+  size = mVisibilities.size()*sizeof(std::complex<float>);
   while (inDevice->bytesAvailable() < size)
     inDevice->waitForReadyRead(-1);
 
@@ -88,10 +89,7 @@ void StreamChunker::next(QIODevice *inDevice)
            qPrintable(QDateTime::fromTime_t(stream_header.end_time).toString("hh:mm:ss")));
     mStartInterval = stream_header.start_time;
   }
-  else
-  {
-    return;
-  }
+  else return;
 
   // Allocate chunk memory for each subband and write chunker header
   std::vector<WritableData> chunks(mSubbands.size());
@@ -138,17 +136,13 @@ void StreamChunker::next(QIODevice *inDevice)
     }
   }
 
+  // Check buffer size
   float usage = (usedSize() / float(maxBufferSize())) * 100.0f;
   if (usage > 90.0f)
     qCritical("Chunker `%s' is at %0.1f%% of its buffer", qPrintable(name()), usage);
   else
   if (usage > 75.0f)
     qWarning("Chunker `%s' is at %0.1f%% of its buffer", qPrintable(name()), usage);
-
-#ifndef NDEBUG
-  for (int i = 0, n = mSubbands.size(); i < n; i++)
-    Q_ASSERT(mSubbands[i].size == bytes[i]);
-#endif
 }
 
 std::vector<StreamChunker::Subband> StreamChunker::ParseSubbands(const QString &s)
