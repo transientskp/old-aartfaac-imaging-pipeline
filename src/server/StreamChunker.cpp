@@ -66,20 +66,19 @@ void StreamChunker::next(QIODevice *inDevice)
   qint64 size = sizeof(StreamHeader);
   while (inDevice->bytesAvailable() < size)
     inDevice->waitForReadyRead(-1);
-
   inDevice->read(reinterpret_cast<char*>(&stream_header), size);
-  if (stream_header.magic != HEADER_MAGIC)
-  {
-    qCritical("Invalid packet, magics do not match");
-    return;
-  }
 
   // Read in an entire block of visibilities
   size = mVisibilities.size()*sizeof(std::complex<float>);
   while (inDevice->bytesAvailable() < size)
     inDevice->waitForReadyRead(-1);
-
   inDevice->read(reinterpret_cast<char*>(mVisibilities.data()), size);
+
+  if (stream_header.magic != HEADER_MAGIC)
+  {
+    qCritical("Invalid packet, magics do not match");
+    return;
+  }
 
   // Only process every Nth second
   if (stream_header.start_time - mStartInterval < mMinInterval)

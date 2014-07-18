@@ -1,5 +1,5 @@
 FROM ubuntu:precise
-MAINTAINER John Swinbank <j.swinbank@uva.nl>
+MAINTAINER Folkert Huizinga <f.huizinga@uva.nl>
 
 # Do not prompt for debconf
 ENV DEBIAN_FRONTEND noninteractive
@@ -19,6 +19,10 @@ RUN apt-add-repository "deb http://nl.archive.ubuntu.com/ubuntu/ $(lsb_release -
 RUN apt-add-repository ppa:ska-sa/main
 RUN apt-get update
 RUN apt-get install -q -y casacore libcasacore-dev casacore-data
+
+# Add our own casacore data.
+# NOTE that we should add this data to main casacore
+ADD data/casacoredata /usr/share/casacore/data
 
 # Depend on the following to build Pelican/AARTFAAC.
 # NB libicu is loaded by Qt with dlopen() at runtime; not clear if it's
