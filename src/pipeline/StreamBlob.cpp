@@ -92,9 +92,9 @@ void StreamBlob::addVis(const quint16 channel,
 {
   for (int p = 0; p < NUM_POLARIZATIONS; p++)
   {
-    mData[channel-mHeader.start_chan][p](a1,a2) = v[p];
-    mData[channel-mHeader.start_chan][p](a2,a1) = std::conj(v[p]);
+    mData[channel-mHeader.start_chan][p](a2,a1) = v[p];
+    mData[channel-mHeader.start_chan][p](a1,a2) = std::conj(v[p]);
   }
-  mVisibilities(a1, a2) += v[XX_POL];
-  mVisibilities(a2, a1) += std::conj(v[XX_POL]);
+  mVisibilities(a2, a1) += v[XX_POL];
+  mVisibilities(a1, a2) += std::conj(v[XX_POL]);
 }
