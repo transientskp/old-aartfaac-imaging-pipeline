@@ -65,7 +65,11 @@ void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *i
   // FIXME: This is the position of CS002, NOT the telescope itself
   obs_info.setTelescopePosition(MPosition(MVPosition(3826577.066110000, 461022.947639000, 5064892.786), casa::MPosition::ITRF));
   coordinate_info.setObsInfo(obs_info);
+  casa::ImageInfo image_info;
+  image_info.setImageType(casa::ImageInfo::Intensity);
+  image_info.setObjectName("Aartfaac image");
   casa::PagedImage<casa::Float> image(map_shape, coordinate_info, qPrintable(filename));
+  image.setImageInfo(image_info);
   for (int i = 0; i < IMAGE_OUTPUT_SIZE; i++)
     for (int j = 0; j < IMAGE_OUTPUT_SIZE; j++)
       image.putAt(blob->mSkyMap(i, j), casa::IPosition(2, j, i));

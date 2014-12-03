@@ -163,7 +163,7 @@ foreach (DATAFILE ${DATAFILES})
 endforeach (DATAFILE)
 install (DIRECTORY ${PROJECT_BINARY_DIR}/data/ DESTINATION share/aartfaac)
 
-install(TARGETS ${SERVER} ${PIPELINE} ${EMULATOR} RUNTIME DESTINATION bin)
+install(TARGETS ${SERVER} ${PIPELINE} ${EMULATOR} ${REGRIDDER} RUNTIME DESTINATION bin)
 
 # === Status report
 message (STATUS "")
