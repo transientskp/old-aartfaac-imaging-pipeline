@@ -50,7 +50,7 @@ RUN mkdir -p /src && cd /src &&                             \
 
 # Need a more modern version of eigen3 than supplied by Ubuntu 12.04.
 # We are hard-coded to use the 3.2.0 release.
-ADD http://bitbucket.org/eigen/eigen/get/3.2.0.tar.bz2 /src/eigen.tar.bz2
+ADD http://bitbucket.org/eigen/eigen/get/3.2.2.tar.bz2 /src/eigen.tar.bz2
 RUN mkdir -p /src/eigen &&                                            \
     tar jxvf /src/eigen.tar.bz2 --strip-components=1 -C /src/eigen && \
     mkdir -p /src/eigen/build && cd /src/eigen/build &&               \
