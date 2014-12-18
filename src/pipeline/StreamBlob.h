@@ -46,6 +46,8 @@ public:
 
   /// Compute raw statistics
   void computeStats();
+
+  float centralFreq() const;
 };
 
 PELICAN_DECLARE_DATABLOB(StreamBlob)

@@ -85,6 +85,11 @@ void StreamBlob::computeStats()
   ADD_STAT("FRINGE_PHASE", mHeader.time, std::atan2(sum.imag(), sum.real()));
 }
 
+float StreamBlob::centralFreq() const
+{
+  return mHeader.freq + (mHeader.end_chan - mHeader.start_chan)*mHeader.chan_width;
+}
+
 void StreamBlob::addVis(const quint16 channel,
                         const quint16 a1,
                         const quint16 a2,

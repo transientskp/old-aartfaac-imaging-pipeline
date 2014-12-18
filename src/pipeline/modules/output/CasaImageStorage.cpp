@@ -4,6 +4,7 @@
 #include "../../../utilities/Utils.h"
 
 #include <casacore/images/Images/PagedImage.h>
+#include <casacore/images/Images/ImageInfo.h>
 #include <casacore/coordinates/Coordinates/CoordinateUtil.h>
 #include <casacore/coordinates/Coordinates.h>
 #include <casacore/measures/Measures/Measure.h>
@@ -55,23 +56,30 @@ void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *i
                             xform,
                             IMAGE_OUTPUT_SIZE/2, IMAGE_OUTPUT_SIZE/2);
 
-  casa::TiledShape map_shape(casa::IPosition(2, IMAGE_OUTPUT_SIZE, IMAGE_OUTPUT_SIZE));
-  casa::CoordinateSystem coordinate_info;
-  coordinate_info.addCoordinate(azel);
+  casa::TiledShape map_shape(casa::IPosition(4, IMAGE_OUTPUT_SIZE, IMAGE_OUTPUT_SIZE, 1, 1));
+  casa::CoordinateSystem coordinate_system;
+  coordinate_system.addCoordinate(azel);
+  casa::SpectralCoordinate spectral(casa::MFrequency::LSRK, blob->centralFreq(), 0.0, 0.0);
+  coordinate_system.addCoordinate(spectral);
   casa::ObsInfo obs_info;
+  
   obs_info.setObserver("AARTFAAC Project");
   obs_info.setTelescope("AARTFAAC All Sky Monitor");
   obs_info.setObsDate(MEpoch(MVEpoch(Quantity(blob->mHeader.time, "s")), MEpoch::Ref(MEpoch::UTC)));
-  // FIXME: This is the position of CS002, NOT the telescope itself
   obs_info.setTelescopePosition(MPosition(MVPosition(3826577.066110000, 461022.947639000, 5064892.786), casa::MPosition::ITRF));
-  coordinate_info.setObsInfo(obs_info);
+  coordinate_system.setObsInfo(obs_info);
+  casa::Vector<Int> stokes(1);
+  stokes(0) = casa::Stokes::I;
+  coordinate_system.addCoordinate(casa::StokesCoordinate(stokes));
+
   casa::ImageInfo image_info;
+  image_info.setRestoringBeam(casa::Quantum<Double>(1.0, "deg"), casa::Quantum<Double>(1.0, "deg"), casa::Quantum<Double>(0.0, "deg"));
   image_info.setImageType(casa::ImageInfo::Intensity);
   image_info.setObjectName("Aartfaac image");
-  casa::PagedImage<casa::Float> image(map_shape, coordinate_info, qPrintable(filename));
+  casa::PagedImage<casa::Float> image(map_shape, coordinate_system, qPrintable(filename));
   image.setImageInfo(image_info);
   for (int i = 0; i < IMAGE_OUTPUT_SIZE; i++)
     for (int j = 0; j < IMAGE_OUTPUT_SIZE; j++)
-      image.putAt(blob->mSkyMap(i, j), casa::IPosition(2, j, i));
+      image.putAt(blob->mSkyMap(i, j), casa::IPosition(4, j, i, 0, 0));
 }
 
