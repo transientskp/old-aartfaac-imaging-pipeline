@@ -126,5 +126,10 @@ int main(int argc, char *argv[])
 
   ImageRegrid<float> regridder;
   regridder.regrid(output_image, casa::Interpolate2D::CUBIC, casa::IPosition(2, 0, 1), input_image);
+  casa::ImageInfo image_info;
+  image_info.setRestoringBeam(casa::Quantum<Double>(1.0, "deg"), casa::Quantum<Double>(1.0, "deg"), casa::Quantum<Double>(0.0, "deg"));
+  image_info.setImageType(casa::ImageInfo::Intensity);
+  image_info.setObjectName("Aartfaac image");
+  output_image.setImageInfo(image_info);
   return 0;
 }
