@@ -33,7 +33,7 @@ public:
   /// Add visibilities for all polarizations (xx,yy,xy,yx)
   void addVis(const quint16 a1,
               const quint16 a2,
-              const std::complex<float> v[]);
+              std::complex<float> v[]);
 
   /// Prepare for sending
   void serialise(QIODevice &out) const;

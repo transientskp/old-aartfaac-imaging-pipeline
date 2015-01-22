@@ -85,12 +85,11 @@ float StreamBlob::centralFreq() const
 
 void StreamBlob::addVis(const quint16 a1,
                         const quint16 a2,
-                        const std::complex<float> v[])
+                        std::complex<float> v[])
 {
   for (int p = 0; p < NUM_POLARIZATIONS; p++)
   {
-    v[p].real() / mNumChannels;
-    v[p].imag() / mNumChannels;
+    v[p] /= mNumChannels;
     mData[p](a2,a1) += v[p];
     mData[p](a1,a2) += std::conj(v[p]);
   }
