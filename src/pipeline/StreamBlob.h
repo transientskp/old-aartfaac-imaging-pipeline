@@ -17,11 +17,9 @@ public:
   StreamBlob();
 
   ChunkHeader mHeader;
-  Eigen::MatrixXcf mData[MAX_MERGE_CHANNELS][NUM_POLARIZATIONS]; // visibilities
-  Eigen::MatrixXf mMasks[MAX_MERGE_CHANNELS][NUM_POLARIZATIONS]; // 1.0f is flagged
-  Eigen::MatrixXcf mVisibilities;
-  std::vector<int> mFlagged[MAX_MERGE_CHANNELS][NUM_POLARIZATIONS]; // flagged ants
-  std::vector<bool> mHasConverged;
+  Eigen::MatrixXcf mData[NUM_POLARIZATIONS]; // visibilities
+  Eigen::MatrixXf mMasks[NUM_POLARIZATIONS]; // 1.0f is flagged
+  std::vector<int> mFlagged[NUM_POLARIZATIONS]; // flagged ants
 
   Eigen::MatrixXf mSkyMap;
   int mImageWidth;
@@ -33,8 +31,7 @@ public:
   void reset();
 
   /// Add visibilities for all polarizations (xx,yy,xy,yx)
-  void addVis(const quint16 channel,
-              const quint16 a1,
+  void addVis(const quint16 a1,
               const quint16 a2,
               const std::complex<float> v[]);
 
@@ -47,6 +44,7 @@ public:
   /// Compute raw statistics
   void computeStats();
 
+  /// Compute the central frequency
   float centralFreq() const;
 };
 

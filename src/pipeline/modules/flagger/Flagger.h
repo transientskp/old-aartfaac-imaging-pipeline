@@ -16,7 +16,7 @@ public:
   Flagger(const ConfigNode &inConfig);
   ~Flagger();
 
-  void run(const int channel, const StreamBlob *input, StreamBlob *output);
+  void run(const int pol, const StreamBlob *input, StreamBlob *output);
 
 private:
   float mDeviationMultiplier;

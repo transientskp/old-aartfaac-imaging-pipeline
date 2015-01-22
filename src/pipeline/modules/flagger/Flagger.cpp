@@ -22,10 +22,10 @@ Flagger::~Flagger()
 {
 }
 
-void Flagger::run(const int channel, const StreamBlob *input, StreamBlob *output)
+void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
 {
   // Compute the amplitude of each complex value
-  mAmplitudes = input->mData[channel][XX_POL].cwiseAbs();
+  mAmplitudes = input->mData[pol].cwiseAbs();
 
   // Compute the mean per antenna without autocorrelations
   for (int a = 0; a < NUM_ANTENNAS; a++)
@@ -52,10 +52,10 @@ void Flagger::run(const int channel, const StreamBlob *input, StreamBlob *output
   {
     if (mAntennas(a) < (median - threshold) || mAntennas(a) > (median + threshold))
     {
-//      qWarning("Antenna %d is bad, flagged", a);
-      output->mMasks[channel][XX_POL].col(a).setOnes();
-      output->mMasks[channel][XX_POL].row(a).setOnes();
-      output->mFlagged[channel][XX_POL].push_back(a);
+      qWarning("Antenna %d is bad, flagged", a);
+      output->mMasks[pol].col(a).setOnes();
+      output->mMasks[pol].row(a).setOnes();
+      output->mFlagged[pol].push_back(a);
       ADD_STAT("FLAGGER_" << a, input->mHeader.time, mAntennas(a));
     }
   }

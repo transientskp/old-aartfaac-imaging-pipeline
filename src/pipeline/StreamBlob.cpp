@@ -13,20 +13,16 @@ StreamBlob::StreamBlob():
   mDl(0.0f)
 {
   // Initialize eigen matrices
-  for (int c = 0; c < MAX_MERGE_CHANNELS; c++)
+  for (int p = 0; p < NUM_POLARIZATIONS; p++)
   {
-    for (int p = 0; p < NUM_POLARIZATIONS; p++)
-    {
-      mData[c][p].resize(NUM_ANTENNAS, NUM_ANTENNAS);
-      mMasks[c][p].resize(NUM_ANTENNAS, NUM_ANTENNAS);
-      mFlagged[c][p].clear();
-    }
+    mData[p].resize(NUM_ANTENNAS, NUM_ANTENNAS);
+    mMasks[p].resize(NUM_ANTENNAS, NUM_ANTENNAS);
+    mFlagged[p].clear();
   }
 
   mHeader.start_chan = 0;
   mHeader.end_chan = 0;
   mSkyMap.resize(mImageWidth, mImageHeight);
-  mVisibilities.resize(NUM_ANTENNAS, NUM_ANTENNAS);
 
   reset();
 }
@@ -37,15 +33,13 @@ void StreamBlob::reset()
   if (mNumChannels > MAX_MERGE_CHANNELS)
     qFatal("Too many channels: %d <= %d does not hold", mNumChannels, MAX_MERGE_CHANNELS);
 
-  for (int c = 0; c < mNumChannels; c++)
+  for (int p = 0; p < NUM_POLARIZATIONS; p++)
   {
-    mData[c][XX_POL].setZero();
-    mFlagged[c][XX_POL].clear();
-    mMasks[c][XX_POL].setIdentity();
+    mData[p].setZero();
+    mFlagged[p].clear();
+    mMasks[p].setIdentity();
   }
   mSkyMap.setZero();
-  mVisibilities.setZero();
-  mHasConverged.assign(mNumChannels, true);
 }
 
 void StreamBlob::serialise(QIODevice &out) const
@@ -61,8 +55,7 @@ void StreamBlob::deserialise(QIODevice &in, QSysInfo::Endian)
 void StreamBlob::computeStats()
 {
   static const double distance = 320.0;
-  mVisibilities.array() /= mNumChannels;
-  ADD_STAT("FNORM", mHeader.time, mVisibilities.norm());
+  ADD_STAT("FNORM", mHeader.time, mData[XX_POL].norm());
 
   std::complex<float> sum;
   int count = 0;
@@ -74,7 +67,7 @@ void StreamBlob::computeStats()
       Eigen::RowVector3d pos_a2 = ANT_XYZ(a2);
       if ((pos_a1 - pos_a2).norm() > distance)
       {
-        sum += mVisibilities(a1, a2);
+        sum += mData[XX_POL](a1, a2);
         count++;
       }
     }
@@ -90,16 +83,15 @@ float StreamBlob::centralFreq() const
   return mHeader.freq + (mHeader.end_chan - mHeader.start_chan)*mHeader.chan_width;
 }
 
-void StreamBlob::addVis(const quint16 channel,
-                        const quint16 a1,
+void StreamBlob::addVis(const quint16 a1,
                         const quint16 a2,
                         const std::complex<float> v[])
 {
   for (int p = 0; p < NUM_POLARIZATIONS; p++)
   {
-    mData[channel-mHeader.start_chan][p](a2,a1) = v[p];
-    mData[channel-mHeader.start_chan][p](a1,a2) = std::conj(v[p]);
+    v[p].real() / mNumChannels;
+    v[p].imag() / mNumChannels;
+    mData[p](a2,a1) += v[p];
+    mData[p](a1,a2) += std::conj(v[p]);
   }
-  mVisibilities(a2, a1) += v[XX_POL];
-  mVisibilities(a1, a2) += std::conj(v[XX_POL]);
 }

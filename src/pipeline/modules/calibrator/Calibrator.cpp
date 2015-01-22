@@ -59,22 +59,22 @@ Calibrator::~Calibrator()
 {
 }
 
-void Calibrator::run(const int channel, const StreamBlob *input, StreamBlob *output)
+void Calibrator::run(const int pol, const StreamBlob *input, StreamBlob *output)
 {
   static const double min_restriction = 10.0;                 ///< avoid vis. below this wavelength
   static const double max_restriction = 60.0;                 ///< avoid vis. above this much meters
   static const Vector3d normal(0.598753, 0.072099, 0.797682); ///< Normal to CS002 (central antenna)
 
   mHasConverged = true;
-  mFrequency = input->mHeader.freq + (input->mHeader.start_chan + channel)*input->mHeader.chan_width;
+  mFrequency = input->centralFreq();
   double uvdist_cutoff = std::min(min_restriction*(C_MS/mFrequency), max_restriction);
 
   // =====================================
   // ==== 0. Prepare/Reshape matrices ====
   // =====================================
-  int num_antennas = NUM_ANTENNAS - input->mFlagged[channel][XX_POL].size();
+  int num_antennas = NUM_ANTENNAS - input->mFlagged[pol].size();
 
-  if (mFlagged.size() != input->mFlagged[channel][XX_POL].size())
+  if (mFlagged.size() != input->mFlagged[pol].size())
   {
     mNormalizedData.resize(num_antennas, num_antennas);
     mSpatialFilterMask.resize(num_antennas, num_antennas);
@@ -83,7 +83,7 @@ void Calibrator::run(const int channel, const StreamBlob *input, StreamBlob *out
     mAntennaLocalPosReshaped.resize(num_antennas, 3);
     mGains.resize(num_antennas);
   }
-  mFlagged = input->mFlagged[channel][XX_POL];
+  mFlagged = input->mFlagged[pol];
 
   for (int a1 = 0, _a1 = 0; a1 < NUM_ANTENNAS; a1++)
   {
@@ -97,9 +97,9 @@ void Calibrator::run(const int channel, const StreamBlob *input, StreamBlob *out
       if (std::find(mFlagged.begin(), mFlagged.end(), a2) != mFlagged.end())
         continue;
 
-      mNormalizedData(_a1, _a2) = input->mData[channel][XX_POL](a1, a2);
+      mNormalizedData(_a1, _a2) = input->mData[pol](a1, a2);
       mSpatialFilterMask(_a1, _a2) = mUVDist(a1, a2) < uvdist_cutoff ? 1.0f : 0.0f;
-      mMask(_a1, _a2) = input->mMasks[channel][XX_POL](a1, a2);
+      mMask(_a1, _a2) = input->mMasks[pol](a1, a2);
       _a2++;
     }
 
@@ -130,12 +130,6 @@ void Calibrator::run(const int channel, const StreamBlob *input, StreamBlob *out
       j++;
     }
   statCal(mNormalizedData, mFrequency, mMask, mGains, mFluxes, mNoiseCovMatrix);
-
-  if (!mHasConverged)
-  {
-    output->mHasConverged[channel] = false;
-    return;
-  }
 
   // ====================================
   // ==== 3. WSF Position Estimation ====
@@ -186,7 +180,7 @@ void Calibrator::run(const int channel, const StreamBlob *input, StreamBlob *out
       if (std::find(mFlagged.begin(), mFlagged.end(), a2) != mFlagged.end())
         continue;
 
-      output->mData[channel][XX_POL](a1, a2) = mNormalizedData(_a1, _a2);
+      output->mData[pol](a1, a2) = mNormalizedData(_a1, _a2);
       _a2++;
     }
 

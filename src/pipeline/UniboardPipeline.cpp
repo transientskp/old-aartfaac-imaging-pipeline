@@ -50,40 +50,17 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
   // Get pointers to the remote data blob(s) from the supplied hash.
   StreamBlob *data = static_cast<StreamBlob *>(inRemoteData["StreamBlob"]);
 
-  // Start potential threads
-  const int num_channels = data->mNumChannels;
-
-  #pragma omp parallel
-  {
-    #pragma omp for
-    for (int i = 0; i < num_channels; i++)
-    {
-      #pragma omp task
-      {
-#ifdef ENABLE_OPENMP
-        int idx = omp_get_thread_num();
-#else
-        int idx = 0;
-#endif
-        mFlaggers[idx]->run(i, data, data);
-        mCalibrators[idx]->run(i, data, data);
-      }
-    }
-  }
+  mFlaggers[0]->run(XX_POL, data, data);
+  mCalibrators[0]->run(XX_POL, data, data);
 
   // Create image
   mImager->run(data, data);
 
   float duration = (mTimer.elapsed() / 1000.0f);
 
-  std::stringstream failed("");
-  for (int i = 0, n = data->mHasConverged.size(); i < n; i++)
-    if (!data->mHasConverged[i])
-      failed << i + data->mHeader.start_chan << ",";
-
-  qDebug("Processed `%s' subband (%d-%d) failed (%s) in %0.3f sec",
+  qDebug("Processed `%s' subband (%d-%d) in %0.3f sec",
          qPrintable(utils::MJD2QDateTime(data->mHeader.time).toString("hh:mm:ss")),
-         data->mHeader.start_chan, data->mHeader.end_chan, failed.str().c_str(), duration);
+         data->mHeader.start_chan, data->mHeader.end_chan, duration);
 
   ADD_STAT("PERFORMANCE", data->mHeader.time, duration);
 
