@@ -50,7 +50,7 @@ set (SERVER_SOURCES
 
 # === Regridder sources
 set (REGRIDDER_SOURCES
-  src/regridder/regrid.cpp
+  src/utilities/regridder/regrid.cpp
 )
 
 # === Test sources
