@@ -17,14 +17,16 @@
 // and requesting remote data.
 void UniboardPipeline::init()
 {
+  mPolarizations.push_back(XX_POL);
+  mPolarizations.push_back(YY_POL);
+
 #ifdef ENABLE_OPENMP
-  omp_set_dynamic(0);
-  omp_set_num_threads(mThreads);
-  qDebug("OpenMP threads: %d", mThreads);
+  mThreads = mPolarizations.size();
+  qDebug("OpenMP Enabled - %i threads", mThreads);
 #else
   mThreads = 1;
+  qDebug("OpenMP Disabled - %i thread", mThreads);
 #endif // ENABLE_OPENMP
-
 
   // Create the pipeline modules and any local data blobs.
   mFlaggers.resize(mThreads);
@@ -40,8 +42,6 @@ void UniboardPipeline::init()
 
   // Request remote data.
   requestRemoteData("StreamBlob");
-  mPolarizations.push_back(XX_POL);
-  mPolarizations.push_back(YY_POL);
 }
 
 // Defines a single iteration of the pipeline.
@@ -53,17 +53,15 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
   StreamBlob *data = static_cast<StreamBlob *>(inRemoteData["StreamBlob"]);
   #pragma omp parallel
   {
-    #pragma omp for
-    for (int i = 0,n = mPolarizations.size(); i < n; i++)
-    #pragma omp task
+    #pragma omp single nowait
     {
-      #ifdef ENABLE_OPENMP
-      int idx = omp_get_thread_num();
-      #else
-      int idx = 0;
-      #endif
-      mFlaggers[idx]->run(mPolarizations[i], data, data);
-      mCalibrators[idx]->run(mPolarizations[i], data, data);
+      for (quint32 i = 0; i < mPolarizations.size(); i++)
+      #pragma omp task
+      {
+        int p = mPolarizations[i];
+        mFlaggers[i]->run(p, data, data);
+        mCalibrators[i]->run(p, data, data);
+      }
     }
   }
 
