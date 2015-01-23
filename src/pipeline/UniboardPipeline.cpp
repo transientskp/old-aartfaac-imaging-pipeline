@@ -40,6 +40,8 @@ void UniboardPipeline::init()
 
   // Request remote data.
   requestRemoteData("StreamBlob");
+  mPolarizations.push_back(XX_POL);
+  mPolarizations.push_back(YY_POL);
 }
 
 // Defines a single iteration of the pipeline.
@@ -49,12 +51,24 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
 
   // Get pointers to the remote data blob(s) from the supplied hash.
   StreamBlob *data = static_cast<StreamBlob *>(inRemoteData["StreamBlob"]);
-
-  mFlaggers[0]->run(XX_POL, data, data);
-  mCalibrators[0]->run(XX_POL, data, data);
+  #pragma omp parallel
+  {
+    #pragma omp for
+    for (int i = 0,n = mPolarizations.size(); i < n; i++)
+    #pragma omp task
+    {
+      #ifdef ENABLE_OPENMP
+      int idx = omp_get_thread_num();
+      #else
+      int idx = 0;
+      #endif
+      mFlaggers[idx]->run(mPolarizations[i], data, data);
+      mCalibrators[idx]->run(mPolarizations[i], data, data);
+    }
+  }
 
   // Create image
-  mImager->run(data, data);
+  mImager->run(mPolarizations, data, data);
 
   float duration = (mTimer.elapsed() / 1000.0f);
 

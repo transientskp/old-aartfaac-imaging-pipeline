@@ -52,36 +52,42 @@ Imager::~Imager()
   fftwf_cleanup();
 }
 
-void Imager::run(const StreamBlob *input, StreamBlob *output)
+void Imager::run(const std::vector<int> &pols, const StreamBlob *input, StreamBlob *output)
 {
-  // Zero the grid
-  mGridded.setZero();
-
-  // Splat the image on a grid
   mDuv = C_MS / input->centralFreq() / 2.0f;
-  gridding(input->mData[XX_POL], mUCoords, mVCoords, input->mMasks[XX_POL], mGridded);
-
-  // Perform fft
-  fftShift(mGridded);
-  mGridded.reverseInPlace();
-  mGridded = mGridded.array().conjugate();
-  fftwf_execute(mFFTWPlan);
-  fftShift(mGridded);
-
-  // Copy real part to skymap and mask beyond the horizon
   output->mDl = C_MS / (input->centralFreq() * IMAGE_OUTPUT_SIZE * mDuv);
-  for (int i = 0; i < IMAGE_OUTPUT_SIZE; i++)
+  output->mSkyMap.setZero();
+
+  for (int i = 0, n = pols.size(); i < n; i++)
   {
-    float l = output->mDl*(i-IMAGE_OUTPUT_SIZE/2);
-    for (int j = 0; j < IMAGE_OUTPUT_SIZE; j++)
+    int p = pols[i];
+
+    // Zero the grid and regrid
+    mGridded.setZero();
+
+    // Splat the image on a grid
+    gridding(input->mData[p], mUCoords, mVCoords, input->mMasks[p], mGridded);
+
+    // Perform fft
+    fftShift(mGridded);
+    mGridded.reverseInPlace();
+    mGridded = mGridded.array().conjugate();
+    fftwf_execute(mFFTWPlan);
+    fftShift(mGridded);
+
+    // Compute <Ex*Ex + Ey*Ey> = I
+    for (int y = 0; y < IMAGE_OUTPUT_SIZE; y++)
     {
-      float m = output->mDl*(j-IMAGE_OUTPUT_SIZE/2);
-      if (l*l + m*m < 1.0f)
-        output->mSkyMap(i, j) = mGridded(j, i).real();
-      else
-        output->mSkyMap(i, j) = 0.0f;
+      float l = output->mDl*(y-IMAGE_OUTPUT_SIZE/2);
+      for (int x = 0; x < IMAGE_OUTPUT_SIZE; x++)
+      {
+        float m = output->mDl*(x-IMAGE_OUTPUT_SIZE/2);
+        if (l*l + m*m < 1.0f)
+          output->mSkyMap(y, x) += mGridded(x, y).real() * mGridded(x, y).real();
+      }
     }
   }
+  output->mSkyMap = output->mSkyMap.array().sqrt();
 }
 
 void Imager::fftShift(MatrixXcf &matrix)
