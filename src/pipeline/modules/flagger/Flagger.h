@@ -19,7 +19,7 @@ public:
   void run(const int pol, const StreamBlob *input, StreamBlob *output);
 
 private:
-  float mDeviationMultiplier;
+  float mNumSigmas;
   MatrixXf mAmplitudes;
   VectorXf mAntennas;
   std::vector<float> mSortedAntennas;

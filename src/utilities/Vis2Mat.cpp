@@ -1,6 +1,5 @@
 #include <iostream>
 #include <sstream>
-#include <vector>
 #include <eigen3/Eigen/Dense>
 
 #include "Constants.h"
@@ -17,7 +16,7 @@ int main(int argc, char *argv[])
   MatrixXcf m[NUM_CHANNELS][NUM_POLARIZATIONS];
   stringstream ss;
   size_t n;
-  std::complex<float> v;
+  complex<float> v;
 
   for (int c = 0; c < NUM_CHANNELS; c++)
     for (int p = 0; p < NUM_POLARIZATIONS; p++)
