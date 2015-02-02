@@ -17,7 +17,8 @@ public:
   StreamBlob();
 
   ChunkHeader mHeader;
-  Eigen::MatrixXcf mData[NUM_POLARIZATIONS]; // visibilities
+  Eigen::MatrixXcf mRawData[MAX_MERGE_CHANNELS][NUM_POLARIZATIONS];
+  Eigen::MatrixXcf mCleanData[NUM_POLARIZATIONS]; // visibilities
   Eigen::MatrixXf mMasks[NUM_POLARIZATIONS]; // 1.0f is flagged
   std::vector<int> mFlagged[NUM_POLARIZATIONS]; // flagged ants
 
@@ -30,8 +31,9 @@ public:
   /// Reset the blob for reuse
   void reset();
 
-  /// Add visibilities for all polarizations (xx,yy,xy,yx)
-  void addVis(const quint16 a1,
+  /// Add visibilities for all polarizations and channels
+  void addVis(const int channel,
+              const quint16 a1,
               const quint16 a2,
               std::complex<float> v[]);
 

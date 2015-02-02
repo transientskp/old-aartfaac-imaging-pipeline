@@ -66,7 +66,7 @@ void Imager::run(const std::vector<int> &pols, const StreamBlob *input, StreamBl
     mGridded.setZero();
 
     // Splat the image on a grid
-    gridding(input->mData[p], mUCoords, mVCoords, input->mMasks[p], mGridded);
+    gridding(input->mCleanData[p], mUCoords, mVCoords, input->mMasks[p], mGridded);
 
     // Perform fft
     fftShift(mGridded);

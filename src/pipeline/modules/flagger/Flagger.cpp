@@ -13,8 +13,13 @@ Flagger::Flagger(const ConfigNode &inConfig):
  AbstractModule(inConfig)
 {
   mAmplitudes.resize(NUM_ANTENNAS, NUM_ANTENNAS);
+  mMean.resize(NUM_ANTENNAS, NUM_ANTENNAS);
+  mStd.resize(NUM_ANTENNAS, NUM_ANTENNAS);
+  mSum.resize(NUM_ANTENNAS, NUM_ANTENNAS);
+  mMin.resize(NUM_ANTENNAS, NUM_ANTENNAS);
+  mMax.resize(NUM_ANTENNAS, NUM_ANTENNAS);
+  mMeanSq.resize(NUM_ANTENNAS, NUM_ANTENNAS);
   mAntennas.resize(NUM_ANTENNAS);
-  mSortedAntennas.resize(NUM_ANTENNAS);
   mNumSigmas = inConfig.getOption("deviation", "multiplier", "4").toFloat();
 }
 
@@ -24,33 +29,17 @@ Flagger::~Flagger()
 
 void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
 {
-  // Compute the amplitude of each complex value
-  mAmplitudes = input->mData[pol].cwiseAbs();
-
-  // Compute the mean per antenna without autocorrelations
-  for (int a = 0; a < NUM_ANTENNAS; a++)
-  {
-    mAmplitudes(a,a) = 0.0f;
-    mAntennas(a) = mAmplitudes.row(a).mean();
-    mSortedAntennas[a] = mAntennas(a);
-  }
-
-  std::sort(mSortedAntennas.begin(), mSortedAntennas.end());
-
-  // Compute the median, mean and variance
-  float median = (mSortedAntennas[NUM_ANTENNAS/2] + mSortedAntennas[NUM_ANTENNAS/2 - 1]) / 2.0f;
+  // 1. Flag antennas using sigma clipping on the average across channels
+  mAmplitudes = input->mCleanData[pol].cwiseAbs();
+  mAntennas = mAmplitudes.colwise().mean();
   float mean = mAntennas.mean();
-  float variance = 0.0f;
-  float probability = 1.0f / NUM_ANTENNAS;
-
-  for (int a = 0; a < NUM_ANTENNAS; a++)
-    variance += probability * ((mAntennas(a) - mean) * (mAntennas(a) - mean));
+  float std = sqrtf(1.0f/(mAntennas.size()-1) * (mAntennas.array().square() - mean*mean).sum());
 
   // Now we can determine bad antennas
-  float std = sqrtf(variance) * mNumSigmas;
+  std *= mNumSigmas;
   for (int a = 0; a < NUM_ANTENNAS; a++)
   {
-    if (mAntennas(a) < (median - std) || mAntennas(a) > (median + std))
+    if (mAntennas(a) < (mean - std) || mAntennas(a) > (mean + std))
     {
       qWarning("Antenna %d is bad, flagged", a);
       output->mMasks[pol].col(a).setOnes();
@@ -60,29 +49,38 @@ void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
     }
   }
 
-  // Flag individual visibilities
-  float sum = 0.0f;
-  int r = output->mFlagged[pol].size();
-  //      all ants                  - removed rows and cols      - diagonal
-  int n = NUM_ANTENNAS*NUM_ANTENNAS - r*(NUM_ANTENNAS-r)*2 + r*r - (NUM_ANTENNAS-r);
-  for (int i = 0; i < NUM_ANTENNAS; i++)
-    for (int j = 0; j < NUM_ANTENNAS; j++)
-      sum += mAmplitudes(i, j) * (1.0f - output->mMasks[pol](i, j));
+  // 2. Filter out individual visibilities across channels using sigma clipping
+  mMean.setZero();
+  mStd.setZero();
+  output->mCleanData[pol].setZero();
+  mSum = output->mMasks[pol];
 
-  // compute variance
-  mean = sum / n;
-  variance = 0.0f;
-  probability = 1.0f / n;
-  for (int i = 0; i < NUM_ANTENNAS; i++)
-    for (int j = 0; j < NUM_ANTENNAS; j++)
-      variance += probability * (mAmplitudes(i, j)-mean) * (mAmplitudes(i, j)-mean) * (1.0f - output->mMasks[pol](i, j));
+  // Compute mean and mean^2
+  for (int c = 0; c < input->mNumChannels; c++)
+    mMean += input->mRawData[c][pol].cwiseAbs();
+  mMean.array() /= input->mNumChannels;
+  mMeanSq = mMean.array().square();
 
-  // apply masking of abs(visibilities) outside mean +/- std*n
-  std = sqrtf(variance) * mNumSigmas;
-  for (int i = 0; i < NUM_ANTENNAS; i++)
-    for (int j = 0; j < NUM_ANTENNAS; j++)
-      if (mAmplitudes(i, j) < (mean - std) || mAmplitudes(i, j) > (mean + std))
-        output->mMasks[pol](i, j) = 1.0f;
-  qWarning("Individuals flagged: %i", int(output->mMasks[pol].sum())-(NUM_ANTENNAS-r)-r*(NUM_ANTENNAS-r)*2 + r*r);
+  // Compute standard deviation
+  for (int c = 0; c < input->mNumChannels; c++)
+    mStd.array() += (input->mRawData[c][pol].array().abs().square() - mMeanSq.array());
+  mStd.array() /= (input->mNumChannels-1.0f);
+  mStd = mStd.array().sqrt();
+
+  // Filter out bad visibilities
+  mMin = mMean.array() - mStd.array()*mNumSigmas;
+  mMax = mMean.array() - mStd.array()*mNumSigmas;
+  MatrixXf good(NUM_ANTENNAS, NUM_ANTENNAS);
+  for (int c = 0; c < input->mNumChannels; c++)
+  {
+    good = 1.0f - output->mMasks[pol].array();
+    good = (input->mRawData[c][pol].array().abs() > mMin.array()).select(good, 0.0f);
+    good = (input->mRawData[c][pol].array().abs() < mMax.array()).select(good, 0.0f);
+    output->mCleanData[pol].array() += input->mRawData[c][pol].array() * good.array();
+    mSum.array() += good.array();
+  }
+
+  // Final averaged visibilities
+  output->mCleanData[pol].array() /= mSum.array();
 }
 
