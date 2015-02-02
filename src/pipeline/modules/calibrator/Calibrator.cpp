@@ -112,7 +112,7 @@ void Calibrator::run(const int pol, const StreamBlob *input, StreamBlob *output)
   // ========================================================================
   // ==== 1. Whitening of the array covariance matrix for DOA estimation ====
   // ========================================================================
-  mNormalizedData.array() /= (mNormalizedData.diagonal() * mNormalizedData.diagonal().transpose()).array().sqrt();
+  mNormalizedData.array() /= mNormalizedData.diagonal().norm();
 
   // ================================
   // ==== 2. Initial calibration ====

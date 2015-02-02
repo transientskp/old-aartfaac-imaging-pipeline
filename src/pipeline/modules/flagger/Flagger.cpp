@@ -57,7 +57,7 @@ void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
 
   // Compute mean and mean^2
   for (int c = 0; c < input->mNumChannels; c++)
-    mMean += input->mRawData[c][pol].cwiseAbs();
+    mMean.array() += input->mRawData[c][pol].array().abs();
   mMean.array() /= input->mNumChannels;
   mMeanSq = mMean.array().square();
 
@@ -69,7 +69,7 @@ void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
 
   // Filter out bad visibilities
   mMin = mMean.array() - mStd.array()*mNumSigmas;
-  mMax = mMean.array() - mStd.array()*mNumSigmas;
+  mMax = mMean.array() + mStd.array()*mNumSigmas;
   MatrixXf good(NUM_ANTENNAS, NUM_ANTENNAS);
   for (int c = 0; c < input->mNumChannels; c++)
   {

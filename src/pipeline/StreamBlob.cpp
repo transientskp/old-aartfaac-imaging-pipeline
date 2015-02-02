@@ -40,8 +40,8 @@ void StreamBlob::reset()
   for (int p = 0; p < NUM_POLARIZATIONS; p++)
   {
     mCleanData[p].setZero();
+    mMasks[p].setZero();
     mFlagged[p].clear();
-    mMasks[p].setIdentity();
   }
   mSkyMap.setZero();
 }
