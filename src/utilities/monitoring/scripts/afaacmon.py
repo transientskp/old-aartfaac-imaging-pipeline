@@ -326,19 +326,31 @@ class pipelineTextLogHdlr(logHdlr):
 		logHdlr.__init__(self, desc);
 
 		# List of known keys 
-		self._knownkeys = {'TOBS'            : numpy.empty ( (NRec2Buf, 1) ), 
-						  'FOBS'            : numpy.empty ( (NRec2Buf, 1) ), 
-						  'PERFORMANCE'     : numpy.empty ( (NRec2Buf, 1) ),
-						  'FNORM'           : numpy.empty ( (NRec2Buf, 1) ), 
-						  'FRINGE_AMPLITUDE': numpy.empty ( (NRec2Buf, 1) ),
-						  'FRINGE_PHASE'    : numpy.empty ( (NRec2Buf, 1) ), 
-						  'GAINS'           : numpy.empty ( (NRec2Buf ,288), 
-															dtype=complex ),
-						  'MAJORRESIDUES'   : numpy.empty ( (NRec2Buf, 1) ), 
-						  'MINORRESIDUES'   : numpy.empty ( (NRec2Buf, 1) ),
-						  'MAJORCYCLES'     : numpy.empty ( (NRec2Buf, 1) ), 
-						  'SIMPLEXCYCLES'   : numpy.empty ( (NRec2Buf, 1) ), 
-						  'FLAGGER'         : numpy.empty ( (NRec2Buf, Nelem))};
+		self._knownkeys = \
+		 {'TOBS'            :{'DESC':'Time', 'UNIT':'Secs',
+							  'VAL':numpy.empty ( (NRec2Buf, 1) )*numpy.nan},
+		  'FOBS'            :{'DESC':'Freq.', 'UNIT':'MHz',
+							  'VAL':numpy.empty ( (NRec2Buf, 1) )*numpy.nan}, 
+		  'PERFORMANCE'     :{'DESC':'Performance', 'UNIT':'Arbit',
+							  'VAL':numpy.empty ( (NRec2Buf, 1) )*numpy.nan},
+		  'FNORM'           :{'DESC':'Frobenius norm', 'UNIT':'Arbit', 
+							  'VAL':numpy.empty ( (NRec2Buf, 1) )*numpy.nan}, 
+		  'FRINGE_AMPLITUDE':{'DESC':'Fringe Ampl.', 'UNIT':'Arbit', 
+							  'VAL':numpy.empty ( (NRec2Buf, 1) )*numpy.nan},
+		  'FRINGE_PHASE'    :{'DESC':'Fringe Phase.', 'UNIT':'Deg', 
+							  'VAL':numpy.empty ( (NRec2Buf, 1) )*numpy.nan}, 
+		  'GAINS'           :{'DESC':'Complex gains', 'UNIT':'Complex', 
+							  'VAL':numpy.empty ( (NRec2Buf ,288), dtype=complex)*numpy.nan}, 
+		  'MAJORRESIDUES'   :{'DESC':'Calib. Major cycle resid.','UNIT':'Arbit',
+							  'VAL':numpy.empty ( (NRec2Buf, 1) )*numpy.nan}, 
+		  'MINORRESIDUES'   :{'DESC':'Minor cycle resid.', 'UNIT':'Arbit', 
+							  'VAL':numpy.empty ( (NRec2Buf, 1) )*numpy.nan},
+		  'MAJORCYCLES'     :{'DESC':'No. of major cycles', 'UNIT':'Count', 
+							  'VAL':numpy.empty ( (NRec2Buf, 1) )*numpy.nan}, 
+		  'SIMPLEXCYCLES'   :{'DESC':'No. of minor cycles', 'UNIT':'Count', 
+							  'VAL':numpy.empty ( (NRec2Buf, 1) )*numpy.nan}, 
+		  'FLAGGER'         :{'DESC':'Flagged ants', 'UNIT':'Antenna', 
+							  'VAL':numpy.empty ( (NRec2Buf, Nelem))}};
 
 
 	def readRec (self):
@@ -366,14 +378,14 @@ class pipelineTextLogHdlr(logHdlr):
 
 			if (units[1].find ('MAJORCYCLES') >= 0):
 				fobs = float(tmp[1]);
-				self._knownkeys['MAJORCYCLES'][self._recnum,0] = \
+				self._knownkeys['MAJORCYCLES']['VAL'][self._recnum,0] = \
 						float(units[3]);
 				nkeysread += 1;
 
 			elif (units[1].find ('FLAGGER') >= 0):
 				if (rdflagger == 0):
 					rdflagger = 1;
-				self._knownkeys['FLAGGER'][self._recnum,int(tmp[1])] = \
+				self._knownkeys['FLAGGER']['VAL'][self._recnum,int(tmp[1])] = \
 						float(units[3]);
 				if (rdflagger == 0):
 					nkeysread += 1;
@@ -383,7 +395,7 @@ class pipelineTextLogHdlr(logHdlr):
 				pass;
 				
 			elif (units[1] in self._knownkeys):
-				self._knownkeys[units[1]][self._recnum,0] = float(units[3]);
+				self._knownkeys[units[1]]['VAL'][self._recnum,0] = float(units[3]);
 				nkeysread += 1;
 
 			if (self._streamtype == 'file'):
@@ -395,10 +407,11 @@ class pipelineTextLogHdlr(logHdlr):
 				tobs = float (self._line.split(' ')[2]); 
 
 		if nkeysread == len(self._knownkeys) - 2: # time and freq. missing
-			self._knownkeys['TOBS'][self._recnum,0]  = tobs;
-			self._knownkeys['FOBS'][self._recnum,0]  = fobs;
+			self._knownkeys['TOBS']['VAL'][self._recnum,0]  = tobs;
+			self._knownkeys['FOBS']['VAL'][self._recnum,0]  = fobs;
 			self._recnum += 1;
 			self._totrec += 1;
+			print 'Found Time: ', tobs;
 			if (self._recnum >= NRec2Buf):
 				self._recnum = 0;
 		else:
@@ -726,6 +739,8 @@ if __name__ == '__main__':
 	subplt = [];
 	if opts.gpulogsrc != 0:
 		gpuhdl = gpucorrTextLogHdlr (opts.gpulogsrc);
+
+		# Subplot showing exec and latency.
 		gpusubplt = subpltType ('Secs', 'Secs', 
 				'Corr. execution and latency times', 
 				gpuhdl._knownkeys['TOBS']['VAL'], 
@@ -733,6 +748,8 @@ if __name__ == '__main__':
 				gpuhdl._knownkeys['LATETIME']['VAL']],
 				[gpuhdl._knownkeys['EXECTIME']['DESC'],
 				 gpuhdl._knownkeys['LATETIME']['DESC']]);
+
+		# Subplot showing percent of data flagged by GPU corr.
 		gpuflsubplt = subpltType ('Secs', 'Flag %', 
 				'Percent data flagged at gpucorr',
 				gpuhdl._knownkeys['TOBS']['VAL'], 
@@ -741,12 +758,21 @@ if __name__ == '__main__':
 		logsrc.append(gpuhdl);
 		subplt.append(gpusubplt);
 		subplt.append(gpuflsubplt);
+
+	if opts.pipelogsrc != 0:
+		pipehdl = pipelineTextLogHdlr (opts.pipelogsrc);
+
+		# Subplot showing live frobenius norm.
+		pipesubplt = subpltType ('Sec', 'Arbit', 'ACM Frobenius norm',
+								pipehdl._knownkeys['TOBS']['VAL'],
+								pipehdl._knownkeys['FNORM']['VAL'],
+								pipehdl._knownkeys['FNORM']['DESC']);
+		logsrc.append(pipehdl);
+		subplt.append(pipesubplt);
+
 	print 'Total subplots: ', len(subplt);
 
 	"""
-	if opts.pipelogsrc != 0:
-		logsrc.append(pipelineTextLogHdlr (opts.pipelogsrc));
-
 	if opts.gpuvissrc != 0:
 		logsrc.append(gpucorrVisHdlr (opts.gpuvissrc));
 
