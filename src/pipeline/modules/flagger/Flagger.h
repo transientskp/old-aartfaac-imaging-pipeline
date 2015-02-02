@@ -21,8 +21,13 @@ public:
 private:
   float mNumSigmas;
   MatrixXf mAmplitudes;
+  MatrixXf mSum;
+  MatrixXf mMin;
+  MatrixXf mMax;
+  MatrixXf mMean;
+  MatrixXf mMeanSq;
+  MatrixXf mStd;
   VectorXf mAntennas;
-  std::vector<float> mSortedAntennas;
 };
 
 PELICAN_DECLARE_MODULE(Flagger)

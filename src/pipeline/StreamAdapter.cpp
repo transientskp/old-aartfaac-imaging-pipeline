@@ -36,7 +36,7 @@ void StreamAdapter::deserialise(QIODevice *inDevice)
       for (int c = blob->mHeader.start_chan; c <= blob->mHeader.end_chan; c++)
       {
         bytes_read += inDevice->read(ptr, sizeof(std::complex<float>)*NUM_POLARIZATIONS);
-        blob->addVis(a1, a2, v);
+        blob->addVis(c, a1, a2, v);
       }
     }
   }

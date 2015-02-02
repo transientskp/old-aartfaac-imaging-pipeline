@@ -97,7 +97,7 @@ void Calibrator::run(const int pol, const StreamBlob *input, StreamBlob *output)
       if (std::find(mFlagged.begin(), mFlagged.end(), a2) != mFlagged.end())
         continue;
 
-      mNormalizedData(_a1, _a2) = input->mData[pol](a1, a2);
+      mNormalizedData(_a1, _a2) = input->mCleanData[pol](a1, a2);
       mSpatialFilterMask(_a1, _a2) = mUVDist(a1, a2) < uvdist_cutoff ? 1.0f : 0.0f;
       mMask(_a1, _a2) = input->mMasks[pol](a1, a2);
       _a2++;
@@ -112,7 +112,7 @@ void Calibrator::run(const int pol, const StreamBlob *input, StreamBlob *output)
   // ========================================================================
   // ==== 1. Whitening of the array covariance matrix for DOA estimation ====
   // ========================================================================
-  mNormalizedData.array() /= (mNormalizedData.diagonal() * mNormalizedData.diagonal().transpose()).array().sqrt();
+  mNormalizedData.array() /= mNormalizedData.diagonal().norm();
 
   // ================================
   // ==== 2. Initial calibration ====
@@ -180,7 +180,7 @@ void Calibrator::run(const int pol, const StreamBlob *input, StreamBlob *output)
       if (std::find(mFlagged.begin(), mFlagged.end(), a2) != mFlagged.end())
         continue;
 
-      output->mData[pol](a1, a2) = mNormalizedData(_a1, _a2);
+      output->mCleanData[pol](a1, a2) = mNormalizedData(_a1, _a2);
       _a2++;
     }
 

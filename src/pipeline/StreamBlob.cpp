@@ -15,10 +15,14 @@ StreamBlob::StreamBlob():
   // Initialize eigen matrices
   for (int p = 0; p < NUM_POLARIZATIONS; p++)
   {
-    mData[p].resize(NUM_ANTENNAS, NUM_ANTENNAS);
+    mCleanData[p].resize(NUM_ANTENNAS, NUM_ANTENNAS);
     mMasks[p].resize(NUM_ANTENNAS, NUM_ANTENNAS);
     mFlagged[p].clear();
   }
+
+  for (int c = 0; c < MAX_MERGE_CHANNELS; c++)
+    for (int p = 0; p < NUM_POLARIZATIONS; p++)
+      mRawData[c][p].resize(NUM_ANTENNAS, NUM_ANTENNAS);
 
   mHeader.start_chan = 0;
   mHeader.end_chan = 0;
@@ -35,9 +39,9 @@ void StreamBlob::reset()
 
   for (int p = 0; p < NUM_POLARIZATIONS; p++)
   {
-    mData[p].setZero();
+    mCleanData[p].setZero();
+    mMasks[p].setZero();
     mFlagged[p].clear();
-    mMasks[p].setIdentity();
   }
   mSkyMap.setZero();
 }
@@ -55,7 +59,7 @@ void StreamBlob::deserialise(QIODevice &in, QSysInfo::Endian)
 void StreamBlob::computeStats()
 {
   static const double distance = 320.0;
-  ADD_STAT("FNORM", mHeader.time, mData[XX_POL].norm());
+  ADD_STAT("FNORM", mHeader.time, mCleanData[XX_POL].norm());
 
   std::complex<float> sum;
   int count = 0;
@@ -67,7 +71,7 @@ void StreamBlob::computeStats()
       Eigen::RowVector3d pos_a2 = ANT_XYZ(a2);
       if ((pos_a1 - pos_a2).norm() > distance)
       {
-        sum += mData[XX_POL](a1, a2);
+        sum += mCleanData[XX_POL](a1, a2);
         count++;
       }
     }
@@ -83,14 +87,17 @@ float StreamBlob::centralFreq() const
   return mHeader.freq + (mHeader.end_chan - mHeader.start_chan)*mHeader.chan_width;
 }
 
-void StreamBlob::addVis(const quint16 a1,
+void StreamBlob::addVis(const int channel,
+                        const quint16 a1,
                         const quint16 a2,
                         std::complex<float> v[])
 {
   for (int p = 0; p < NUM_POLARIZATIONS; p++)
   {
+    mRawData[channel][p](a2, a1) = v[p];
+    mRawData[channel][p](a1, a2) = std::conj(v[p]);
     v[p] /= mNumChannels;
-    mData[p](a2,a1) += v[p];
-    mData[p](a1,a2) += std::conj(v[p]);
+    mCleanData[p](a2, a1) += v[p];
+    mCleanData[p](a1, a2) += std::conj(v[p]);
   }
 }
