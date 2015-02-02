@@ -49,7 +49,7 @@ except:
 	pyrapFound = 0;
 
 # Globals: Common to all data receivers
-NRec2Buf  = 120; # Records in memory buffer for plotting.
+NRec2Buf  = 10; # Records in memory buffer for plotting.
 Nelem     = 288; # The following remain constant for the 6-station A'FAAC    
 Nbline    = Nelem*(Nelem+1)/2; 
 Nchan     = 63;
@@ -87,7 +87,7 @@ class logHdlr:
 			self._clientconn,self._clientaddr = self._fid.accept ();
 			print '--> Conn', self._clientconn, ' Addr: ', self._clientaddr; 
 		else:
-			print '### Unknown descriptor type ', self._streamtype, ' Quitting!';
+			print '### Unknown descriptor type ', self._streamtype,' Quitting!';
 			sys.exit();
 		
 		# Initialize counters
@@ -102,7 +102,10 @@ class logHdlr:
 
 	def __del__(self):
 		print '<-- Clearing memory';
-		print '<-- Total records read: %d, Final time: %f' % (self._totrec, self._knownkeys['TOBS']['VAL'][self._recnum,0]);
+		if self._totrec > 0:
+			print ('<-- Total records read: %d, Final time: %f' % 
+				(self._totrec, self._knownkeys['TOBS']['VAL'][self._recnum,0]));
+
 		if self._streamtype == 'file':
 			self._fid.close();
 		elif self._streamtype == 'tcp':
@@ -137,53 +140,95 @@ class gpucorrTextLogHdlr(logHdlr):
 		logHdlr.__init__(self,spec);
 
 		self._knownkeys = \
-		 {'TOBS'       :{'UNIT':'Secs', 'VAL':numpy.empty( (NRec2Buf, 1) )}, 
-		 'FLAGPERCENT':{'UNIT':'Percent', 'VAL':numpy.empty((NRec2Buf,Nelem))}, 
-		 'EXECTIME'   :{'UNIT':'Secs', 'VAL': numpy.empty( (NRec2Buf, 1) )},
-		 'LATETIME'   :{'UNIT':'Secs', 'VAL': numpy.empty( (NRec2Buf, 1) )}};
+		 {'TOBS'      :{'DESC':'Time', 'UNIT':'Secs', 
+						'VAL':numpy.empty( (NRec2Buf, 1) ) * numpy.nan}, 
+		 'FLAGPERCENT':{'DESC':'\% Flagged', 'UNIT':'Percent', 
+						'VAL':numpy.empty((NRec2Buf,Nelem)) * numpy.nan}, 
+		 'EXECTIME'   :{'DESC':'Exec. time per timeslice', 'UNIT':'Secs', 
+						'VAL': numpy.empty( (NRec2Buf, 1) ) * numpy.nan},
+		 'LATETIME'   :{'DESC':'Latency per timeslice', 'UNIT':'Secs', 
+						'VAL': numpy.empty( (NRec2Buf, 1) ) * numpy.nan}};
+		
+		self._tflag = 0;
+		self._tlate = 0;
+		self._inrec = 0;
 
-
+	# Method to generate values of a single timeslice from the log by parsing
+	# the text input.
 	def readRec (self):
 		global DoneRead;
 		recdone = 0;
+		# self._inrec = 0;
+		print ('Recnum: %d, Flag: %d, late: %d' %
+				(self._recnum,self._tflag, self._tlate));
 		while not recdone:
-			self._line = self._fid.readline();
 			if not self._line: 
 				print 'EOF reached. Last few records may be discarded.\n';
 				DoneRead = 1;
 				break;
-			# print self._line;
+
+			if 'late:' in self._line:
+				m = self._timregexp.match(self._line);
+				if m:
+					# To deal with late and exec. time statements coming out
+					# of order with the station flagging information.
+					if (self._inrec== 1):
+						self._nextexetime = numpy.float(m.group(3));
+						self._nextlattime = numpy.float(m.group(6));
+						self._nexttlate   = numpy.float(m.group(1));
+						# print 'Stored :', self._nexttlate;
+					else:
+						self._knownkeys['EXECTIME']['VAL'][self._recnum,0] = \
+														numpy.float(m.group(3));
+						self._knownkeys['LATETIME']['VAL'][self._recnum,0] = \
+														numpy.float(m.group(6));
+						self._tlate = numpy.int32(m.group(1));
+						self._inrec = 1;
+						# print ('Started rec, recnum:%d, tlate: %d, tflag:%d'% 
+						# (self._recnum, self._tlate, self._tflag);
 
 			if 'stats' in self._line:
 				m = self._flagregexp.match(self._line);
 				if m:
-					self._knownkeys['TOBS']['VAL'][self._recnum] = numpy.uint32(m.group(1));
+					self._knownkeys['TOBS']['VAL'][self._recnum] = \
+										numpy.uint32(m.group(1));
+					self._tobs = numpy.uint32(m.group(1));
 					station = int(m.group(3)) / 48;
 					flag = numpy.float16(m.group(5));
-					# print 'Match: recnum: %d, station: %d, flag: %f ' % (self._recnum, station, flag);
+					self._tflag = numpy.int32(m.group(1));
+					# print('Match: recnum: %d, station: %d, flag: %f, t:%f ' % 
+					# (self._recnum, station, flag,self._tflag));
 					assert(station >= 0 and station <= 5)
 					assert(flag >= 0 and flag <= 100)
-					
-					# if times[i] == 0:
-					#    times[i] = time
-					self._knownkeys['FLAGPERCENT']['VAL'][self._recnum,station] = flag;
+					self._knownkeys['FLAGPERCENT']['VAL'][self._recnum,station]\
+					 = flag;
 					
 					if station == 5:
-						self._recnum += 1;
-						self._totrec += 1;
-						if (self._recnum >= NRec2Buf):
-							self._recnum = 0;
+						# Break if all parameters for the same second have been
+						# parsed and read.
+						if (self._tflag == self._tlate):
+							# print ('End of rec: tflag: %d, tlate: %d'%
+							# (self._tflag, self._tlate);
+							self._recnum += 1;
+							self._totrec += 1;
+							if (self._recnum >= NRec2Buf):
+								self._recnum = 0;
+							if (self._nexttlate != 0):
+								self._knownkeys['EXECTIME']['VAL'][self._recnum,0]=\
+															self._nextexetime;
+								self._knownkeys['LATETIME']['VAL'][self._recnum,0]=\
+															self._nextlattime;
+								self._tlate = self._nexttlate;
+								self._nexttlate = 0;
+								self._inrec = 1;
+							else:
+								self._inrec = 0;
+							recdone = 1;
+							self._line = self._fid.readline();
+							break;
 
-			elif 'late:' in self._line:
-				m = self._timregexp.match(self._line);
-				if m:
-					self._knownkeys['EXECTIME']['VAL'][self._recnum,0] = numpy.float(m.group(3));
-					self._knownkeys['LATETIME']['VAL'][self._recnum,0] = numpy.float(m.group(6));
-					# print 'Match: recnum: %d, late: %f, exec: %f ' % (self._recnum, numpy.float(m.group(3)), numpy.float(m.group(6)));
+			self._line = self._fid.readline();
 
-				# else:
-				#     assert(times[i] == time)
-		
 class gpucorrVisHandler(logHdlr):
 	'Class representing data from a single subband of visibilities, as generated by the GPU correlator'
 	
@@ -254,12 +299,15 @@ class gpucorrVisHandler(logHdlr):
 		# which is a view (referenced object).
 		self._acm[:,:]= 0;
 		for ind in range (0, self.Npol):
-			self._acm [ind,self._sel] = self._vis_int[:,ind,0] + 1j*self._vis_int[:,ind,1];
+			self._acm [ind,self._sel] = \
+					self._vis_int[:,ind,0] + 1j*self._vis_int[:,ind,1];
 
 		# Make ACM hermitian symmetric
-		self._acm_resh = numpy.reshape (self._acm, [self.Npol, self.Nelem, self.Nelem]);
+		self._acm_resh = \
+			numpy.reshape (self._acm, [self.Npol, self.Nelem, self.Nelem]);
 		for ind in range (0, self.Npol):
-			self._acm_resh [ind,:,:] = self._acm_resh[ind,:,:] + self._acm_resh[ind,:,:].conj().transpose();
+			self._acm_resh [ind,:,:] = \
+		self._acm_resh[ind,:,:] + self._acm_resh[ind,:,:].conj().transpose();
 	
 		return self._acm_resh, self._tobs, self._fobs;
 
@@ -318,13 +366,15 @@ class pipelineTextLogHdlr(logHdlr):
 
 			if (units[1].find ('MAJORCYCLES') >= 0):
 				fobs = float(tmp[1]);
-				self._knownkeys['MAJORCYCLES'][self._recnum,0] = float(units[3]);
+				self._knownkeys['MAJORCYCLES'][self._recnum,0] = \
+						float(units[3]);
 				nkeysread += 1;
 
 			elif (units[1].find ('FLAGGER') >= 0):
 				if (rdflagger == 0):
 					rdflagger = 1;
-				self._knownkeys['FLAGGER'][self._recnum,int(tmp[1])] = float(units[3]);
+				self._knownkeys['FLAGGER'][self._recnum,int(tmp[1])] = \
+						float(units[3]);
 				if (rdflagger == 0):
 					nkeysread += 1;
 
@@ -589,16 +639,60 @@ class pipelineTextLogHdlr(logHdlr):
 #			plt.savefig ('%s/%.0f_XX.png' % (self._fprefix,self._im[0]._tobs));
 
 
+class subpltType:
+	'Class representing a single subplot window within the main plot display'
+
+	def __init__ (self, xlab, ylab, tit, xdat, ydat, ylegend, sym='o-',grid=True):
+		self._xlab = xlab;
+		self._ylab = ylab;
+		self._title= tit;
+		self._xdat = xdat;
+		self._ydat = ydat;
+		self._ylegend = ylegend;
+		self._sym  = sym;
+		self._grid = grid;
+	
 class pltLogs:
 	' Class to display multiple plots resulting from an arbit. aggregation of logHdlr objects.'
 
-	def __init__ (self, loghdlrs):
+	def __init__ (self, loghdlrs, subplt):
+		self._loghdlrs = loghdlrs;
+		self._subplt = subplt;
+		self._nsubplt = 1; # 1 plot by default
+		self._firstplt = 1;
 		
-		
-
+	# Method to setup a multiplot window with the specifications provided.
 	def setupPltWin (self):
+		if (len(self._subplt) > 1):
+			if (len(self._subplt)%2):
+				self._nsubplt = len(self._subplt) + 1;
+			else:
+				self._nsubplt = len(self._subplt);
 
+
+	# Method called when any new data is received on any log feed.
 	def showlogplts (self):
+		plt.clf();
+		for ind,dat in enumerate (self._subplt):
+			plt.subplot (self._nsubplt, 1, ind);
+			if (isinstance(dat._ydat, list)):
+				for datiind, dati in enumerate (dat._ydat):
+					plt.plot (dat._xdat, dati, dat._sym, 
+												label=dat._ylegend[datiind]);
+			else:
+				# This is a single plot in a subplot, no need for a legend.
+				plt.plot (dat._xdat, dat._ydat, dat._sym);
+			plt.xlabel (dat._xlab); 
+			plt.ylabel (dat._ylab);
+			plt.title (dat._title);
+			plt.grid (dat._grid);
+			plt.legend(loc='upper left');
+		if (self._firstplt == 1):
+			plt.ion();
+			plt.show();
+			self._firstplt = 0;
+		else:
+			plt.draw();
 
 
 
@@ -629,32 +723,53 @@ if __name__ == '__main__':
 
 	# Add all specified sources of log/status information.
 	logsrc = [];	
+	subplt = [];
 	if opts.gpulogsrc != 0:
-		logsrc.append (gpucorrTextLogHdlr (opts.gpulogsrc));
+		gpuhdl = gpucorrTextLogHdlr (opts.gpulogsrc);
+		gpusubplt = subpltType ('Secs', 'Secs', 
+				'Corr. execution and latency times', 
+				gpuhdl._knownkeys['TOBS']['VAL'], 
+				[gpuhdl._knownkeys['EXECTIME']['VAL'], 
+				gpuhdl._knownkeys['LATETIME']['VAL']],
+				[gpuhdl._knownkeys['EXECTIME']['DESC'],
+				 gpuhdl._knownkeys['LATETIME']['DESC']]);
+		gpuflsubplt = subpltType ('Secs', 'Flag %', 
+				'Percent data flagged at gpucorr',
+				gpuhdl._knownkeys['TOBS']['VAL'], 
+				gpuhdl._knownkeys['FLAGPERCENT']['VAL'],
+				['CS2', 'CS3', 'CS4', 'CS5', 'CS6', 'CS7']); 
+		logsrc.append(gpuhdl);
+		subplt.append(gpusubplt);
+		subplt.append(gpuflsubplt);
+	print 'Total subplots: ', len(subplt);
 
+	"""
 	if opts.pipelogsrc != 0:
 		logsrc.append(pipelineTextLogHdlr (opts.pipelogsrc));
 
 	if opts.gpuvissrc != 0:
 		logsrc.append(gpucorrVisHdlr (opts.gpuvissrc));
 
+	"""
 	# if opts.calimgsrc != 0:
 	# 	logsrc.append(calimgHdlr (opts.calimgsrc));
 
-	# Initialize the plot display 
-	# TODO
+	if len(logsrc) > 0:
+		pltwin = pltLogs (logsrc, subplt);
+		pltwin.setupPltWin();
 
 	while (DoneRead == 0):
 		# Read in records from each log/status information source
 		for src in logsrc:
-			src.readRec();
-
-		# Pass on to the plotter
+			try:
+				src.readRec();
+				# Pass on to the plotter
+				pltwin.showlogplts();
+				time.sleep(0.5);
+			except KeyboardInterrupt:
+				print '<-- Clean quitting.'
+				DoneRead = 1;
 """
-	
-	print 'Total records read   : %d' % (pipehdlr._totrec);
-	print 'Start/End time in buf: %f/%f' %(pipehdlr._knownkeys['TOBS'][0,0], pipehdlr._knownkeys['TOBS'][pipehdlr._recnum-1,0]);
-
 	# Convert times to datetime
 	# import pdb; pdb.set_trace();
 	mpl_dates = dates.date2num (mjdsec2Datetime (pipehdlr._knownkeys['TOBS'][0:pipehdlr._recnum,0]));
