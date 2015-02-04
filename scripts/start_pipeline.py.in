@@ -16,7 +16,7 @@ TEMPLATE_XML = Template("""
 <!DOCTYPE pelican>
 
 <configuration version="1.0">
-  <pipeline monport="${monitor_port}" threads="${nthreads}">
+  <pipeline monport="${monitor_port}">
     <clients>
       <PelicanServerClient>
         <server host="${server_host}" port="${server_port}"/>
@@ -32,7 +32,8 @@ TEMPLATE_XML = Template("""
 
     <modules>
       <Flagger>
-        <deviation multiplier="${flagger_deviation_multiplier}" />
+        <antenna sigma="${ant_sigma}" />
+        <visibility sigma="${vis_sigma}" />
       </Flagger>
 
       <Calibrator>
@@ -74,11 +75,11 @@ def generate_xml(save_xml, **kwargs):
 def get_configuration():
     """Rerturns a populated configuration"""
     parser = argparse.ArgumentParser()
-    parser.add_argument("--nthreads", help="Number of threads", type=int, default=1)
     parser.add_argument("--monitor-port", help="Port on which to publish monitoring data", default="4200")
     parser.add_argument("--server-host", help="Address of Pelican server", default="127.0.0.1")
     parser.add_argument("--server-port", help="Address of Pelican server", default="2000")
-    parser.add_argument("--flagger-deviation-multiplier", help="Offset from variance", type=int, default=4)
+    parser.add_argument("--ant-sigma", help="Sigma used for clipping of antennas", type=int, default=4)
+    parser.add_argument("--vis-sigma", help="Sigma used for clipping of indivisuals visibilities", type=int, default=2)
     parser.add_argument("--antenna-positions",
         help="Path to file containing ordered IRTF positions of all antennae",
         default="@CMAKE_INSTALL_PREFIX@/share/aartfaac/antennasets/lba_outer.dat"
@@ -112,11 +113,11 @@ if __name__ == "__main__":
 
     xmlfile = generate_xml(
         config.save_xml,
-        nthreads=config.nthreads,
         monitor_port=config.monitor_port,
         server_host=config.server_host,
         server_port=config.server_port,
-        flagger_deviation_multiplier=config.flagger_deviation_multiplier,
+        ant_sigma=config.ant_sigma,
+        vis_sigma=config.ant_sigma,
         antenna_positions=os.path.abspath(config.antenna_positions),
         store_tiff=config.tiff,
         store_casa=config.casa,

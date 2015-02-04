@@ -19,7 +19,8 @@ public:
   void run(const int pol, const StreamBlob *input, StreamBlob *output);
 
 private:
-  float mNumSigmas;
+  float mAntSigma;
+  float mVisSigma;
   MatrixXf mAmplitudes;
   MatrixXf mSum;
   MatrixXf mMin;

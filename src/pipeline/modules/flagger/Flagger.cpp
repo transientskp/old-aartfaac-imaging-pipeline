@@ -20,7 +20,8 @@ Flagger::Flagger(const ConfigNode &inConfig):
   mMax.resize(NUM_ANTENNAS, NUM_ANTENNAS);
   mMeanSq.resize(NUM_ANTENNAS, NUM_ANTENNAS);
   mAntennas.resize(NUM_ANTENNAS);
-  mNumSigmas = inConfig.getOption("deviation", "multiplier", "4").toFloat();
+  mAntSigma = inConfig.getOption("antenna", "sigma", "4").toFloat();
+  mVisSigma = inConfig.getOption("visibility", "sigma", "2").toFloat();
 }
 
 Flagger::~Flagger()
@@ -36,7 +37,7 @@ void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
   float std = sqrtf(1.0f/(mAntennas.size()-1) * (mAntennas.array().square() - mean*mean).sum());
 
   // Now we can determine bad antennas
-  std *= mNumSigmas;
+  std *= mAntSigma;
   for (int a = 0; a < NUM_ANTENNAS; a++)
   {
     if (mAntennas(a) < (mean - std) || mAntennas(a) > (mean + std))
@@ -48,6 +49,7 @@ void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
       ADD_STAT("FLAGGER_" << a, input->mHeader.time, mAntennas(a));
     }
   }
+
 
   // 2. Filter out individual visibilities across channels using sigma clipping
   mMean.setZero();
@@ -68,8 +70,8 @@ void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
   mStd = mStd.array().sqrt();
 
   // Filter out bad visibilities
-  mMin = mMean.array() - mStd.array()*mNumSigmas;
-  mMax = mMean.array() + mStd.array()*mNumSigmas;
+  mMin = mMean.array() - mStd.array()*mVisSigma;
+  mMax = mMean.array() + mStd.array()*mVisSigma;
   MatrixXf good(NUM_ANTENNAS, NUM_ANTENNAS);
   for (int c = 0; c < input->mNumChannels; c++)
   {
