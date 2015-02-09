@@ -57,7 +57,7 @@ Nchan     = 63;
 Npol      = 4;
 DoneRead  = 0;   # Bool to stop reading.
 Stationid2Name = ['CS002', 'CS003', 'CS004', 'CS005', 'CS006', 'CS007']; 
-TcpBufSize=4096; # Caution: make sure all messages fall within this limit!
+TcpBufSize=8192; # Caution: make sure all messages fall within this limit!
 
 class logHdlr:
 	'Base class for all log handlers'
@@ -165,7 +165,6 @@ class gpucorrTextLogHdlr(logHdlr):
 	def readRec (self):
 		global DoneRead;
 		recdone = 0;
-		# self._inrec = 0;
 		print ('Recnum: %05d, Time: %10d, flag-late: %03d, second: %5d' %
 				(self._recnum,self._tflag, self._tflag-self._tlate, self._tflag-self._tfirst));
 		while not recdone:
@@ -183,7 +182,6 @@ class gpucorrTextLogHdlr(logHdlr):
 						self._nextexetime = numpy.float(m.group(3));
 						self._nextlattime = numpy.float(m.group(6));
 						self._nexttlate   = numpy.float(m.group(1));
-						# print 'Stored :', self._nexttlate;
 					else:
 						self._knownkeys['EXECTIME']['VAL'][self._recnum,0] = \
 														numpy.float(m.group(3));
@@ -191,8 +189,6 @@ class gpucorrTextLogHdlr(logHdlr):
 														numpy.float(m.group(6));
 						self._tlate = numpy.int32(m.group(1));
 						self._inrec = 1;
-						# print ('Started rec, recnum:%d, tlate: %d, tflag:%d'% 
-						# (self._recnum, self._tlate, self._tflag);
 
 			if 'stats' in self._line:
 				m = self._flagregexp.match(self._line);
@@ -421,13 +417,23 @@ class pipelineTextLogHdlr(logHdlr):
 				self._knownkeys[units[1]]['VAL'][self._recnum,0] = float(units[3]);
 				nkeysread += 1;
 
-			if (self._streamtype == 'file'):
-				self._line = self._fid.readline(); # Read in a self._line.
-			if not self._line: 
-				print 'EOF reached. Last few records may be discarded.\n';
+			try:
+				if (self._streamtype == 'file'):
+					self._line = self._fid.readline();
+				elif (self._streamtype == 'tcp'):
+					self._line = self._clientconn.recv(TcpBufSize);
+					# break;
+			except IOError:
+				print '### Generated IO error in readRec() within loop!';
 				DoneRead = 1;
-			else:
-				tobs = float (self._line.split(' ')[2]); 
+
+#			if (self._streamtype == 'file'):
+#				self._line = self._fid.readline(); # Read in a self._line.
+#			if not self._line: 
+#				print 'EOF reached. Last few records may be discarded.\n';
+#				DoneRead = 1;
+#			else:
+			tobs = float (self._line.split(' ')[2]); 
 
 		if nkeysread == len(self._knownkeys) - 2: # time and freq. missing
 			self._knownkeys['TOBS']['VAL'][self._recnum,0]  = tobs;
@@ -440,7 +446,7 @@ class pipelineTextLogHdlr(logHdlr):
 			if (self._recnum >= NRec2Buf):
 				self._recnum = 0;
 		else:
-			print '--> Discarding partial record for time %.2f' % tobs;
+			print '--> Discarding partial record for time %.2f, nkeysread: %d' % (tobs,nkeysread);
 
 	
 
@@ -812,10 +818,14 @@ if __name__ == '__main__':
 		pltwin.setupPlotWin();
 
 	# Main loop using poll/select interface
+	# NOTE: only put log sources with a tcp interface on the select list.
 	fidlist = {};
 	for obj in logsrc:
-		# obj._clientconn.setblocking(0);
-		fidlist[obj._clientconn] = obj;
+		if obj._streamtype == 'tcp':
+			# obj._clientconn.setblocking(0);
+			fidlist[obj._clientconn] = obj;
+		elif obj._streamtype == 'file':
+			fidlist[obj._fid.fileno()] = obj;
 
 	while (DoneRead == 0):
 		try:
