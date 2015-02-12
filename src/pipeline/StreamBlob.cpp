@@ -13,7 +13,7 @@ StreamBlob::StreamBlob():
   mDl(0.0f)
 {
   // Initialize eigen matrices
-  for (int p = 0; p < NUM_POLARIZATIONS; p++)
+  for (int p = 0; p < NUM_USED_POLARIZATIONS; p++)
   {
     mCleanData[p].resize(NUM_ANTENNAS, NUM_ANTENNAS);
     mMasks[p].resize(NUM_ANTENNAS, NUM_ANTENNAS);
@@ -21,7 +21,7 @@ StreamBlob::StreamBlob():
   }
 
   for (int c = 0; c < MAX_MERGE_CHANNELS; c++)
-    for (int p = 0; p < NUM_POLARIZATIONS; p++)
+    for (int p = 0; p < NUM_USED_POLARIZATIONS; p++)
       mRawData[c][p].resize(NUM_ANTENNAS, NUM_ANTENNAS);
 
   mHeader.start_chan = 0;
@@ -37,7 +37,7 @@ void StreamBlob::reset()
   if (mNumChannels > MAX_MERGE_CHANNELS)
     qFatal("Too many channels: %d <= %d does not hold", mNumChannels, MAX_MERGE_CHANNELS);
 
-  for (int p = 0; p < NUM_POLARIZATIONS; p++)
+  for (int p = 0; p < NUM_USED_POLARIZATIONS; p++)
   {
     mCleanData[p].setZero();
     mMasks[p].setZero();
@@ -92,7 +92,7 @@ void StreamBlob::addVis(const int channel,
                         const quint16 a2,
                         std::complex<float> v[])
 {
-  for (int p = 0; p < NUM_POLARIZATIONS; p++)
+  for (int p = 0; p < NUM_USED_POLARIZATIONS; p++)
   {
     mRawData[channel][p](a2, a1) = v[p];
     mRawData[channel][p](a1, a2) = std::conj(v[p]);

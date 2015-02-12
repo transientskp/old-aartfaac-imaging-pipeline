@@ -122,7 +122,7 @@ void StreamChunker::next(QIODevice *inDevice)
 
       for (int c = s.c1; c <= s.c2; c++)
       {
-        for (int p = 0; p < NUM_POLARIZATIONS; p++)
+        for (int p = XX_POL; p < NUM_POLARIZATIONS; p+=YY_POL)
         {
           chunks[i].write(reinterpret_cast<void*>(&mVisibilities[p+c*NUM_POLARIZATIONS+b*NUM_POLARIZATIONS*mNumChannels]),
                           sizeof(std::complex<float>),
@@ -196,7 +196,7 @@ std::vector<StreamChunker::Subband> StreamChunker::ParseSubbands(const QString &
              s.channels, MAX_MERGE_CHANNELS);
 
     s.size = sizeof(ChunkHeader) + s.channels * NUM_BASELINES *
-             NUM_POLARIZATIONS * sizeof(std::complex<float>);
+             NUM_USED_POLARIZATIONS * sizeof(std::complex<float>);
   }
   return subbands;
 }

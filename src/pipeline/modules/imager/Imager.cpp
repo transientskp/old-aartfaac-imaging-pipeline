@@ -52,16 +52,14 @@ Imager::~Imager()
   fftwf_cleanup();
 }
 
-void Imager::run(const std::vector<int> &pols, const StreamBlob *input, StreamBlob *output)
+void Imager::run(const StreamBlob *input, StreamBlob *output)
 {
   mDuv = C_MS / input->centralFreq() / 2.0f;
   output->mDl = C_MS / (input->centralFreq() * IMAGE_OUTPUT_SIZE * mDuv);
   output->mSkyMap.setZero();
 
-  for (int i = 0, n = pols.size(); i < n; i++)
+  for (int p = 0; p < NUM_USED_POLARIZATIONS; p++)
   {
-    int p = pols[i];
-
     // Zero the grid and regrid
     mGridded.setZero();
 

@@ -18,6 +18,7 @@
 
 /** Number of polarizations (X, Y) */
 #define NUM_POLARIZATIONS 4
+#define NUM_USED_POLARIZATIONS 2
 
 /** Polarization indexing for CORR_TYPE 9,10,11,12 */
 #define XX_POL 0

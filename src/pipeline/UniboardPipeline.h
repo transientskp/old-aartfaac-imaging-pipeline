@@ -29,7 +29,6 @@ public:
 private:
   std::vector<Flagger*> mFlaggers;
   std::vector<Calibrator*> mCalibrators;
-  std::vector<int> mPolarizations;
 
   Imager *mImager;
   int mThreads;

@@ -17,10 +17,10 @@ public:
   StreamBlob();
 
   ChunkHeader mHeader;
-  Eigen::MatrixXcf mRawData[MAX_MERGE_CHANNELS][NUM_POLARIZATIONS];
-  Eigen::MatrixXcf mCleanData[NUM_POLARIZATIONS]; // visibilities
-  Eigen::MatrixXf mMasks[NUM_POLARIZATIONS]; // 1.0f is flagged
-  std::vector<int> mFlagged[NUM_POLARIZATIONS]; // flagged ants
+  Eigen::MatrixXcf mRawData[MAX_MERGE_CHANNELS][NUM_USED_POLARIZATIONS];
+  Eigen::MatrixXcf mCleanData[NUM_USED_POLARIZATIONS]; // visibilities
+  Eigen::MatrixXf mMasks[NUM_USED_POLARIZATIONS]; // 1.0f is flagged
+  std::vector<int> mFlagged[NUM_USED_POLARIZATIONS]; // flagged ants
 
   Eigen::MatrixXf mSkyMap;
   int mImageWidth;

@@ -20,7 +20,7 @@ public:
   Imager(const ConfigNode &inConfig);
   ~Imager();
 
-  void run(const std::vector<int> &pols, const StreamBlob *input, StreamBlob *output);
+  void run(const StreamBlob *input, StreamBlob *output);
 
 private:
   void gridding(const MatrixXcf &correlations, const MatrixXf &uCoords, const MatrixXf &vCoords, const MatrixXf &mask, MatrixXcf &grid);
