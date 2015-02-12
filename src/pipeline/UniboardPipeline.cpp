@@ -19,6 +19,7 @@ void UniboardPipeline::init()
 {
 #ifdef ENABLE_OPENMP
   mThreads = NUM_USED_POLARIZATIONS;
+  omp_set_num_threads(mThreads);
   qDebug("OpenMP Enabled - %i threads", mThreads);
 #else
   mThreads = 1;
@@ -49,7 +50,7 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
   // Get pointers to the remote data blob(s) from the supplied hash.
   StreamBlob *data = static_cast<StreamBlob *>(inRemoteData["StreamBlob"]);
 
-#pragma omp parallel for
+  #pragma omp parallel for
   for (quint32 p = 0; p < NUM_USED_POLARIZATIONS; p++)
   {
     mFlaggers[p]->run(p, data, data);
