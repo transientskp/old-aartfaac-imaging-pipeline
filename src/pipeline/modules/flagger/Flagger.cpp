@@ -22,14 +22,65 @@ Flagger::Flagger(const ConfigNode &inConfig):
   mAntennas.resize(NUM_ANTENNAS);
   mAntSigma = inConfig.getOption("antenna", "sigma", "4").toFloat();
   mVisSigma = inConfig.getOption("visibility", "sigma", "2").toFloat();
+  QString s = inConfig.getOption("antenna", "flagged", "");
+  mFlaggedAnts = ParseFlagged(s);
+  for (int i = 0, n = mFlaggedAnts.size(); i < n; i++)
+    qWarning("Flagged from configuration: %i", mFlaggedAnts[i]);
 }
 
 Flagger::~Flagger()
 {
 }
 
+std::vector<int> Flagger::ParseFlagged(const QString &s)
+{
+  std::vector<int> flagged;
+  int antenna = -1;
+  bool success;
+
+  for (int i = 0; i < s.size(); )
+  {
+    QChar c = s.at(i);
+    if (c.isDigit())
+    {
+      int j = i + 1;
+      while (j < s.size() && s[j].isDigit())
+        j++;
+
+      antenna = s.mid(i,j-i).toInt(&success);
+      if (!success)
+        qFatal("Invalid number %s", qPrintable(s.mid(i,j-i)));
+      i += j - i;
+    }
+    else
+    {
+      switch (c.toAscii())
+      {
+      case ',':
+        flagged.push_back(antenna);
+        break;
+      default: qFatal("Invalid character `%c' at line %d", s[i].toAscii(), i);
+      }
+      i++;
+    }
+  }
+
+  return flagged;
+}
+
 void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
 {
+  if (!mFlaggedAnts.empty())
+  {
+    for (int i = 0, n = mFlaggedAnts.size(); i < n; i++)
+    {
+      int a = mFlaggedAnts[i];
+      output->mMasks[pol].col(a).setOnes();
+      output->mMasks[pol].row(a).setOnes();
+      output->mFlagged[pol].push_back(a);
+    }
+  }
+
   // 1. Flag antennas using sigma clipping on the average across channels
   mAmplitudes = input->mCleanData[pol].cwiseAbs();
   mAntennas = mAmplitudes.colwise().mean();
@@ -42,6 +93,9 @@ void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
   {
     if (mAntennas(a) < (mean - std) || mAntennas(a) > (mean + std))
     {
+      if (std::find(mFlaggedAnts.begin(), mFlaggedAnts.end(), a) != mFlaggedAnts.end())
+        continue;
+
       qWarning("Antenna %d is bad, flagged", a);
       output->mMasks[pol].col(a).setOnes();
       output->mMasks[pol].row(a).setOnes();

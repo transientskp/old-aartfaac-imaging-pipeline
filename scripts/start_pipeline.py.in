@@ -32,7 +32,7 @@ TEMPLATE_XML = Template("""
 
     <modules>
       <Flagger>
-        <antenna sigma="${ant_sigma}" />
+        <antenna sigma="${ant_sigma}" flagged="${flagged}"/>
         <visibility sigma="${vis_sigma}" />
       </Flagger>
 
@@ -80,6 +80,7 @@ def get_configuration():
     parser.add_argument("--server-port", help="Address of Pelican server", default="2000")
     parser.add_argument("--ant-sigma", help="Sigma used for clipping of antennas", type=int, default=4)
     parser.add_argument("--vis-sigma", help="Sigma used for clipping of indivisuals visibilities", type=int, default=2)
+    parser.add_argument("--flagged", help="List of commaseparated flagged antennas", type=str, default="")
     parser.add_argument("--antenna-positions",
         help="Path to file containing ordered IRTF positions of all antennae",
         default="@CMAKE_INSTALL_PREFIX@/share/aartfaac/antennasets/lba_outer.dat"
@@ -121,6 +122,7 @@ if __name__ == "__main__":
         antenna_positions=os.path.abspath(config.antenna_positions),
         store_tiff=config.tiff,
         store_casa=config.casa,
+        flagged=config.flagged,
         output_path=config.output_path
     )
     PROCESSES.append(subprocess.Popen([PIPELINE_CMD, xmlfile.name]))

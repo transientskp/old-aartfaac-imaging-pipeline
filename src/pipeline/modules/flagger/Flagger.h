@@ -19,6 +19,9 @@ public:
   void run(const int pol, const StreamBlob *input, StreamBlob *output);
 
 private:
+  std::vector<int> ParseFlagged(const QString &s);
+
+  std::vector<int> mFlaggedAnts;
   float mAntSigma;
   float mVisSigma;
   MatrixXf mAmplitudes;
