@@ -45,11 +45,9 @@ StreamChunker::~StreamChunker()
 QIODevice *StreamChunker::newDevice()
 {
   if (mServer == 0)
-  {
     mServer = new QTcpServer();
-    mServer->listen(QHostAddress::Any, port());
-  }
 
+  mServer->listen(QHostAddress::Any, port());
   mServer->waitForNewConnection(-1);
   qWarning("[%s] Created new connection %s:%d",
          __PRETTY_FUNCTION__, qPrintable(host()), port());
