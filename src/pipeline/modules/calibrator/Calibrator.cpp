@@ -131,6 +131,9 @@ void Calibrator::run(const int pol, const StreamBlob *input, StreamBlob *output)
     }
   statCal(mNormalizedData, mFrequency, mMask, mGains, mFluxes, mNoiseCovMatrix);
 
+  if (!mHasConverged)
+    return;
+
   // ====================================
   // ==== 3. WSF Position Estimation ====
   // ====================================
