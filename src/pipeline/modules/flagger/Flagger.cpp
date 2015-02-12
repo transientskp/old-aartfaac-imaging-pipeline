@@ -50,7 +50,7 @@ void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
     }
   }
 
-
+/*
   // 2. Filter out individual visibilities across channels using sigma clipping
   mMean.setZero();
   mStd.setZero();
@@ -84,5 +84,6 @@ void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
 
   // Final averaged visibilities
   output->mCleanData[pol].array() /= mSum.array();
+*/
 }
 
