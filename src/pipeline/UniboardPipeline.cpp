@@ -53,8 +53,14 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
   #pragma omp parallel for
   for (quint32 p = 0; p < NUM_USED_POLARIZATIONS; p++)
   {
-    mFlaggers[p]->run(p, data, data);
-    mCalibrators[p]->run(p, data, data);
+    int tid = 0;
+
+    #ifdef ENABLE_OPENMP
+    tid = omp_get_thread_num();
+    #endif
+
+    mFlaggers[tid]->run(p, data, data);
+    mCalibrators[tid]->run(p, data, data);
   }
 
   // Create image
