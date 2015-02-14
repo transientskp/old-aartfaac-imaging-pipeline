@@ -102,7 +102,8 @@ if __name__ == "__main__":
     config = get_configuration()
 
     # Sanity check: we need at least one of CASA and TIFF output
-    assert(config.casa or config.tiff)
+    if not config.casa and not config.tiff:
+      sys.stderr.write("Warning: Not storing any data!")
 
     # Sanity check: are the antenna positions available?
     print config.antenna_positions
