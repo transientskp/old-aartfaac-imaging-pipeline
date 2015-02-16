@@ -2,6 +2,7 @@
 #define STREAM_ADAPTER_H
 
 #include <pelican/core/AbstractStreamAdapter.h>
+#include <QtCore>
 
 using namespace pelican;
 
@@ -15,6 +16,7 @@ public:
   void deserialise(QIODevice *inDevice);
 
 private:
+  QTime mTimer;
 };
 
 // Register the adapter.

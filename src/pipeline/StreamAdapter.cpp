@@ -9,6 +9,7 @@
 StreamAdapter::StreamAdapter(const ConfigNode &config):
   AbstractStreamAdapter(config)
 {
+  mTimer.start();
 }
 
 void StreamAdapter::deserialise(QIODevice *inDevice)
@@ -43,4 +44,7 @@ void StreamAdapter::deserialise(QIODevice *inDevice)
 
   blob->computeStats();
   Q_ASSERT(bytes_read == chunkSize());
+  float bps = chunkSize() / (mTimer.elapsed() / 1000.0f);
+  mTimer.restart();
+  qDebug("Throughput: %0.2f Mb/s", bps/(1024*1024));
 }
