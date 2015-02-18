@@ -120,22 +120,6 @@ target_link_libraries (${SERVER}
   -lpthread
 )
 
-# === Create regridding binary
-set (REGRIDDER regridder)
-add_executable(${REGRIDDER} ${REGRIDDER_SOURCES})
-
-target_link_libraries(${REGRIDDER}
-  ${CASACORE_LIBRARIES}
-)
-
-# === Create vis2mat binary
-set (VIS2MAT vis2mat)
-add_executable(${VIS2MAT} ${VIS2MAT_SOURCES})
-
-target_link_libraries (${VIS2MAT}
-  ${QT_LIBRARIES}
-)
-
 # === Testing framework
 if (ENABLE_TESTS)
   # === Find CppUnit library

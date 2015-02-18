@@ -48,16 +48,6 @@ set (SERVER_SOURCES
   src/utilities/monitoring/Server.cpp
 )
 
-# === Vis2Mat sources
-set (VIS2MAT_SOURCES
-  src/utilities/Vis2Mat.cpp
-)
-
-# === Regridder sources
-set (REGRIDDER_SOURCES
-  src/utilities/regridder/regrid.cpp
-)
-
 # === Test sources
 set (TESTS emulatortest pipelinetest servertest utilitiestest)
 
