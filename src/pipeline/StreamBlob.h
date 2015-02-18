@@ -32,8 +32,9 @@ public:
   void reset();
 
   /// Add visibilities for all polarizations and channels
-  void addVis(const int channel, const int pol,
-              const int i,
+  void addVis(const int channel,
+              const int pol,
+              const int n,
               Eigen::VectorXcf &v);
 
   /// Prepare for sending

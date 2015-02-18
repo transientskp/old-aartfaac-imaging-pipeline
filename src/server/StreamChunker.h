@@ -46,6 +46,7 @@ private:
   double mFrequency;
   double mChannelWidth;
   double mStartInterval;
+  QTime mTimer;
 
   /** @brief Parses subbands of the form: "c_{1}-c_{2},...,c_{n-1}-c_{n}",
    *         where c_{i} in {0,...,n} and c_{i} < c_{i+1}

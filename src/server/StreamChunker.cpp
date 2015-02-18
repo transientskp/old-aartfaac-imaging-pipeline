@@ -46,7 +46,10 @@ StreamChunker::~StreamChunker()
 QIODevice *StreamChunker::newDevice()
 {
   if (mServer != 0)
+  {
+    mServer->close();
     delete mServer;
+  }
 
   mServer = new QTcpServer();
   mServer->listen(QHostAddress::Any, port());
@@ -61,6 +64,8 @@ void StreamChunker::next(QIODevice *inDevice)
 {
   if (!isActive())
     return;
+
+  mTimer.start();
 
   // Wait for enough bytes and parse the streaming header
   StreamHeader stream_header;
@@ -84,11 +89,6 @@ void StreamChunker::next(QIODevice *inDevice)
   // Only process every Nth second
   if (stream_header.start_time - mStartInterval < mMinInterval)
     return;
-
-  mStartInterval = stream_header.start_time;
-  qDebug("Stream '%s' %s-%s", qPrintable(name()),
-         qPrintable(QDateTime::fromTime_t(stream_header.start_time).toString("hh:mm:ss")),
-         qPrintable(QDateTime::fromTime_t(stream_header.end_time).toString("hh:mm:ss")));
 
   // Allocate chunk memory for each subband and write chunker header
   std::vector<WritableData> chunks(mSubbands.size());
@@ -142,6 +142,13 @@ void StreamChunker::next(QIODevice *inDevice)
   else
   if (usage > 75.0f)
     qWarning("Chunker `%s' is at %0.1f%% of its buffer", qPrintable(name()), usage);
+
+  mStartInterval = stream_header.start_time;
+  float bps = (mVisibilities.size()*sizeof(std::complex<float>)+sizeof(ChunkHeader)) * 8 / (mTimer.elapsed() / 1000.0f);
+  qDebug("Stream '%s' %s-%s %0.2f Gb/s", qPrintable(name()),
+         qPrintable(QDateTime::fromTime_t(stream_header.start_time).toString("hh:mm:ss")),
+         qPrintable(QDateTime::fromTime_t(stream_header.end_time).toString("hh:mm:ss")),
+         bps/(1024.0f*1024.0f*1024.0f));
 }
 
 std::vector<StreamChunker::Subband> StreamChunker::ParseSubbands(const QString &s)
