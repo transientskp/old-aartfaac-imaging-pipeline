@@ -88,16 +88,13 @@ float StreamBlob::centralFreq() const
 }
 
 void StreamBlob::addVis(const int channel,
-                        const quint16 a1,
-                        const quint16 a2,
-                        std::complex<float> v[])
+                        const int pol,
+                        const int n,
+                        Eigen::VectorXcf &v)
 {
-  for (int p = 0; p < NUM_USED_POLARIZATIONS; p++)
-  {
-    mRawData[channel][p](a2, a1) = v[p];
-    mRawData[channel][p](a1, a2) = std::conj(v[p]);
-    v[p] /= mNumChannels;
-    mCleanData[p](a2, a1) += v[p];
-    mCleanData[p](a1, a2) += std::conj(v[p]);
-  }
+  mRawData[channel][pol].col(n).head(n+1) = v.head(n+1);
+  mRawData[channel][pol].row(n).head(n+1) = v.head(n+1).conjugate();
+  v.head(n+1) /= mNumChannels;
+  mCleanData[pol].col(n).head(n+1) += v.head(n+1);
+  mCleanData[pol].row(n).head(n+1) += v.head(n+1).conjugate();
 }

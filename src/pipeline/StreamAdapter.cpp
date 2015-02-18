@@ -4,6 +4,7 @@
 #include "../emulator/stream/StreamPacket.h"
 
 #include <complex>
+#include <Eigen/Dense>
 
 // Construct the example adapter.
 StreamAdapter::StreamAdapter(const ConfigNode &config):
@@ -28,16 +29,16 @@ void StreamAdapter::deserialise(QIODevice *inDevice)
   while (size_t(inDevice->bytesAvailable()) < chunkSize()-sizeof(ChunkHeader))
     inDevice->waitForReadyRead(100);
 
-  std::complex<float> v[NUM_USED_POLARIZATIONS];
-  char *ptr = reinterpret_cast<char*>(v);
-  for (int a2 = 0; a2 < NUM_ANTENNAS; a2++)
+  Eigen::VectorXcf v(NUM_ANTENNAS);
+  char *ptr = reinterpret_cast<char*>(v.data());
+  for (int c = blob->mHeader.start_chan; c <= blob->mHeader.end_chan; c++)
   {
-    for (int a1 = 0; a1 < (a2 + 1); a1++)
+    for (int p = 0; p < NUM_USED_POLARIZATIONS; p++)
     {
-      for (int c = blob->mHeader.start_chan; c <= blob->mHeader.end_chan; c++)
+      for (int i = 0; i < NUM_ANTENNAS; i++)
       {
-        bytes_read += inDevice->read(ptr, sizeof(std::complex<float>)*NUM_USED_POLARIZATIONS);
-        blob->addVis(c, a1, a2, v);
+        bytes_read += inDevice->read(ptr, sizeof(std::complex<float>)*(i+1));
+        blob->addVis(c, p, i, v);
       }
     }
   }

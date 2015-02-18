@@ -32,10 +32,9 @@ public:
   void reset();
 
   /// Add visibilities for all polarizations and channels
-  void addVis(const int channel,
-              const quint16 a1,
-              const quint16 a2,
-              std::complex<float> v[]);
+  void addVis(const int channel, const int pol,
+              const int i,
+              Eigen::VectorXcf &v);
 
   /// Prepare for sending
   void serialise(QIODevice &out) const;

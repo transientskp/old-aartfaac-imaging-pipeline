@@ -115,15 +115,15 @@ void StreamChunker::next(QIODevice *inDevice)
   }
 
   // Start reading data from device and write to the appropriate chunk/subband
-  for (int b = 0; b < NUM_BASELINES; b++)
+  for (int i = 0, n = mSubbands.size(); i < n; i++)
   {
-    for (int i = 0, n = mSubbands.size(); i < n; i++)
-    {
-      Subband &s = mSubbands[i];
+    Subband &s = mSubbands[i];
 
-      for (int c = s.c1; c <= s.c2; c++)
+    for (int c = s.c1; c <= s.c2; c++)
+    {
+      for (int p = XX_POL; p < NUM_POLARIZATIONS; p+=YY_POL)
       {
-        for (int p = XX_POL; p < NUM_POLARIZATIONS; p+=YY_POL)
+        for (int b = 0; b < NUM_BASELINES; b++)
         {
           chunks[i].write(reinterpret_cast<void*>(&mVisibilities[p+c*NUM_POLARIZATIONS+b*NUM_POLARIZATIONS*mNumChannels]),
                           sizeof(std::complex<float>),
