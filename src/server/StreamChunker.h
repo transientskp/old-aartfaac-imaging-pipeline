@@ -36,7 +36,8 @@ private:
     }
   };
 
-  std::vector<std::complex<float> > mVisibilities;
+  std::vector<std::complex<float> > mData;
+  std::vector<std::complex<float> > mBatch;
   QTcpServer *mServer; ///< TCP/IP server, created in newDevice()
 
   // Must be defined in serverConf.xml
