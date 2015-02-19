@@ -33,6 +33,12 @@ Imager::Imager(const ConfigNode &inConfig):
     }
   }
 
+  mMask.resize(IMAGE_OUTPUT_SIZE, IMAGE_OUTPUT_SIZE);
+  int h = IMAGE_OUTPUT_SIZE/2;
+  for (int i = 0; i < IMAGE_OUTPUT_SIZE; i++)
+    for (int j = 0; j < IMAGE_OUTPUT_SIZE; j++)
+      mMask(i,j) = (i-h)*(i-h) + (j-h)*(j-h);
+
   // Create fftw plan
   mFFTWPlan = fftwf_plan_dft_2d(IMAGE_OUTPUT_SIZE, IMAGE_OUTPUT_SIZE,
                                reinterpret_cast<fftwf_complex*>(mGridded.data()),
@@ -74,18 +80,13 @@ void Imager::run(const StreamBlob *input, StreamBlob *output)
     fftShift(mGridded);
 
     // Compute <Ex*Ex + Ey*Ey> = I
-    for (int y = 0; y < IMAGE_OUTPUT_SIZE; y++)
-    {
-      float l = output->mDl*(y-IMAGE_OUTPUT_SIZE/2);
-      for (int x = 0; x < IMAGE_OUTPUT_SIZE; x++)
-      {
-        float m = output->mDl*(x-IMAGE_OUTPUT_SIZE/2);
-        if (l*l + m*m < 1.0f)
-          output->mSkyMap(y, x) += mGridded(x, y).real() * mGridded(x, y).real();
-      }
-    }
+    output->mSkyMap.array() += mGridded.real().array().square();
   }
-  output->mSkyMap = output->mSkyMap.array().sqrt();
+  float dl = output->mDl*output->mDl;
+  output->mSkyMap = (mMask.array() * dl < 1.0f).select(
+        output->mSkyMap.array().sqrt(),
+        MatrixXf::Zero(IMAGE_OUTPUT_SIZE, IMAGE_OUTPUT_SIZE)
+  );
 }
 
 void Imager::fftShift(MatrixXcf &matrix)

@@ -80,6 +80,6 @@ void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *i
   image.setImageInfo(image_info);
   for (int i = 0; i < IMAGE_OUTPUT_SIZE; i++)
     for (int j = 0; j < IMAGE_OUTPUT_SIZE; j++)
-      image.putAt(blob->mSkyMap(i, j), casa::IPosition(4, j, i, 0, 0));
+      image.putAt(blob->mSkyMap(j, i), casa::IPosition(4, j, i, 0, 0));
 }
 
