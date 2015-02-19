@@ -92,9 +92,9 @@ void StreamBlob::addVis(const int channel,
                         const int n,
                         Eigen::VectorXcf &v)
 {
-  mRawData[channel][pol].col(n).head(n+1) = v.head(n+1);
-  mRawData[channel][pol].row(n).head(n+1) = v.head(n+1).conjugate();
+  mRawData[channel][pol].col(n).head(n+1) = v.head(n+1).conjugate();
+  mRawData[channel][pol].row(n).head(n+1) = v.head(n+1);
   v.head(n+1) /= mNumChannels;
-  mCleanData[pol].col(n).head(n+1) += v.head(n+1);
-  mCleanData[pol].row(n).head(n+1) += v.head(n+1).conjugate();
+  mCleanData[pol].col(n).head(n+1) += v.head(n+1).conjugate();
+  mCleanData[pol].row(n).head(n+1) += v.head(n+1);
 }
