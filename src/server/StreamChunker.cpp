@@ -118,9 +118,7 @@ void StreamChunker::next(QIODevice *inDevice)
   // Start reading data from device and write to the appropriate chunk/subband
   for (int i = 0, n = mSubbands.size(); i < n; i++)
   {
-    Subband &s = mSubbands[i];
-
-    for (int c = s.c1; c <= s.c2; c++)
+    for (int c = mSubbands[i].c1; c <= mSubbands[i].c2; c++)
     {
       for (int p = XX_POL; p < NUM_POLARIZATIONS; p+=YY_POL)
       {
@@ -145,7 +143,7 @@ void StreamChunker::next(QIODevice *inDevice)
     qWarning("Chunker `%s' is at %0.1f%% of its buffer", qPrintable(name()), usage);
 
   mStartInterval = stream_header.start_time;
-  float bps = (mData.size()*sizeof(std::complex<float>)+sizeof(ChunkHeader)) * 8 / (mTimer.elapsed() / 1000.0f);
+  float bps = (mData.size()*sizeof(std::complex<float>)+sizeof(StreamHeader)) * 8 / (mTimer.elapsed() / 1000.0f);
   qDebug("Stream '%s' %s-%s %0.2f Gb/s", qPrintable(name()),
          qPrintable(QDateTime::fromTime_t(stream_header.start_time).toString("hh:mm:ss")),
          qPrintable(QDateTime::fromTime_t(stream_header.end_time).toString("hh:mm:ss")),
