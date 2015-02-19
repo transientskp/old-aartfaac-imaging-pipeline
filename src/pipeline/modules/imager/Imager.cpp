@@ -82,6 +82,8 @@ void Imager::run(const StreamBlob *input, StreamBlob *output)
     // Compute <Ex*Ex + Ey*Ey> = I
     output->mSkyMap.array() += mGridded.real().array().square();
   }
+
+  // Mask out edges
   float dl = output->mDl*output->mDl;
   output->mSkyMap = (mMask.array() * dl < 1.0f).select(
         output->mSkyMap.array().sqrt(),
