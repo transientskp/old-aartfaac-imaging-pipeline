@@ -59,14 +59,29 @@ void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *i
   casa::TiledShape map_shape(casa::IPosition(4, IMAGE_OUTPUT_SIZE, IMAGE_OUTPUT_SIZE, 1, 1));
   casa::CoordinateSystem coordinate_system;
   coordinate_system.addCoordinate(azel);
-  casa::SpectralCoordinate spectral(casa::MFrequency::LSRK, blob->centralFreq(), 0.0, 0.0);
+  casa::SpectralCoordinate spectral(casa::MFrequency::LSRK, blob->centralFreq(), blob->mNumChannels*blob->mHeader.chan_width, blob->centralFreq());
   coordinate_system.addCoordinate(spectral);
   casa::ObsInfo obs_info;
   
   obs_info.setObserver("AARTFAAC Project");
-  obs_info.setTelescope("AARTFAAC All Sky Monitor");
+  obs_info.setTelescope("AARTFAAC");
   obs_info.setObsDate(MEpoch(MVEpoch(Quantity(blob->mHeader.time, "s")), MEpoch::Ref(MEpoch::UTC)));
-  obs_info.setTelescopePosition(MPosition(MVPosition(3826577.066110000, 461022.947639000, 5064892.786), casa::MPosition::ITRF));
+  MPosition obs(MVPosition(3826577.066110000, 461022.947639000, 5064892.786), casa::MPosition::ITRF);
+  obs_info.setTelescopePosition(obs);
+  MEpoch model(Quantity(0., "d"));
+  MeasFrame frame(obs);
+// Set up the output reference
+  MEpoch::Ref outref(MEpoch::LAST,
+                     frame);
+  MEpoch::Convert toLST(model,
+                        outref);
+  MVDirection dir;
+  // RA/DEC
+  Double ra = toLST(utils::MJD2QDateTime(blob->mHeader.time).toTime_t()).getValue().getDayFraction();
+  Double dec = 0.92354311057856478750;
+  dir.setAngle(rad*12.0/M_PI, dec);
+
+  obs_info.setPointingCenter(dir);
   coordinate_system.setObsInfo(obs_info);
   casa::Vector<Int> stokes(1);
   stokes(0) = casa::Stokes::I;
