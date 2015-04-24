@@ -60,6 +60,7 @@ void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *i
   casa::CoordinateSystem coordinate_system;
   coordinate_system.addCoordinate(azel);
   casa::SpectralCoordinate spectral(casa::MFrequency::LSRK, blob->centralFreq(), blob->mNumChannels*blob->mHeader.chan_width, blob->centralFreq());
+  spectral.setRestFrequency(blob->centralFreq());
   coordinate_system.addCoordinate(spectral);
   casa::ObsInfo obs_info;
   
@@ -79,7 +80,7 @@ void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *i
   // RA/DEC
   Double ra = toLST(utils::MJD2QDateTime(blob->mHeader.time).toTime_t()).getValue().getDayFraction();
   Double dec = 0.92354311057856478750;
-  dir.setAngle(rad*12.0/M_PI, dec);
+  dir.setAngle(ra*12.0/M_PI, dec);
 
   obs_info.setPointingCenter(dir);
   coordinate_system.setObsInfo(obs_info);
