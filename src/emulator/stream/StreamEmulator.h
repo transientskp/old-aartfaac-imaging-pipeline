@@ -7,6 +7,7 @@
 #include <pelican/utility/ConfigNode.h>
 
 #include <QTime>
+#include <complex>
 
 namespace casa
 {
@@ -41,6 +42,7 @@ private:
   QTime mTimer;
 
   char *mData;
+  std::complex<float> *mVisData;
   size_t mDataSize;
 
   casa::MeasurementSet *mMeasurementSet;

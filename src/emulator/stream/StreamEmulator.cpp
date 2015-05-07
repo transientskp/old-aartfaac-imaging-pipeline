@@ -50,6 +50,7 @@ StreamEmulator::StreamEmulator(const pelican::ConfigNode &configNode):
   // Allocate the data as local buffer
   mDataSize = sizeof(StreamHeader) + NUM_BASELINES*mTotalChannels*NUM_POLARIZATIONS*sizeof(std::complex<float>);
   mData = new char[mDataSize];
+  mVisData = reinterpret_cast<std::complex<float>*>(mData + sizeof(StreamHeader));
   memset(static_cast<void*>(mData), 0, mDataSize);
 }
 
@@ -93,6 +94,9 @@ void StreamEmulator::getPacketData(char *&data, unsigned long &size)
       std::cout << countdown-- << " " << std::flush;
     }
   }
+
+  for (quint32 i = 0; i < NUM_BASELINES*mTotalChannels*NUM_POLARIZATIONS; i++)
+    mVisData[i] = std::conj(mVisData[i]);
 
   mTotalPackets++;
 }
