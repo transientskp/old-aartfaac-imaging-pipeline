@@ -94,7 +94,9 @@ void StreamBlob::addVis(const int channel,
 {
   mRawData[channel][pol].col(n).head(n+1) = v.head(n+1).conjugate();
   mRawData[channel][pol].row(n).head(n+1) = v.head(n+1);
+  mRawData[channel][pol](n,n) -= v(n);
   v.head(n+1) /= mNumChannels;
   mCleanData[pol].col(n).head(n+1) += v.head(n+1).conjugate();
   mCleanData[pol].row(n).head(n+1) += v.head(n+1);
+  mCleanData[pol](n,n) -= v(n);
 }
