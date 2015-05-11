@@ -64,30 +64,23 @@ void Imager::run(const StreamBlob *input, StreamBlob *output)
   output->mDl = C_MS / (input->centralFreq() * IMAGE_OUTPUT_SIZE * mDuv);
   output->mSkyMap.setZero();
 
-  for (int p = 0; p < 1; p++)
-  {
-    // Zero the grid and regrid
-    mGridded.setZero();
+  // Zero the grid and regrid
+  mGridded.setZero();
 
-    // Splat the image on a grid
-    gridding(input->mCleanData[p], mUCoords, mVCoords, input->mMasks[p], mGridded);
+  // Splat the image on a grid
+  gridding(input->mCleanData[0], mUCoords, mVCoords, input->mMasks[0], mGridded);
 
-    // Perform fft
-    fftShift(mGridded);
-    mGridded = mGridded.colwise().reverse().eval();
-    mGridded = mGridded.rowwise().reverse().eval();
-    mGridded = mGridded.array().conjugate();
-    fftwf_execute(mFFTWPlan);
-    fftShift(mGridded);
-
-    // Compute <Ex*Ex + Ey*Ey> = I
-    output->mSkyMap.array() += mGridded.real().array().square();
-  }
+  // Perform fft
+  fftShift(mGridded);
+  mGridded.reverseInPlace();
+  mGridded = mGridded.array().conjugate();
+  fftwf_execute(mFFTWPlan);
+  fftShift(mGridded);
 
   // Mask out edges
   float dl = output->mDl*output->mDl;
   output->mSkyMap = (mMask.array() * dl < 1.0f).select(
-        output->mSkyMap.array().sqrt(),
+        mGridded.array().real(),
         MatrixXf::Zero(IMAGE_OUTPUT_SIZE, IMAGE_OUTPUT_SIZE)
   );
 }
@@ -117,17 +110,12 @@ void Imager::gridding(const MatrixXcf &correlations, const MatrixXf &uCoords, co
   Q_ASSERT(correlations.cols() == mask.cols());
 
   int N = correlations.rows();
-  float p = 1.0f;
   for (int a1 = 0; a1 < N; a1++)
   {
     for (int a2 = 0; a2 < N; a2++)
     {
       if (mask(a1,a2) > 0.5f)
         continue;
-
-      p = 1.0f;
-      if (a1 == a2)
-        p = 0.5f;
 
       const std::complex<float> &corr = correlations(a1, a2);
 
@@ -139,10 +127,10 @@ void Imager::gridding(const MatrixXcf &correlations, const MatrixXf &uCoords, co
       int s = std::floor(v);
       int n = std::ceil(v);
 
-      float west_power  = p - (u - w);
-      float east_power  = p - (e - u);
-      float south_power = p - (v - s);
-      float north_power = p - (n - v);
+      float west_power  = 1.0f - (u - w);
+      float east_power  = 1.0f - (e - u);
+      float south_power = 1.0f - (v - s);
+      float north_power = 1.0f - (n - v);
 
       float south_west_power = south_power * west_power;
       float north_west_power = north_power * west_power;

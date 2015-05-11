@@ -59,8 +59,8 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
     tid = omp_get_thread_num();
     #endif
 
-//    mFlaggers[tid]->run(p, data, data);
-//    mCalibrators[tid]->run(p, data, data);
+    mFlaggers[tid]->run(p, data, data);
+    mCalibrators[tid]->run(p, data, data);
   }
 
   // Create image
