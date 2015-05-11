@@ -51,7 +51,7 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
   StreamBlob *data = static_cast<StreamBlob *>(inRemoteData["StreamBlob"]);
 
   #pragma omp parallel for
-  for (quint32 p = 0; p < NUM_USED_POLARIZATIONS; p++)
+  for (quint32 p = 0; p < 1; p++)
   {
     int tid = 0;
 
@@ -59,8 +59,8 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
     tid = omp_get_thread_num();
     #endif
 
-    mFlaggers[tid]->run(p, data, data);
-    mCalibrators[tid]->run(p, data, data);
+//    mFlaggers[tid]->run(p, data, data);
+//    mCalibrators[tid]->run(p, data, data);
   }
 
   // Create image

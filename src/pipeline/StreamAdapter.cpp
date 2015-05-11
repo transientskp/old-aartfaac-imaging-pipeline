@@ -2,6 +2,7 @@
 #include "StreamBlob.h"
 #include "Constants.h"
 #include "../emulator/stream/StreamPacket.h"
+#include "../utilities/Utils.h"
 
 #include <complex>
 #include <Eigen/Dense>
@@ -42,6 +43,10 @@ void StreamAdapter::deserialise(QIODevice *inDevice)
       }
     }
   }
+
+//  utils::matrix2stderr(blob->mCleanData[0], "xx");
+//  utils::matrix2stderr(blob->mCleanData[1], "yy");
+//  exit(1);
 
   blob->computeStats();
   Q_ASSERT(bytes_read == chunkSize());
