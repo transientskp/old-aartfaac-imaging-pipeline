@@ -93,7 +93,8 @@ void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *i
   image_info.setImageType(casa::ImageInfo::Intensity);
   image_info.setObjectName("Aartfaac image");
   casa::PagedImage<casa::Float> image(map_shape, coordinate_system, qPrintable(filename));
-  image.setImageInfo(image_info);
+  if (!image.setImageInfo(image_info))
+    qCritical("Unable to set image info!");
   for (int i = 0; i < IMAGE_OUTPUT_SIZE; i++)
     for (int j = 0; j < IMAGE_OUTPUT_SIZE; j++)
       image.putAt(blob->mSkyMap(j, i), casa::IPosition(4, j, i, 0, 0));

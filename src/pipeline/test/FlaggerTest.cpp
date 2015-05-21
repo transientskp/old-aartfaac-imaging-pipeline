@@ -1,8 +1,9 @@
 #include "FlaggerTest.h"
 #include "../modules/flagger/Flagger.h"
 #include "../StreamBlob.h"
-#include "../../Constants.h"
+#include "Constants.h"
 #include "../../Macros.h"
+#include "../../utilities/monitoring/Server.h"
 
 #include <pelican/utility/ConfigNode.h>
 #include <eigen3/Eigen/Dense>
@@ -18,6 +19,7 @@ FlaggerTest::FlaggerTest():
 
 void FlaggerTest::setUp()
 {
+  Server::CreateInstance(5555);
   pelican::ConfigNode config(
     "<Flagger>"
     "   <deviation multiplier=\"4.0\"/>"

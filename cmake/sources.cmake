@@ -56,6 +56,7 @@ set (emulatortest_SOURCES
   src/emulator/test/main.cpp
   src/emulator/test/UniboardEmulatorTest.cpp
   src/emulator/stream/StreamEmulator.cpp
+  src/utilities/Utils.cpp
 )
 
 set (pipelinetest_SOURCES
