@@ -9,6 +9,11 @@ namespace utils
 {
 static const double seconds_between_julian_and_unix_epoc = 3506716800.0;
 
+double MJDs2JD(const double inMJDs)
+{
+  return (inMJDs / 86400.0) + 2400000.5;
+}
+
 QDateTime MJD2QDateTime(const double inMJD)
 {
   // Convert modified julian date to unix time

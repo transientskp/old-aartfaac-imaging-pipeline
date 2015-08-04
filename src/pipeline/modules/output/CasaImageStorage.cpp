@@ -78,7 +78,7 @@ void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *i
                         outref);
   MVDirection dir;
   // RA/DEC
-  Double ra = toLST(utils::MJD2QDateTime(blob->mHeader.time).toTime_t()).getValue().getDayFraction();
+  Double ra = toLST(utils::MJDs2JD(blob->mHeader.time)).getValue().getDayFraction();
   Double dec = 0.92354311057856478750;
   dir.setAngle(ra*2*M_PI, dec);
 

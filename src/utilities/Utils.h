@@ -15,6 +15,13 @@ using namespace Eigen;
 namespace utils
 {
 /**
+ * @brief MJDs2JD
+ * @param inMJDs
+ * @return Convert
+ */
+double MJDs2JD(const double inMJDs);
+
+/**
  * @brief
  * Converts a modified julian date in seconds to QDateTime
  */
