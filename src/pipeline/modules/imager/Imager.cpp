@@ -80,7 +80,7 @@ void Imager::run(const StreamBlob *input, StreamBlob *output)
   // Mask out edges
   float dl = output->mDl*output->mDl;
   output->mSkyMap = (mMask.array() * dl < 1.0f).select(
-        mGridded.array().real(),
+        mGridded.array().real().transpose(),
         MatrixXf::Zero(IMAGE_OUTPUT_SIZE, IMAGE_OUTPUT_SIZE)
   );
 }

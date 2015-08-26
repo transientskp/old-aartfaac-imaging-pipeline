@@ -7,24 +7,24 @@
 
 namespace utils
 {
-static const double seconds_between_julian_and_unix_epoc = 3506716800.0;
+static const double seconds_between_julian_and_unix_epoch = 3506716800.0;
 
-QDateTime MJD2QDateTime(const double inMJD)
+QDateTime MJD2QDateTime(const double inMJDsec)
 {
   // Convert modified julian date to unix time
-  quint32 unix_time = static_cast<quint32>(MJD2UnixTime(inMJD));
+  quint32 unix_time = static_cast<quint32>(MJD2UnixTime(inMJDsec));
 
   return QDateTime::fromTime_t(unix_time).toUTC();
 }
 
 double MJD2UnixTime(const double inMJD)
 {
-  return inMJD - seconds_between_julian_and_unix_epoc;
+  return inMJD - seconds_between_julian_and_unix_epoch;
 }
 
 double UnixTime2MJD(const double inUnixTime)
 {
-  return inUnixTime + seconds_between_julian_and_unix_epoc;
+  return inUnixTime + seconds_between_julian_and_unix_epoch;
 }
 
 void sunRaDec(const double inJD, double &outRa, double &outDec)
