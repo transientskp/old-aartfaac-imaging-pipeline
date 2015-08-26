@@ -62,7 +62,7 @@ void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *i
   Double ra = toLST((blob->mHeader.time)/86400.).getValue().getDayFraction()*2*M_PI;
   Double dec = 0.92354311057856478750; // Always fixed due to transit mode of AARTFAAC.
   dir.setAngle(ra, dec);
-  Vector<Double> tmp = dir.get();
+  // Vector<Double> tmp = dir.get();
   // fprintf (stderr, "<-- Setting pointing direction at time %f to RA:%.5f, Dec: %.5f, read: %.5f, %.5f rad.\n", blob->mHeader.time+7200,ra, dec, tmp[0], tmp[1]); 
 
   casa::Matrix<Double> xform(2,2);
