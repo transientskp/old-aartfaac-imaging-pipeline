@@ -64,18 +64,25 @@ void Imager::run(const StreamBlob *input, StreamBlob *output)
   output->mDl = C_MS / (input->centralFreq() * IMAGE_OUTPUT_SIZE * mDuv);
   output->mSkyMap.setZero();
 
-  // Zero the grid and regrid
-  mGridded.setZero();
+  // Create Stokes I image
+  for (int p = 0; p < NUM_USED_POLARIZATIONS; p++)
+  {
+    // Zero the grid and regrid
+    mGridded.setZero();
 
-  // Splat the image on a grid
-  gridding(input->mCleanData[0], mUCoords, mVCoords, input->mMasks[0], mGridded);
+    // Splat the image on a grid
+    gridding(input->mCleanData[p], mUCoords, mVCoords, input->mMasks[p], mGridded);
 
-  // Perform fft
-  fftShift(mGridded);
-  mGridded.reverseInPlace();
-  mGridded = mGridded.array().conjugate();
-  fftwf_execute(mFFTWPlan);
-  fftShift(mGridded);
+    // Perform fft
+    fftShift(mGridded);
+    mGridded.reverseInPlace();
+    mGridded = mGridded.array().conjugate();
+    fftwf_execute(mFFTWPlan);
+    fftShift(mGridded);
+
+    // Compute (XX+YY)/2 = I
+    output->mSkyMap.array() += mGridded.real().array() * 0.5f;
+  }
 
   // Mask out edges
   float dl = output->mDl*output->mDl;

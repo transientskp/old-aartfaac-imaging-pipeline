@@ -13,7 +13,7 @@ set (CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
 
 # === General options
 option (ENABLE_TESTS "Enable/disable test framework" ON)
-option (ENABLE_OPENMP "Enable/disable openmp" OFF)
+option (ENABLE_OPENMP "Enable/disable openmp" ON)
 option (ENABLE_PROFILING "Enable/disable profiling" OFF)
 option (ENABLE_LOFARSTMAN "Enable/disable lofarstman linking" OFF)
 option (ENABLE_NM_TRACE "Enable/disable simplex trace" OFF)
@@ -71,14 +71,14 @@ find_package (Pelican REQUIRED)
 find_package (Casacore REQUIRED)
 
 include_directories (
-  ${EIGEN3_INCLUDE_DIR}
-  ${FFTW_INCLUDES}
-  ${LOFAR_INCLUDES}
-  ${PELICAN_INCLUDES}
-  ${CASACORE_INCLUDES}
-  ${QT_INCLUDE_DIR}
-  ${QT_QTCORE_INCLUDE_DIR}
-  ${QT_QTNETWORK_INCLUDE_DIR}
+  ${EIGEN3_INCLUDE_DIR} SYSTEM
+  ${FFTW_INCLUDES} SYSTEM
+  ${LOFAR_INCLUDES} SYSTEM
+  ${PELICAN_INCLUDES} SYSTEM
+  ${CASACORE_INCLUDES} SYSTEM
+  ${QT_INCLUDE_DIR} SYSTEM
+  ${QT_QTCORE_INCLUDE_DIR} SYSTEM
+  ${QT_QTNETWORK_INCLUDE_DIR} SYSTEM
 )
 
 # === Preprocess qt moc headers
