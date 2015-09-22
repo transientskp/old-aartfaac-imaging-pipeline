@@ -84,7 +84,7 @@ void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *i
 						    refLon, refLat,
 						    incLon, incLat,
 						    xform,
-                            IMAGE_OUTPUT_SIZE/2, IMAGE_OUTPUT_SIZE/2);
+                IMAGE_OUTPUT_SIZE/2, IMAGE_OUTPUT_SIZE/2);
 
   // Create a coordinate system for specifying frequency information of an image.
   casa::SpectralCoordinate spectral(casa::MFrequency::LSRK, blob->centralFreq(), blob->mNumChannels*blob->mHeader.chan_width, 0);// blob->centralFreq());
@@ -106,8 +106,8 @@ void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *i
 
   casa::Vector<Int> stokes(1);
   stokes(0) = casa::Stokes::I;
-  coordinate_system.addCoordinate(casa::StokesCoordinate(stokes));
   coordinate_system.addCoordinate(spectral);
+  coordinate_system.addCoordinate(casa::StokesCoordinate(stokes));
 
   casa::ImageInfo image_info;
   image_info.setRestoringBeam(casa::Quantum<Double>(1.0, "deg"), casa::Quantum<Double>(1.0, "deg"), casa::Quantum<Double>(0.0, "deg"));
