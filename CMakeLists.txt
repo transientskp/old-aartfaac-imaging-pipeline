@@ -3,9 +3,9 @@ project (aartfaac CXX C)
 cmake_minimum_required (VERSION 2.6)
 
 # === Compiler options
-set (CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -Wno-long-long")
+set (CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic")
 set (CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
-set (CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -DQT_NO_DEBUG")
+set (CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native -mavx -DNDEBUG -DQT_NO_DEBUG")
 set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
 
 # === Set cmake 3rd library modules path
