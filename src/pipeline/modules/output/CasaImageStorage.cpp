@@ -14,7 +14,6 @@
 #include <casacore/measures/Measures/MCEpoch.h>
 #include <casacore/casa/Quanta/MVPosition.h>
 #include <casacore/casa/Quanta.h>
-#include <casacore/lattices/Lattices/LCPagedMask.h>
 
 #include <QtCore>
 
@@ -31,6 +30,7 @@ CasaImageStorage::~CasaImageStorage()
 
 void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *inDataBlob)
 {
+  using namespace casa;
   const StreamBlob *blob = static_cast<const StreamBlob *>(inDataBlob);
 
   if (blob->type() != "StreamBlob")
@@ -54,8 +54,8 @@ void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *i
   MeasFrame frame(obs);
 
   // Set up the output reference
-  MEpoch::Ref outref(MEpoch::LAST, frame); // LAST applies nutation of mean pole from mean to true position
-  MEpoch::Convert toLST(model, outref);
+  casa::MEpoch::Ref outref(casa::MEpoch::LAST, frame); // LAST applies nutation of mean pole from mean to true position
+  casa::MEpoch::Convert toLST(model, outref);
   MVDirection dir;
 
   // RA/DEC in radians (default for setAngle).

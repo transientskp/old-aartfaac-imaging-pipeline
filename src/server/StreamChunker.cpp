@@ -34,8 +34,7 @@ StreamChunker::StreamChunker(const ConfigNode &config):
   qDebug("Channels in stream(%d):", mNumChannels);
   qDebug("  Frequency ref: %f", mFrequency);
   qDebug("  Channel width: %f", mChannelWidth);
-  mData.resize(NUM_BASELINES*mNumChannels*NUM_POLARIZATIONS);
-  mBatch.resize(NUM_BASELINES);
+  mVisibilities.resize(NUM_BASELINES*mNumChannels*NUM_POLARIZATIONS);
 }
 
 StreamChunker::~StreamChunker()
@@ -76,10 +75,10 @@ void StreamChunker::next(QIODevice *inDevice)
   inDevice->read(reinterpret_cast<char*>(&stream_header), size);
 
   // Read in an entire block of visibilities
-  size = mData.size()*sizeof(std::complex<float>);
+  size = mVisibilities.size()*sizeof(std::complex<float>);
   while (inDevice->bytesAvailable() < size)
     inDevice->waitForReadyRead(-1);
-  inDevice->read(reinterpret_cast<char*>(mData.data()), size);
+  inDevice->read(reinterpret_cast<char*>(mVisibilities.data()), size);
 
   if (stream_header.magic != HEADER_MAGIC)
   {
@@ -118,18 +117,20 @@ void StreamChunker::next(QIODevice *inDevice)
   // Start reading data from device and write to the appropriate chunk/subband
   for (int i = 0, n = mSubbands.size(); i < n; i++)
   {
-    for (int c = mSubbands[i].c1; c <= mSubbands[i].c2; c++)
+    Subband &s = mSubbands[i];
+
+    for (int c = s.c1; c <= s.c2; c++)
     {
       for (int p = XX_POL; p < NUM_POLARIZATIONS; p+=YY_POL)
       {
         for (int b = 0; b < NUM_BASELINES; b++)
-          mBatch[b] = mData[p+c*NUM_POLARIZATIONS+b*NUM_POLARIZATIONS*mNumChannels];
+        {
+          chunks[i].write(reinterpret_cast<void*>(&mVisibilities[p+c*NUM_POLARIZATIONS+b*NUM_POLARIZATIONS*mNumChannels]),
+                          sizeof(std::complex<float>),
+                          bytes[i]);
 
-        chunks[i].write(reinterpret_cast<void*>(&mBatch[0]),
-                        sizeof(std::complex<float>)*mBatch.size(),
-                        bytes[i]);
-
-        bytes[i] += mBatch.size()*sizeof(std::complex<float>);
+          bytes[i] += sizeof(std::complex<float>);
+        }
       }
     }
   }
@@ -143,7 +144,7 @@ void StreamChunker::next(QIODevice *inDevice)
     qWarning("Chunker `%s' is at %0.1f%% of its buffer", qPrintable(name()), usage);
 
   mStartInterval = stream_header.start_time;
-  float bps = (mData.size()*sizeof(std::complex<float>)+sizeof(StreamHeader)) * 8 / (mTimer.elapsed() / 1000.0f);
+  float bps = (mVisibilities.size()*sizeof(std::complex<float>)+sizeof(ChunkHeader)) * 8 / (mTimer.elapsed() / 1000.0f);
   qDebug("Stream '%s' %s-%s %0.2f Gb/s", qPrintable(name()),
          qPrintable(QDateTime::fromTime_t(stream_header.start_time).toString("hh:mm:ss")),
          qPrintable(QDateTime::fromTime_t(stream_header.end_time).toString("hh:mm:ss")),
