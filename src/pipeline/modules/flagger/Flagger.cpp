@@ -12,13 +12,6 @@
 Flagger::Flagger(const ConfigNode &inConfig):
  AbstractModule(inConfig)
 {
-  mAmplitudes.resize(NUM_ANTENNAS, NUM_ANTENNAS);
-  mMean.resize(NUM_ANTENNAS, NUM_ANTENNAS);
-  mStd.resize(NUM_ANTENNAS, NUM_ANTENNAS);
-  mSum.resize(NUM_ANTENNAS, NUM_ANTENNAS);
-  mMin.resize(NUM_ANTENNAS, NUM_ANTENNAS);
-  mMax.resize(NUM_ANTENNAS, NUM_ANTENNAS);
-  mMeanSq.resize(NUM_ANTENNAS, NUM_ANTENNAS);
   mAntennas.resize(NUM_ANTENNAS);
   mAntSigma = inConfig.getOption("antenna", "sigma", "4").toFloat();
   mVisSigma = inConfig.getOption("visibility", "sigma", "2").toFloat();
@@ -70,6 +63,85 @@ std::vector<int> Flagger::ParseFlagged(const QString &s)
 
 void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
 {
+  const int N = NUM_BASELINES;
+  const int M = input->mNumChannels;
+  const int HALF_M = M / 2;
+
+  mAbs.resize(M, N);
+  mMask.resize(M, N);
+  mStd.resize(N);
+  mCentroid.resize(N);
+  mMean.resize(N);
+  mMinVal.resize(N);
+  mMaxVal.resize(N);
+  mResult.resize(N);
+
+  // Compute power of visibilities
+  mAbs = input->mRawData[pol].array().abs();
+
+  // computes the exact median
+  if (M & 1)
+  {
+    for (int i = 0; i < N; i++)
+    {
+      vector<float> row(mAbs.data() + i * M, mAbs.data() + (i + 1) * M);
+      nth_element(row.begin(), row.begin() + HALF_M, row.end());
+      mCentroid(i) = row[HALF_M];
+    }
+  }
+  // nth_element guarantees x_0,...,x_{n-1} < x_n
+  else
+  {
+    for (int i = 0; i < N; i++)
+    {
+      vector<float> row(mAbs.data() + i * M, mAbs.data() + (i + 1) * M);
+      nth_element(row.begin(), row.begin() + HALF_M, row.end());
+      mCentroid(i) = row[HALF_M];
+      mCentroid(i) += *max_element(row.begin(), row.begin() + HALF_M);
+      mCentroid(i) *= 0.5f;
+    }
+  }
+
+  // compute the mean
+  mMean = mAbs.colwise().mean();
+
+  // compute std (x) = sqrt ( 1/M SUM_i (x(i) - mean(x))^2 )
+  mStd =
+      (((mAbs.rowwise() - mMean.transpose()).array().square()).colwise().sum() *
+       (1.0f / M))
+          .array()
+          .sqrt();
+
+  // compute n sigmas from centroid
+  mMinVal = mCentroid - mStd * mVisSigma;
+  mMaxVal = mCentroid + mStd * mVisSigma;
+
+  // compute clip mask
+  for (int i = 0; i < N; i++)
+  {
+    mMask.col(i) =
+        (mAbs.col(i).array() > mMinVal(i)).select(VectorXf::Ones(M), 0.0f);
+    mMask.col(i) =
+        (mAbs.col(i).array() < mMaxVal(i)).select(VectorXf::Ones(M), 0.0f);
+  }
+
+  // apply clip mask to data
+  output->mRawData[pol].array() *= mMask.array();
+
+  // compute mean such that we ignore clipped data, this is our final result
+  mResult = output->mRawData[pol].colwise().sum().array() /
+            mMask.colwise().sum().array();
+
+  // construct acm from result
+  for (int i = 0, s = 0; i < NUM_ANTENNAS; i++)
+  {
+    output->mCleanData[pol].col(i).head(i + 1) =
+        mResult.segment(s, i + 1).conjugate();
+    output->mCleanData[pol].row(i).head(i + 1) = mResult.segment(s, i + 1);
+    s += i + 1;
+  }
+
+  // Flag on antenna/dipole level, from xml file
   if (!mFlaggedAnts.empty())
   {
     for (int i = 0, n = mFlaggedAnts.size(); i < n; i++)
@@ -81,11 +153,16 @@ void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
     }
   }
 
-  // 1. Flag antennas using sigma clipping on the average across channels
-  mAmplitudes = input->mCleanData[pol].cwiseAbs();
-  mAntennas = mAmplitudes.colwise().mean();
+  // clear NaN values
+  output->mCleanData[pol] =
+      (output->mCleanData[pol].array() != output->mCleanData[pol].array())
+          .select(complex<float>(0.0f, 0.0f), output->mCleanData[pol]);
+
+  // Flag antennas using sigma clipping
+  mAntennas = output->mCleanData[pol].array().abs().colwise().mean();
   float mean = mAntennas.mean();
-  float std = sqrtf(1.0f/(mAntennas.size()-1) * (mAntennas.array().square() - mean*mean).sum());
+  float std = sqrtf((1.0f / mAntennas.size()) *
+                    (mAntennas.array() - mean).array().square().sum());
 
   // Now we can determine bad antennas
   std *= mAntSigma;
@@ -93,51 +170,12 @@ void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
   {
     if (mAntennas(a) < (mean - std) || mAntennas(a) > (mean + std))
     {
-      if (std::find(mFlaggedAnts.begin(), mFlaggedAnts.end(), a) != mFlaggedAnts.end())
-        continue;
-
-      qWarning("Antenna %d is bad, flagged", a);
       output->mMasks[pol].col(a).setOnes();
       output->mMasks[pol].row(a).setOnes();
       output->mFlagged[pol].push_back(a);
-      ADD_STAT("FLAGGER_" << a, input->mHeader.time, mAntennas(a));
     }
   }
-
-/*
-  // 2. Filter out individual visibilities across channels using sigma clipping
-  mMean.setZero();
-  mStd.setZero();
-  output->mCleanData[pol].setZero();
-  mSum = output->mMasks[pol];
-
-  // Compute mean and mean^2
-  for (int c = 0; c < input->mNumChannels; c++)
-    mMean.array() += input->mRawData[c][pol].array().abs();
-  mMean.array() /= input->mNumChannels;
-  mMeanSq = mMean.array().square();
-
-  // Compute standard deviation
-  for (int c = 0; c < input->mNumChannels; c++)
-    mStd.array() += (input->mRawData[c][pol].array().abs().square() - mMeanSq.array());
-  mStd.array() /= (input->mNumChannels-1.0f);
-  mStd = mStd.array().sqrt();
-
-  // Filter out bad visibilities
-  mMin = mMean.array() - mStd.array()*mVisSigma;
-  mMax = mMean.array() + mStd.array()*mVisSigma;
-  MatrixXf good(NUM_ANTENNAS, NUM_ANTENNAS);
-  for (int c = 0; c < input->mNumChannels; c++)
-  {
-    good = 1.0f - output->mMasks[pol].array();
-    good = (input->mRawData[c][pol].array().abs() > mMin.array()).select(good, 0.0f);
-    good = (input->mRawData[c][pol].array().abs() < mMax.array()).select(good, 0.0f);
-    output->mCleanData[pol].array() += input->mRawData[c][pol].array() * good.array();
-    mSum.array() += good.array();
-  }
-
-  // Final averaged visibilities
-  output->mCleanData[pol].array() /= mSum.array();
-*/
+  qDebug("[%s] Flagged %li dipoles, %i visibilities", (pol ? "YY" : "XX"),
+         output->mFlagged[pol].size(), int(mMask.size() - mMask.sum()));
 }
 

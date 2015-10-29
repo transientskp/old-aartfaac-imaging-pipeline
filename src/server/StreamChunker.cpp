@@ -115,15 +115,15 @@ void StreamChunker::next(QIODevice *inDevice)
   }
 
   // Start reading data from device and write to the appropriate chunk/subband
-  for (int i = 0, n = mSubbands.size(); i < n; i++)
+  for (int p = XX_POL; p < NUM_POLARIZATIONS; p+=YY_POL)
   {
-    Subband &s = mSubbands[i];
-
-    for (int c = s.c1; c <= s.c2; c++)
+    for (int b = 0; b < NUM_BASELINES; b++)
     {
-      for (int p = XX_POL; p < NUM_POLARIZATIONS; p+=YY_POL)
+      for (int i = 0, n = mSubbands.size(); i < n; i++)
       {
-        for (int b = 0; b < NUM_BASELINES; b++)
+        Subband &s = mSubbands[i];
+
+        for (int c = s.c1; c <= s.c2; c++)
         {
           chunks[i].write(reinterpret_cast<void*>(&mVisibilities[p+c*NUM_POLARIZATIONS+b*NUM_POLARIZATIONS*mNumChannels]),
                           sizeof(std::complex<float>),
@@ -148,7 +148,7 @@ void StreamChunker::next(QIODevice *inDevice)
   qDebug("Stream '%s' %s-%s %0.2f Gb/s", qPrintable(name()),
          qPrintable(QDateTime::fromTime_t(stream_header.start_time).toString("hh:mm:ss")),
          qPrintable(QDateTime::fromTime_t(stream_header.end_time).toString("hh:mm:ss")),
-         bps/(1024.0f*1024.0f*1024.0f));
+         bps*1e-9f);
 }
 
 std::vector<StreamChunker::Subband> StreamChunker::ParseSubbands(const QString &s)

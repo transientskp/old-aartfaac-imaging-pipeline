@@ -3,6 +3,7 @@
 
 #include <pelican/core/AbstractStreamAdapter.h>
 #include <QtCore>
+#include <Eigen/Dense>
 
 using namespace pelican;
 
