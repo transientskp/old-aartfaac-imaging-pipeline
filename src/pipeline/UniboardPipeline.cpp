@@ -5,7 +5,6 @@
 #include "modules/calibrator/Calibrator.h"
 #include "modules/flagger/Flagger.h"
 #include "../utilities/Utils.h"
-#include "../utilities/monitoring/Server.h"
 #include "Constants.h"
 #include <time.h>
 #include <sstream>
@@ -74,7 +73,7 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
   dataOutput(data, "post");
 
   float bps = data->mNumChannels*NUM_BASELINES*NUM_USED_POLARIZATIONS*64 / duration;
-  qDebug("Processed `%s' subband (%d-%d) in %0.3f sec - %0.2f Mb/s",
+  qDebug("[%s] processed (%d-%d) channels in %0.3f sec - %0.2f Mb/s",
          qPrintable(utils::MJD2QDateTime(data->mHeader.time).toString("hh:mm:ss")),
          data->mHeader.start_chan, data->mHeader.end_chan, duration, bps*1e-6f);
 }

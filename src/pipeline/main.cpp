@@ -1,5 +1,4 @@
 #include "../utilities/Logger.h"
-#include "../utilities/monitoring/Server.h"
 #include "version.h"
 #include "UniboardPipeline.h"
 #include "StreamAdapter.h"
@@ -42,9 +41,7 @@ int main(int argc, char *argv[])
     pelican::Config::TreeAddress address;
     address << pelican::Config::NodeId("configuration", "");
     pelican::ConfigNode node = p_app.config()->get(address);
-    int port = node.getOption("pipeline", "monport").toInt();
     int threads = node.getOption("pipeline", "threads", "1").toInt();
-    Server::CreateInstance(port);
     p_app.registerPipeline(new UniboardPipeline(threads));
     p_app.setDataClient("PelicanServerClient");
     p_app.start();

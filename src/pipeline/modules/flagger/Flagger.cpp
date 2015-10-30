@@ -3,7 +3,6 @@
 #include "../../StreamBlob.h"
 #include "Constants.h"
 #include "../../../utilities/Utils.h"
-#include "../../../utilities/monitoring/Server.h"
 
 #include <pelican/utility/Config.h>
 #include <algorithm>
@@ -64,6 +63,7 @@ std::vector<int> Flagger::ParseFlagged(const QString &s)
 
 void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
 {
+  using namespace std;
   const int N = NUM_BASELINES;
   const int M = input->mNumChannels;
   const int HALF_M = M / 2;
