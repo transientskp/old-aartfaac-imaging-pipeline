@@ -11,7 +11,6 @@
 StreamAdapter::StreamAdapter(const ConfigNode &config):
   AbstractStreamAdapter(config)
 {
-  mTimer.start();
 }
 
 void StreamAdapter::deserialise(QIODevice *inDevice)
@@ -32,12 +31,9 @@ void StreamAdapter::deserialise(QIODevice *inDevice)
   bytes_read += inDevice->read(reinterpret_cast<char*>(blob->mRawData[0].data()),
                                blob->mRawData[0].size()*sizeof(std::complex<float>));
   bytes_read += inDevice->read(reinterpret_cast<char*>(blob->mRawData[1].data()),
-                               blob->mRawData[0].size()*sizeof(std::complex<float>));
+                               blob->mRawData[1].size()*sizeof(std::complex<float>));
 
   Q_ASSERT(bytes_read == chunkSize());
-  float bps = bytes_read * 8 / (mTimer.elapsed() / 1000.0f);
-  mTimer.restart();
-  qDebug("Throughput: %0.2f Mb/s", bps*1e-6f);
 
   /*
   utils::matrix2stderr(blob->mRawData[0], "xx");

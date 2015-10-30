@@ -25,6 +25,7 @@ private:
   float mAntSigma;
   float mVisSigma;
   MatrixXf mAbs;
+  MatrixXf mTmp;
   MatrixXf mMask;
   VectorXf mStd;
   VectorXf mCentroid;
@@ -32,6 +33,7 @@ private:
   VectorXf mMinVal;
   VectorXf mMaxVal;
   VectorXf mAntennas;
+  VectorXf mAntTmp;
   VectorXcf mResult;
 };
 

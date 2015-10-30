@@ -13,7 +13,8 @@ Flagger::Flagger(const ConfigNode &inConfig):
  AbstractModule(inConfig)
 {
   mAntennas.resize(NUM_ANTENNAS);
-  mAntSigma = inConfig.getOption("antenna", "sigma", "4").toFloat();
+  mAntTmp.resize(NUM_ANTENNAS);
+  mAntSigma = inConfig.getOption("antenna", "sigma", "3").toFloat();
   mVisSigma = inConfig.getOption("visibility", "sigma", "2").toFloat();
   QString s = inConfig.getOption("antenna", "flagged", "");
   mFlaggedAnts = ParseFlagged(s);
@@ -68,6 +69,7 @@ void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
   const int HALF_M = M / 2;
 
   mAbs.resize(M, N);
+  mTmp.resize(M, N);
   mMask.resize(M, N);
   mStd.resize(N);
   mCentroid.resize(N);
@@ -78,13 +80,14 @@ void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
 
   // Compute power of visibilities
   mAbs = input->mRawData[pol].array().abs();
+  mTmp = mAbs;
 
   // computes the exact median
   if (M & 1)
   {
     for (int i = 0; i < N; i++)
     {
-      vector<float> row(mAbs.data() + i * M, mAbs.data() + (i + 1) * M);
+      vector<float> row(mTmp.data() + i * M, mTmp.data() + (i + 1) * M);
       nth_element(row.begin(), row.begin() + HALF_M, row.end());
       mCentroid(i) = row[HALF_M];
     }
@@ -94,7 +97,7 @@ void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
   {
     for (int i = 0; i < N; i++)
     {
-      vector<float> row(mAbs.data() + i * M, mAbs.data() + (i + 1) * M);
+      vector<float> row(mTmp.data() + i * M, mTmp.data() + (i + 1) * M);
       nth_element(row.begin(), row.begin() + HALF_M, row.end());
       mCentroid(i) = row[HALF_M];
       mCentroid(i) += *max_element(row.begin(), row.begin() + HALF_M);
@@ -160,15 +163,23 @@ void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
 
   // Flag antennas using sigma clipping
   mAntennas = output->mCleanData[pol].array().abs().colwise().mean();
+  mAntTmp = mAntennas;
   float mean = mAntennas.mean();
   float std = sqrtf((1.0f / mAntennas.size()) *
                     (mAntennas.array() - mean).array().square().sum());
+  float centroid;
+  vector<float> ant(mAntTmp.data(), mAntTmp.data()+mAntTmp.size());
+  nth_element(ant.begin(), ant.begin() + ant.size()/2, ant.end());
+  centroid = ant[ant.size()/2];
+  centroid += *max_element(ant.begin(), ant.begin() + ant.size()/2);
+  centroid *= 0.5f;
+
 
   // Now we can determine bad antennas
   std *= mAntSigma;
   for (int a = 0; a < NUM_ANTENNAS; a++)
   {
-    if (mAntennas(a) < (mean - std) || mAntennas(a) > (mean + std))
+    if (mAntennas(a) < (centroid - std) || mAntennas(a) > (centroid + std))
     {
       output->mMasks[pol].col(a).setOnes();
       output->mMasks[pol].row(a).setOnes();
