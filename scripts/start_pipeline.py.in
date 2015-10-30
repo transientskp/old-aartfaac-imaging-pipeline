@@ -78,8 +78,8 @@ def get_configuration():
     parser.add_argument("--monitor-port", help="Port on which to publish monitoring data", default="4200")
     parser.add_argument("--server-host", help="Address of Pelican server", default="127.0.0.1")
     parser.add_argument("--server-port", help="Address of Pelican server", default="2000")
-    parser.add_argument("--ant-sigma", help="Sigma used for clipping of antennas", type=int, default=4)
-    parser.add_argument("--vis-sigma", help="Sigma used for clipping of indivisuals visibilities", type=int, default=2)
+    parser.add_argument("--ant-sigma", help="Sigma used for clipping of antennas", type=int, default=3)
+    parser.add_argument("--vis-sigma", help="Sigma used for clipping of indivisuals visibilities", type=int, default=3)
     parser.add_argument("--flagged", help="List of commaseparated flagged antennas", type=str, default="")
     parser.add_argument("--antenna-positions",
         help="Path to file containing ordered IRTF positions of all antennae",

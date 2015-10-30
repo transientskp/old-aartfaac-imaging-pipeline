@@ -174,7 +174,6 @@ void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
   centroid += *max_element(ant.begin(), ant.begin() + ant.size()/2);
   centroid *= 0.5f;
 
-
   // Now we can determine bad antennas
   std *= mAntSigma;
   for (int a = 0; a < NUM_ANTENNAS; a++)
