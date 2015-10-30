@@ -23,7 +23,6 @@ set (PIPELINE_SOURCES
   src/pipeline/modules/imager/Imager.cpp
   src/pipeline/modules/output/TiffStorage.cpp
   src/pipeline/modules/output/CasaImageStorage.cpp
-  src/pipeline/modules/output/Visibilities.cpp
   src/utilities/NMSMax.h
   src/utilities/Utils.cpp
   src/utilities/AntennaPositions.cpp
