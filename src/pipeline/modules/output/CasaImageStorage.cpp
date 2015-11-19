@@ -89,7 +89,7 @@ void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *i
   coordinate_system.addCoordinate(casa::StokesCoordinate(stokes));
 
   casa::ImageInfo image_info;
-  image_info.setRestoringBeam(casa::Quantum<Double>(1.0, "deg"), casa::Quantum<Double>(1.0, "deg"), casa::Quantum<Double>(0.0, "deg"));
+  image_info.setRestoringBeam(casa::Quantum<Double>(0.48652, "deg"), casa::Quantum<Double>(0.42296, "deg"), casa::Quantum<Double>(-23.89413, "deg"));
   image_info.setImageType(casa::ImageInfo::Intensity);
   image_info.setObjectName("Aartfaac image");
   casa::PagedImage<casa::Float> image(map_shape, coordinate_system, qPrintable(filename));
