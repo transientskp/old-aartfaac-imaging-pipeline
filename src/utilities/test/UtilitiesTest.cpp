@@ -32,7 +32,8 @@ void UtilitiesTest::simplex()
   init << 1.23, 10.96, 1.0;
 
   using NM::Simplex;
-  output = Simplex(f, init);
+  int count;
+  output = Simplex(f, init, count);
 
   double d_x0, d_x1, d_x2;
 

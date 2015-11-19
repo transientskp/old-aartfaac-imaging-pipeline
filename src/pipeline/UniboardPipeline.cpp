@@ -5,7 +5,7 @@
 #include "modules/calibrator/Calibrator.h"
 #include "modules/flagger/Flagger.h"
 #include "../utilities/Utils.h"
-#include "../utilities/monitoring/Server.h"
+#include "Constants.h"
 #include <time.h>
 #include <sstream>
 
@@ -51,7 +51,7 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
   StreamBlob *data = static_cast<StreamBlob *>(inRemoteData["StreamBlob"]);
 
   #pragma omp parallel for
-  for (quint32 p = 0; p < 1; p++)
+  for (quint32 p = 0; p < NUM_USED_POLARIZATIONS; p++)
   {
     int tid = 0;
 
@@ -66,14 +66,14 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
   // Create image
   mImager->run(data, data);
 
+  // Don't add dataOutput to duration as we currently write to disk
   float duration = (mTimer.elapsed() / 1000.0f);
-
-  qDebug("Processed `%s' subband (%d-%d) in %0.3f sec",
-         qPrintable(utils::MJD2QDateTime(data->mHeader.time).toString("hh:mm:ss")),
-         data->mHeader.start_chan, data->mHeader.end_chan, duration);
-
-  ADD_STAT("PERFORMANCE", data->mHeader.time, duration);
 
   // Output to stream(s), see modules/output
   dataOutput(data, "post");
+
+  float bps = data->mNumChannels*NUM_BASELINES*NUM_USED_POLARIZATIONS*64 / duration;
+  qDebug("[%s] processed (%d-%d) channels in %0.3f sec - %0.2f Mb/s",
+         qPrintable(utils::MJD2QDateTime(data->mHeader.time).toString("hh:mm:ss")),
+         data->mHeader.start_chan, data->mHeader.end_chan, duration, bps*1e-6f);
 }

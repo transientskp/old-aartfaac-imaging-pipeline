@@ -1,6 +1,5 @@
 #include "StreamBlob.h"
 #include "../utilities/Utils.h"
-#include "../utilities/monitoring/Server.h"
 #include "../utilities/AntennaPositions.h"
 
 #include <limits>
@@ -20,10 +19,6 @@ StreamBlob::StreamBlob():
     mFlagged[p].clear();
   }
 
-  for (int c = 0; c < MAX_MERGE_CHANNELS; c++)
-    for (int p = 0; p < NUM_USED_POLARIZATIONS; p++)
-      mRawData[c][p].resize(NUM_ANTENNAS, NUM_ANTENNAS);
-
   mHeader.start_chan = 0;
   mHeader.end_chan = 0;
   mSkyMap.resize(mImageWidth, mImageHeight);
@@ -39,10 +34,12 @@ void StreamBlob::reset()
 
   for (int p = 0; p < NUM_USED_POLARIZATIONS; p++)
   {
+    mRawData[p].resize(mNumChannels, NUM_BASELINES);
     mCleanData[p].setZero();
     mMasks[p].setIdentity();
     mFlagged[p].clear();
   }
+
   mSkyMap.setZero();
 }
 
@@ -56,47 +53,8 @@ void StreamBlob::deserialise(QIODevice &in, QSysInfo::Endian)
   Q_UNUSED(in);
 }
 
-void StreamBlob::computeStats()
-{
-  static const double distance = 320.0;
-  ADD_STAT("FNORM", mHeader.time, mCleanData[XX_POL].norm());
-
-  std::complex<float> sum;
-  int count = 0;
-  for (int a1 = 0; a1 < NUM_ANTENNAS; a1++)
-  {
-    Eigen::RowVector3d pos_a1 = ANT_XYZ(a1);
-    for (int a2 = a1 + 1; a2 < NUM_ANTENNAS; a2++)
-    {
-      Eigen::RowVector3d pos_a2 = ANT_XYZ(a2);
-      if ((pos_a1 - pos_a2).norm() > distance)
-      {
-        sum += mCleanData[XX_POL](a1, a2);
-        count++;
-      }
-    }
-  }
-  sum /= count;
-  // add fringe amplitude and phase
-  ADD_STAT("FRINGE_AMPLITUDE", mHeader.time, std::abs(sum));
-  ADD_STAT("FRINGE_PHASE", mHeader.time, std::atan2(sum.imag(), sum.real()));
-}
-
 float StreamBlob::centralFreq() const
 {
-  return mHeader.freq + (mHeader.end_chan - mHeader.start_chan)*mHeader.chan_width;
+  return mHeader.freq + (mNumChannels*mHeader.chan_width) / 2.0f;
 }
 
-void StreamBlob::addVis(const int channel,
-                        const int pol,
-                        const int n,
-                        Eigen::VectorXcf &v)
-{
-  mRawData[channel][pol].col(n).head(n+1) = v.head(n+1).conjugate();
-  mRawData[channel][pol].row(n).head(n+1) = v.head(n+1);
-  mRawData[channel][pol](n,n) -= v(n);
-  v.head(n+1) /= mNumChannels;
-  mCleanData[pol].col(n).head(n+1) += v.head(n+1).conjugate();
-  mCleanData[pol].row(n).head(n+1) += v.head(n+1);
-  mCleanData[pol](n,n) -= v(n);
-}

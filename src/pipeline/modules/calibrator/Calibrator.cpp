@@ -4,7 +4,6 @@
 #include "../../../utilities/AntennaPositions.h"
 #include "../../../utilities/Utils.h"
 #include "../../../utilities/NMSMax.h"
-#include "../../../utilities/monitoring/Server.h"
 
 #include <pelican/utility/Config.h>
 #include <QtCore>
@@ -189,12 +188,6 @@ void Calibrator::run(const int pol, const StreamBlob *input, StreamBlob *output)
 
     _a1++;
   }
-
-  ADD_STAT("GAINS_" << mFrequency, input->mHeader.time, mGains.transpose());
-  ADD_STAT("MAJORRESIDUES_" << mFrequency, input->mHeader.time, mMajorCycleResidue);
-  ADD_STAT("MINORRESIDUES_" << mFrequency, input->mHeader.time, mMinorCycleResidue);
-  ADD_STAT("MAJORCYCLES_" << mFrequency, input->mHeader.time, mMajorCycles);
-  ADD_STAT("SIMPLEXCYCLES_" << mFrequency, input->mHeader.time, mSimplexCycles);
 }
 
 void Calibrator::statCal(const MatrixXcf &inData,

@@ -2,12 +2,12 @@
 #define MACROS_H
 
 /** retrieve visiblities from channel 0, xx polarization */
-#define Data(o) o->mData[0][XX_POL]
+#define Data(o) o->mCleanData[0]
 
 /** retrieve mask from channel 0, xx polarization */
-#define Mask(o) o->mMasks[0][XX_POL]
+#define Mask(o) o->mMasks[0]
 
 /** retrieve flagged from channel 0, xx polarization */
-#define Flagged(o) o->mFlagged[0][XX_POL]
+#define Flagged(o) o->mFlagged[0]
 
 #endif // MACROS_H

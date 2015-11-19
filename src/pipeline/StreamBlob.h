@@ -17,10 +17,10 @@ public:
   StreamBlob();
 
   ChunkHeader mHeader;
-  Eigen::MatrixXcf mRawData[MAX_MERGE_CHANNELS][NUM_USED_POLARIZATIONS];
-  Eigen::MatrixXcf mCleanData[NUM_USED_POLARIZATIONS]; // visibilities
-  Eigen::MatrixXf mMasks[NUM_USED_POLARIZATIONS]; // 1.0f is flagged
-  std::vector<int> mFlagged[NUM_USED_POLARIZATIONS]; // flagged ants
+  Eigen::MatrixXcf mRawData[NUM_USED_POLARIZATIONS];   // numchannels x numbaselines
+  Eigen::MatrixXcf mCleanData[NUM_USED_POLARIZATIONS]; // cleaned up array correlation matrix
+  Eigen::MatrixXf mMasks[NUM_USED_POLARIZATIONS];      // 1.0f is flagged
+  std::vector<int> mFlagged[NUM_USED_POLARIZATIONS];   // flagged ants
 
   Eigen::MatrixXf mSkyMap;
   int mImageWidth;
@@ -31,20 +31,11 @@ public:
   /// Reset the blob for reuse
   void reset();
 
-  /// Add visibilities for all polarizations and channels
-  void addVis(const int channel,
-              const int pol,
-              const int n,
-              Eigen::VectorXcf &v);
-
   /// Prepare for sending
   void serialise(QIODevice &out) const;
 
   /// Receive blob
   void deserialise(QIODevice &in, QSysInfo::Endian);
-
-  /// Compute raw statistics
-  void computeStats();
 
   /// Compute the central frequency
   float centralFreq() const;

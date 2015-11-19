@@ -1,7 +1,7 @@
 #include "FlaggerTest.h"
 #include "../modules/flagger/Flagger.h"
 #include "../StreamBlob.h"
-#include "../../Constants.h"
+#include "Constants.h"
 #include "../../Macros.h"
 
 #include <pelican/utility/ConfigNode.h>

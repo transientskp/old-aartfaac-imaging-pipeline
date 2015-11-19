@@ -23,14 +23,9 @@ set (PIPELINE_SOURCES
   src/pipeline/modules/imager/Imager.cpp
   src/pipeline/modules/output/TiffStorage.cpp
   src/pipeline/modules/output/CasaImageStorage.cpp
-  src/pipeline/modules/output/Visibilities.cpp
   src/utilities/NMSMax.h
   src/utilities/Utils.cpp
   src/utilities/AntennaPositions.cpp
-  src/utilities/monitoring/Thread.cpp
-  src/utilities/monitoring/TcpStream.cpp
-  src/utilities/monitoring/TcpAcceptor.cpp
-  src/utilities/monitoring/Server.cpp
   src/utilities/Logger.cpp
 )
 
@@ -42,10 +37,6 @@ set (SERVER_SOURCES
   src/emulator/stream/StreamPacket.h
   src/utilities/Utils.cpp
   src/utilities/Logger.cpp
-  src/utilities/monitoring/Thread.cpp
-  src/utilities/monitoring/TcpStream.cpp
-  src/utilities/monitoring/TcpAcceptor.cpp
-  src/utilities/monitoring/Server.cpp
 )
 
 # === Test sources
@@ -56,6 +47,7 @@ set (emulatortest_SOURCES
   src/emulator/test/main.cpp
   src/emulator/test/UniboardEmulatorTest.cpp
   src/emulator/stream/StreamEmulator.cpp
+  src/utilities/Utils.cpp
 )
 
 set (pipelinetest_SOURCES
@@ -70,27 +62,15 @@ set (pipelinetest_SOURCES
   src/utilities/Utils.cpp
   src/utilities/AntennaPositions.cpp
   src/utilities/NMSMax.h
-  src/utilities/monitoring/Thread.cpp
-  src/utilities/monitoring/TcpStream.cpp
-  src/utilities/monitoring/TcpAcceptor.cpp
-  src/utilities/monitoring/Server.cpp
 )
 
 set (servertest_SOURCES
   src/server/test/main.cpp
-  src/utilities/monitoring/Thread.cpp
-  src/utilities/monitoring/TcpStream.cpp
-  src/utilities/monitoring/TcpAcceptor.cpp
-  src/utilities/monitoring/Server.cpp
 )
 
 set (utilitiestest_SOURCES
   src/utilities/test/main.cpp
   src/utilities/test/UtilitiesTest.cpp
-  src/utilities/monitoring/Thread.cpp
-  src/utilities/monitoring/TcpStream.cpp
-  src/utilities/monitoring/TcpAcceptor.cpp
-  src/utilities/monitoring/Server.cpp
 )
 
 set (SCRIPTS

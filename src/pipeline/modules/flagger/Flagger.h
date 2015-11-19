@@ -20,18 +20,21 @@ public:
 
 private:
   std::vector<int> ParseFlagged(const QString &s);
-
   std::vector<int> mFlaggedAnts;
+
   float mAntSigma;
   float mVisSigma;
-  MatrixXf mAmplitudes;
-  MatrixXf mSum;
-  MatrixXf mMin;
-  MatrixXf mMax;
-  MatrixXf mMean;
-  MatrixXf mMeanSq;
-  MatrixXf mStd;
+  MatrixXf mAbs;
+  MatrixXf mTmp;
+  MatrixXf mMask;
+  VectorXf mStd;
+  VectorXf mCentroid;
+  VectorXf mMean;
+  VectorXf mMinVal;
+  VectorXf mMaxVal;
   VectorXf mAntennas;
+  VectorXf mAntTmp;
+  VectorXcf mResult;
 };
 
 PELICAN_DECLARE_MODULE(Flagger)

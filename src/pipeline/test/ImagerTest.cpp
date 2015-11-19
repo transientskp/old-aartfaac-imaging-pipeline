@@ -1,7 +1,7 @@
 #include "ImagerTest.h"
 #include "../modules/imager/Imager.h"
 #include "../StreamBlob.h"
-#include "../../Constants.h"
+#include "Constants.h"
 
 #include <pelican/utility/ConfigNode.h>
 #include <eigen3/Eigen/Dense>

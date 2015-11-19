@@ -3,6 +3,7 @@
 
 #include <pelican/core/AbstractStreamAdapter.h>
 #include <QtCore>
+#include <Eigen/Dense>
 
 using namespace pelican;
 
@@ -14,9 +15,6 @@ public:
 
   /// Method to deserialise chunks of memory provided by the I/O device.
   void deserialise(QIODevice *inDevice);
-
-private:
-  QTime mTimer;
 };
 
 // Register the adapter.
