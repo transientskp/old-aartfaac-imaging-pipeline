@@ -16,7 +16,7 @@ TEMPLATE_XML = Template("""
 <!DOCTYPE pelican>
 
 <configuration version="1.0">
-  <pipeline monport="${monitor_port}">
+  <pipeline">
     <clients>
       <PelicanServerClient>
         <server host="${server_host}" port="${server_port}"/>
@@ -75,11 +75,10 @@ def generate_xml(save_xml, **kwargs):
 def get_configuration():
     """Rerturns a populated configuration"""
     parser = argparse.ArgumentParser()
-    parser.add_argument("--monitor-port", help="Port on which to publish monitoring data", default="4200")
     parser.add_argument("--server-host", help="Address of Pelican server", default="127.0.0.1")
     parser.add_argument("--server-port", help="Port of Pelican server", default="2000")
     parser.add_argument("--ant-sigma", help="Sigma used for clipping of antennas", type=float, default=3)
-    parser.add_argument("--vis-sigma", help="Sigma used for clipping of individual visibilities", type=float, default=3)
+    parser.add_argument("--vis-sigma", help="Sigma used for clipping of individual visibilities", type=float, default=2)
     parser.add_argument("--flagged", help="List of commaseparated flagged antennas", type=str, default="")
     parser.add_argument("--antenna-positions",
         help="Path to file containing ordered IRTF positions of all antennae",
@@ -119,7 +118,7 @@ if __name__ == "__main__":
         server_host=config.server_host,
         server_port=config.server_port,
         ant_sigma=config.ant_sigma,
-        vis_sigma=config.ant_sigma,
+        vis_sigma=config.vis_sigma,
         antenna_positions=os.path.abspath(config.antenna_positions),
         store_tiff=config.tiff,
         store_casa=config.casa,
