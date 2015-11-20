@@ -70,6 +70,10 @@ void Imager::run(const StreamBlob *input, StreamBlob *output)
     // Zero the grid and regrid
     mGridded.setZero();
 
+    // Set main diagonal to 1 to ensure power > 0
+    const_cast<StreamBlob*>(input)->mCleanData[p].diagonal().setOnes();
+    const_cast<StreamBlob*>(input)->mMasks[p].diagonal().setZero();
+
     // Splat the image on a grid
     gridding(input->mCleanData[p], mUCoords, mVCoords, input->mMasks[p], mGridded);
 
