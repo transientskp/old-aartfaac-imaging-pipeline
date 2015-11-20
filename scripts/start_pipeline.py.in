@@ -16,7 +16,7 @@ TEMPLATE_XML = Template("""
 <!DOCTYPE pelican>
 
 <configuration version="1.0">
-  <pipeline">
+  <pipeline>
     <clients>
       <PelicanServerClient>
         <server host="${server_host}" port="${server_port}"/>
@@ -114,7 +114,6 @@ if __name__ == "__main__":
 
     xmlfile = generate_xml(
         config.save_xml,
-        monitor_port=config.monitor_port,
         server_host=config.server_host,
         server_port=config.server_port,
         ant_sigma=config.ant_sigma,
