@@ -19,6 +19,8 @@ Flagger::Flagger(const ConfigNode &inConfig):
   mFlaggedAnts = ParseFlagged(s);
   for (int i = 0, n = mFlaggedAnts.size(); i < n; i++)
     qWarning("Flagged from configuration: %i", mFlaggedAnts[i]);
+  qDebug("Antennas     Nof Sigmas: %0.1f", mAntSigma);
+  qDebug("Visibilities Nof Sigmas: %0.1f", mVisSigma);
 }
 
 Flagger::~Flagger()
@@ -115,9 +117,11 @@ void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
           .array()
           .sqrt();
 
+
   // compute n sigmas from centroid
-  mMinVal = mCentroid - mStd * mVisSigma;
-  mMaxVal = mCentroid + mStd * mVisSigma;
+  mStd *= mVisSigma;
+  mMinVal = mCentroid - mStd;
+  mMaxVal = mCentroid + mStd;
 
   // compute clip mask
   for (int i = 0; i < N; i++)
@@ -158,8 +162,7 @@ void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
 
   // clear NaN values
   output->mCleanData[pol] =
-      (output->mCleanData[pol].array() != output->mCleanData[pol].array())
-          .select(complex<float>(0.0f, 0.0f), output->mCleanData[pol]);
+      (output->mCleanData[pol].array().isFinite()).select(output->mCleanData[pol], complex<float>(0.0f, 0.0f));
 
   // Flag antennas using sigma clipping
   mAntennas = output->mCleanData[pol].array().abs().colwise().mean();
