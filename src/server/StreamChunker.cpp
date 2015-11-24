@@ -26,14 +26,14 @@ StreamChunker::StreamChunker(const ConfigNode &config):
   qDebug("----- Stream (%i) ------", port());
   qDebug("Channel ranges (%ld):", mSubbands.size());
   for (int i = 0, n = mSubbands.size(); i < n; i++)
-    qDebug("  (%02i-%02i) %0.1f [Hz] chunksize %lu bytes", mSubbands[i].c1,
+    qDebug("  (%02i-%02i) %0.5f [Hz] chunksize %lu bytes", mSubbands[i].c1,
            mSubbands[i].c2,
-           utils::Range2Frequency(mSubband, mSubbands[i].c1, mSubbands[i].c2),
+           utils::Range2Frequency(mSubband, mSubbands[i].c1, mSubbands[i].c2+1),
             mSubbands[i].size);
 
   qDebug("Channels in stream(%i):", mNumChannels);
   qDebug("  Lofar subband:     %i", mSubband);
-  qDebug("  Central frequency: %0.1f [Hz]", utils::Subband2Frequency(mSubband));
+  qDebug("  Central frequency: %0.5f [Hz]", utils::Subband2Frequency(mSubband));
   mVisibilities.resize(NUM_BASELINES*mNumChannels*NUM_POLARIZATIONS);
 }
 

@@ -51,7 +51,7 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
   StreamBlob *data = static_cast<StreamBlob *>(inRemoteData["StreamBlob"]);
 
   #pragma omp parallel for
-  for (quint32 p = 0; p < NUM_USED_POLARIZATIONS; p++)
+  for (quint32 p = 0; p < 1; p++)
   {
     int tid = 0;
 
@@ -76,4 +76,6 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
   qDebug("[%s] processed sb(%i) range(%i-%i) in %0.3f sec - %0.2f Mb/s",
          qPrintable(utils::MJD2QDateTime(data->mHeader.time).toString("hh:mm:ss")), data->mHeader.subband,
          data->mHeader.start_chan, data->mHeader.end_chan, duration, bps*1e-6f);
+
+  exit(1);
 }

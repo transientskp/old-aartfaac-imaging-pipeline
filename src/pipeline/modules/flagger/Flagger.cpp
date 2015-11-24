@@ -124,6 +124,8 @@ void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
   mMaxVal = mCentroid + mStd;
 
   // compute clip mask
+  mMask.setOnes();
+  /*
   for (int i = 0; i < N; i++)
   {
     mMask.col(i) =
@@ -131,6 +133,7 @@ void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
     mMask.col(i) =
         (mAbs.col(i).array() < mMaxVal(i)).select(VectorXf::Ones(M), 0.0f);
   }
+   */
 
   // apply clip mask to data
   output->mRawData[pol].array() *= mMask.array();
@@ -142,9 +145,8 @@ void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
   // construct acm from result
   for (int i = 0, s = 0; i < NUM_ANTENNAS; i++)
   {
-    output->mCleanData[pol].col(i).head(i + 1) =
-        mResult.segment(s, i + 1).conjugate();
-    output->mCleanData[pol].row(i).head(i + 1) = mResult.segment(s, i + 1);
+    output->mCleanData[pol].col(i).head(i + 1) += mResult.segment(s, i + 1).conjugate();
+    output->mCleanData[pol].row(i).head(i + 1) += mResult.segment(s, i + 1);
     s += i + 1;
   }
 

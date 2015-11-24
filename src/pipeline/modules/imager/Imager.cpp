@@ -65,7 +65,7 @@ void Imager::run(const StreamBlob *input, StreamBlob *output)
   output->mSkyMap.setZero();
 
   // Create Stokes I image
-  for (int p = 0; p < NUM_USED_POLARIZATIONS; p++)
+  for (int p = 0; p < 1; p++)
   {
     // Zero the grid and regrid
     mGridded.setZero();
@@ -99,6 +99,7 @@ void Imager::run(const StreamBlob *input, StreamBlob *output)
         mGridded.array().real().transpose(),
         MatrixXf::Zero(IMAGE_OUTPUT_SIZE, IMAGE_OUTPUT_SIZE)
   );
+  utils::matrix2stderr(output->mSkyMap, "skymap");
 }
 
 void Imager::fftShift(MatrixXcf &matrix)

@@ -108,6 +108,7 @@ void Calibrator::run(const int pol, const StreamBlob *input, StreamBlob *output)
   double time = input->mHeader.time / 86400.0 + 2400000.5;
   utils::sunRaDec(time, mRaSources(4), mDecSources(4));
 
+  utils::matrix2stderr(mNormalizedData, "input");
   // ========================================================================
   // ==== 1. Whitening of the array covariance matrix for DOA estimation ====
   // ========================================================================
@@ -129,6 +130,10 @@ void Calibrator::run(const int pol, const StreamBlob *input, StreamBlob *output)
       j++;
     }
   statCal(mNormalizedData, mFrequency, mMask, mGains, mFluxes, mNoiseCovMatrix);
+  VectorXd vars(2);
+  vars(0) = mFrequency;
+  vars(1) = time;
+  utils::matrix2stderr(vars, "fandt");
 
   if (!mHasConverged)
     return;
@@ -150,6 +155,8 @@ void Calibrator::run(const int pol, const StreamBlob *input, StreamBlob *output)
   }
   Q_ASSERT(fluxes.size() > 0);
   wsfSrcPos(mNormalizedData, mNoiseCovMatrix, mGains, mFrequency, selection);
+  utils::matrix2stderr(mFluxes, "fluxes");
+  utils::matrix2stderr(mSelection, "positions");
 
   // ==============================
   // ==== 4. Final calibration ====
@@ -162,6 +169,8 @@ void Calibrator::run(const int pol, const StreamBlob *input, StreamBlob *output)
   mGains = (1.0/mGains.array());
   mGains.adjointInPlace();
   mNormalizedData = (mGains.transpose().adjoint() * mGains.transpose()).array() * (mNormalizedData.array() - mNoiseCovMatrix.array()).array();
+  utils::matrix2stderr(mGains, "gains");
+  utils::matrix2stderr(mNoiseCovMatrix, "noise");
 
   // ===============================
   // ==== 5. A-team subtraction ====
@@ -438,7 +447,7 @@ void Calibrator::wsfSrcPos(const MatrixXcf &inData,
 
   WSFCost wsf_cost(EsWEs, G, inFreq, mAntennaLocalPosReshaped, nsrc);
 
-  init = NM::Simplex(wsf_cost, init, mSimplexCycles, 1e-4, 1e3);
+  init = NM::Simplex(wsf_cost, init, mSimplexCycles, 1e-7, 1e3);
 
   ioPositions.col(0) = init.head(nsrc).array().cos() * init.tail(nsrc).array().cos();
   ioPositions.col(1) = init.head(nsrc).array().sin() * init.tail(nsrc).array().cos();
