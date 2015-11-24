@@ -60,6 +60,6 @@ float StreamBlob::centralFreq() const
 
 float StreamBlob::bandWidth() const
 {
-  return utils::Channel2Frequency(mHeader.subband, mHeader.end_chan) - utils::Channel2Frequency(mHeader.subband, mHeader.start_chan);
+  return utils::Channel2Frequency(mHeader.subband, mHeader.end_chan+1) - utils::Channel2Frequency(mHeader.subband, mHeader.start_chan);
 }
 
