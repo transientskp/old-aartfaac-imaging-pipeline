@@ -43,8 +43,7 @@ private:
   std::vector<Subband> mSubbands;
   int mNumChannels;
   int mMinInterval;
-  double mFrequency;
-  double mChannelWidth;
+  int mSubband;
   double mStartInterval;
   QTime mTimer;
 

@@ -55,6 +55,11 @@ void StreamBlob::deserialise(QIODevice &in, QSysInfo::Endian)
 
 float StreamBlob::centralFreq() const
 {
-  return mHeader.freq + (mNumChannels*mHeader.chan_width) / 2.0f;
+  return utils::Range2Frequency(mHeader.subband, mHeader.start_chan, mHeader.end_chan);
+}
+
+float StreamBlob::bandWidth() const
+{
+  return utils::Channel2Frequency(mHeader.subband, mHeader.end_chan) - utils::Channel2Frequency(mHeader.subband, mHeader.start_chan);
 }
 

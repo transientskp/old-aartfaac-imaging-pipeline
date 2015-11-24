@@ -39,6 +39,9 @@ public:
 
   /// Compute the central frequency
   float centralFreq() const;
+
+  /// Compute bandwidth
+  float bandWidth() const;
 };
 
 PELICAN_DECLARE_DATABLOB(StreamBlob)

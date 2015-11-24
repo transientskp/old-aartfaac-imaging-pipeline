@@ -11,29 +11,29 @@ StreamChunker::StreamChunker(const ConfigNode &config):
   mServer(0),
   mNumChannels(0),
   mMinInterval(0),
-  mFrequency(0.0),
-  mChannelWidth(0.0),
+  mSubband(0),
   mStartInterval(0.0)
 {
-  QString s = config.getOption("stream", "subbands");
+  QString s = config.getOption("stream", "channelranges");
+  mMinInterval = config.getOption("stream", "interval", "0").toInt();
+  mNumChannels = config.getOption("stream", "numChannels", "63").toInt();
+  mSubband = config.getOption("stream", "subband", "296").toInt();
+
   mSubbands = ParseSubbands(s);
   std::sort(mSubbands.begin(), mSubbands.end());
 
-  qDebug("----- Stream (%d) ------", port());
-  qDebug("Subbands (%ld):", mSubbands.size());
+  std::cout << std::endl;
+  qDebug("----- Stream (%i) ------", port());
+  qDebug("Channel ranges (%ld):", mSubbands.size());
   for (int i = 0, n = mSubbands.size(); i < n; i++)
-    qDebug("  (%2d-%2d)\t(%d) chunksize %lu bytes",
-           mSubbands[i].c1, mSubbands[i].c2, mSubbands[i].channels, mSubbands[i].size);
+    qDebug("  (%02i-%02i) %0.1f [Hz] chunksize %lu bytes", mSubbands[i].c1,
+           mSubbands[i].c2,
+           utils::Range2Frequency(mSubband, mSubbands[i].c1, mSubbands[i].c2),
+            mSubbands[i].size);
 
-  // NOTE: These defaults are associated with SB002_LBA_OUTER_SPREAD.MS.trimmed
-  mMinInterval = config.getOption("stream", "interval", "0").toInt();
-  mNumChannels = config.getOption("stream", "numChannels", "1").toInt();
-  mFrequency = config.getOption("stream", "frequency", "54873657.226562").toDouble();
-  mChannelWidth = config.getOption("stream", "width", "3051.757812").toDouble();
-
-  qDebug("Channels in stream(%d):", mNumChannels);
-  qDebug("  Frequency ref: %f", mFrequency);
-  qDebug("  Channel width: %f", mChannelWidth);
+  qDebug("Channels in stream(%i):", mNumChannels);
+  qDebug("  Lofar subband:     %i", mSubband);
+  qDebug("  Central frequency: %0.1f [Hz]", utils::Subband2Frequency(mSubband));
   mVisibilities.resize(NUM_BASELINES*mNumChannels*NUM_POLARIZATIONS);
 }
 
@@ -98,8 +98,7 @@ void StreamChunker::next(QIODevice *inDevice)
   chunk_header.time = utils::UnixTime2MJD(stream_header.end_time);
   for (int i = 0, n = mSubbands.size(); i < n; i++)
   {
-    chunk_header.freq = mFrequency;
-    chunk_header.chan_width = mChannelWidth;
+    chunk_header.subband = mSubband;
     chunk_header.start_chan = mSubbands[i].c1;
     chunk_header.end_chan = mSubbands[i].c2;
 

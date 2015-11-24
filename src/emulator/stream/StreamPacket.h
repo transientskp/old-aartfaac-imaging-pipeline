@@ -17,9 +17,8 @@ struct StreamHeader
 
 struct ChunkHeader
 {
-  double freq;        ///< Frequency in Hz
-  double chan_width;  ///< Frequency resolution of channels
   double time;        ///< time in MJD
+  quint32 subband;    ///< LOFAR subband
   quint16 start_chan; ///< Start channel
   quint16 end_chan;   ///< End channel
 };

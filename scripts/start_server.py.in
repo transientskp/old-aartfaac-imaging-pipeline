@@ -8,6 +8,7 @@ import argparse
 import os
 
 SERVER_CMD = "@CMAKE_INSTALL_PREFIX@/bin/aartfaac-server"
+
 TEMPLATE_XML = Template("""
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE pelican>
@@ -26,14 +27,14 @@ TEMPLATE_XML = Template("""
   </server>
 </configuration>
 """.strip())
+
 TEMPLATE_CHUNKER = Template("""
 <StreamChunker name="${stream_chunker_name}">
   <data type="StreamBlob"/>
-  <stream subbands="${subbands}"
+  <stream channelranges="${channelranges}"
           interval="${interval}"
           numChannels="${num_channels}"
-          frequency="${start_frequency}"
-          width="${channel_width}" />
+          subband="${subband}" />
   <connection host="${input_host}" port="${input_port}" />
 </StreamChunker>
 """.strip())
@@ -58,10 +59,9 @@ def generate_chunkers(config):
         chunkers.append(
             TEMPLATE_CHUNKER.substitute(
                 stream_chunker_name=name,
-                subbands=",".join("-".join(x) for x in config.subband),
+                channelranges=",".join("-".join(x) for x in config.channelrange),
                 num_channels = stream_info[0],
-                start_frequency = stream_info[1],
-                channel_width = stream_info[2],
+                subband = stream_info[1],
                 interval = config.interval,
                 input_host = config.input_host,
                 input_port = port
@@ -72,22 +72,21 @@ def generate_chunkers(config):
 def get_configuration():
     """Rerturns a populated configuration"""
     parser = argparse.ArgumentParser()
-    parser.add_argument("--buffer-max-size", help="???", default=4294967296)
-    parser.add_argument("--buffer-max-chunk-size", help="???", default=4294967296)
-    parser.add_argument("--stream-chunker-name", help="StreamChunker name", default="Stream1")
+    parser.add_argument("--buffer-max-size", help="Server buffer size in bytes", default=4294967296)
+    parser.add_argument("--buffer-max-chunk-size", help="Chunk buffer size in bytes", default=4294967296)
     parser.add_argument("--interval", help="Interval in seconds between visibilities to process", default="0", type=int)
     parser.add_argument("--input-host", help="Address for incoming data", default="0.0.0.0")
     parser.add_argument("--input-port-start", help="First port for incoming data (increases with chunkers)", default=4100, type=int)
     parser.add_argument("--save-xml", help="Don't delete XML file", action="store_true")
-    parser.add_argument("--stream", help="Add stream: <num_channels> <start_freq> <channel_width> (units of Hz)", action="append", nargs=3)
-    parser.add_argument("subband", help="Define a subband: <first channel>-<last channel> (inclusive)", type=lambda x: x.split('-'), nargs="*")
+    parser.add_argument("--stream", help="Add stream: <num_channels> <subband>", action="append", nargs=2)
+    parser.add_argument("channelrange", help="Define a channel range: <first channel>-<last channel> (inclusive)", type=lambda x: x.split('-'), nargs="*")
     return parser.parse_args()
 
 if __name__ == "__main__":
     config = get_configuration()
 
-    if not (config.stream and config.subband):
-        raise Exception("Need at least one stream and one subband")
+    if not (config.stream and config.channelrange):
+        raise Exception("Need at least one stream and one channel")
 
     xmlfile = generate_xml(
         config.save_xml,

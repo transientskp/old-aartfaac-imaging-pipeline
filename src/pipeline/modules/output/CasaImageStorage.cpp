@@ -40,7 +40,7 @@ void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *i
     return;
   }
 
-  QString filename = mPath + "/F" + QString::number(blob->mHeader.freq) + "_S" +
+  QString filename = mPath + "/S" + QString::number(blob->mHeader.subband) + "_R" +
                      QString::number(blob->mHeader.start_chan) + "-" +
                      QString::number(blob->mHeader.end_chan) + "_T" +
                      utils::MJD2QDateTime(blob->mHeader.time).toString("dd-MM-yyyy_hh-mm-ss") +
@@ -87,7 +87,7 @@ void CasaImageStorage::sendStream(const QString &inStreamName, const DataBlob *i
                 IMAGE_OUTPUT_SIZE/2, IMAGE_OUTPUT_SIZE/2);
 
   // Create a coordinate system for specifying frequency information of an image.
-  casa::SpectralCoordinate spectral(casa::MFrequency::LSRK, blob->centralFreq(), blob->mNumChannels*blob->mHeader.chan_width, 0);// blob->centralFreq());
+  casa::SpectralCoordinate spectral(casa::MFrequency::LSRK, blob->centralFreq(), blob->bandWidth(), 0);// blob->centralFreq());
   spectral.setRestFrequency(blob->centralFreq());
 
   casa::TiledShape map_shape(casa::IPosition(4, IMAGE_OUTPUT_SIZE, IMAGE_OUTPUT_SIZE, 1, 1));

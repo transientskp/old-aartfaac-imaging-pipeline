@@ -9,6 +9,27 @@ namespace utils
 {
 static const double seconds_between_julian_and_unix_epoch = 3506716800.0;
 
+float Subband2Frequency(const int subband, const float clock)
+{
+  static const float lofar_subband_width = clock / 1024.0f;
+  return lofar_subband_width * subband;
+}
+
+float Channel2Frequency(const int subband, const int channel, const float clock)
+{
+  static const float lofar_subband_width = clock / 1024.0f;
+  static const float half = lofar_subband_width / 2.0f;
+  static const float channel_width = lofar_subband_width / 64.0f;
+  return (Subband2Frequency(subband, clock) - half) + channel * channel_width;
+}
+
+float Range2Frequency(const int subband, const int start, const int end, const float clock)
+{
+  return (Channel2Frequency(subband, start, clock) +
+          Channel2Frequency(subband, end, clock)) *
+         0.5f;
+}
+
 double MJDs2JD(const double inMJDs)
 {
   return (inMJDs / 86400.0) + 2400000.5;

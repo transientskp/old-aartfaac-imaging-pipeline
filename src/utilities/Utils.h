@@ -14,6 +14,14 @@ using namespace Eigen;
 
 namespace utils
 {
+
+/**
+ *
+ */
+float Subband2Frequency(const int subband, const float clock=2e8f);
+float Channel2Frequency(const int subband, const int channel, const float clock=2e8f);
+float Range2Frequency(const int subband, const int start, const int end, const float clock=2e8f);
+
 /**
  * @brief MJDs2JD
  * @param inMJDs

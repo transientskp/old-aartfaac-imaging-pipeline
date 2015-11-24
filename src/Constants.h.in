@@ -4,15 +4,6 @@
 /** Header magic as defined in the correlator */
 #define HEADER_MAGIC 0x3B98F002
 
-/** Max number of chars for the antenna names */
-#define MAX_CHARS_ANTENNA_NAME 10
-
-/** Number of active antennas */
-#define NUM_ANTENNAS 288
-
-/** Number of baselines including self correlation */
-#define NUM_BASELINES (NUM_ANTENNAS*(NUM_ANTENNAS+1)/2)
-
 /** Number of maximum channels to merge together */
 #define MAX_MERGE_CHANNELS 64
 
@@ -26,11 +17,20 @@
 #define YX_POL 2
 #define YY_POL 3
 
+/** Max number of chars for the antenna names */
+#define MAX_CHARS_ANTENNA_NAME 10
+
 /** Number of antennas per station */
 #define NUM_ANTENNAS_PER_STATION 96
 
 /** Number of stations */
 #define NUM_STATIONS 6
+
+/** Number of active antennas */
+#define NUM_ANTENNAS (NUM_STATIONS*NUM_ANTENNAS_PER_STATION/2)
+
+/** Number of baselines including self correlation */
+#define NUM_BASELINES (NUM_ANTENNAS*(NUM_ANTENNAS+1)/2)
 
 /** Number of total antennas */
 #define NUM_TOTAL_ANTENNAS (NUM_ANTENNAS_PER_STATION*NUM_STATIONS)
@@ -39,6 +39,6 @@
 #define IMAGE_OUTPUT_SIZE 1024
 
 /** Speed of light in meters per second */
-#define C_MS 299792458.0
+#define C_MS 299792458.0f
 
 #endif // CONSTANTS_H

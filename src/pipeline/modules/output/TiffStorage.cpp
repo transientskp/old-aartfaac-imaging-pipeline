@@ -50,7 +50,7 @@ void TiffStorage::sendStream(const QString &inStreamName, const DataBlob *inData
 
   skymap = (skymap.array() - min) / (max - min);
 
-  QString filename = mPath + "/F" + QString::number(blob->mHeader.freq) + "_S" +
+  QString filename = mPath + "/F" + QString::number(blob->mHeader.subband) + "_S" +
       QString::number(blob->mHeader.start_chan) + "-" +
       QString::number(blob->mHeader.end_chan) + "_T" +
       utils::MJD2QDateTime(blob->mHeader.time).toString("dd-MM-yyyy_hh-mm-ss") +
