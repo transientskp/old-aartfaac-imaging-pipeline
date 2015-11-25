@@ -9,25 +9,23 @@ namespace utils
 {
 static const double seconds_between_julian_and_unix_epoch = 3506716800.0;
 
-float Subband2Frequency(const int subband, const float clock)
+double Subband2Frequency(const int subband, const double clock)
 {
-  static const float lofar_subband_width = clock / 1024.0f;
+  static const double lofar_subband_width = clock / 1024.0;
   return lofar_subband_width * subband;
 }
 
-float Channel2Frequency(const int subband, const int channel, const float clock)
+double Channel2Frequency(const int subband, const int channel, const double clock)
 {
-  static const float lofar_subband_width = clock / 1024.0f;
-  static const float half = lofar_subband_width / 2.0f;
-  static const float channel_width = lofar_subband_width / 64.0f;
+  static const double lofar_subband_width = clock / 1024.0;
+  static const double half = lofar_subband_width / 2.0;
+  static const double channel_width = lofar_subband_width / MAX_MERGE_CHANNELS;
   return (Subband2Frequency(subband, clock) - half) + channel * channel_width;
 }
 
-float Range2Frequency(const int subband, const int start, const int end, const float clock)
+double Range2Frequency(const int subband, const int start, const int end, const double clock)
 {
-  return (Channel2Frequency(subband, start, clock) +
-          Channel2Frequency(subband, end, clock)) *
-         0.5f;
+  return (Channel2Frequency(subband, start, clock) + Channel2Frequency(subband, end, clock)) * 0.5;
 }
 
 double MJDs2JD(const double inMJDs)

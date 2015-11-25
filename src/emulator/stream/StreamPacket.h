@@ -10,8 +10,8 @@ struct StreamHeader
 {
   quint32 magic;     ///< magic to determine header
   quint32 pad0;      ///< padding 0
-  double start_time; ///< time in MJD
-  double end_time;   ///< end time in MJD
+  double start_time; ///< Unix timestamp
+  double end_time;   ///< Unix timestamp
   char pad1[512-24]; ///< padding 1, will define a 512 byte block
 };
 

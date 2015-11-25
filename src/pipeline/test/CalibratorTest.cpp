@@ -29,7 +29,7 @@ void CalibratorTest::setUp()
   Data(mStreamBlob) = MatrixXcf::Random(NUM_ANTENNAS, NUM_ANTENNAS);
   Data(mStreamBlob).array() + Data(mStreamBlob).transpose().array();
   mStreamBlob->mHeader.time = 4.83793e+09;
-  mStreamBlob->mHeader.freq = 5.97565e+07;
+  mStreamBlob->mHeader.subband = 296;
 }
 
 void CalibratorTest::tearDown()

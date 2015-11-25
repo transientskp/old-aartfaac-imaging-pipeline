@@ -1,9 +1,12 @@
 #include "UtilitiesTest.h"
 #include "../Utils.h"
 #include "../NMSMax.h"
+#include "Constants.h"
 #include <complex>
 #include <cmath>
 #include <vector>
+
+using namespace utils;
 
 CPPUNIT_TEST_SUITE_REGISTRATION(UtilitiesTest);
 
@@ -24,6 +27,18 @@ void UtilitiesTest::tearDown()
 double f(const VectorXd &x)
 {
   return pow( pow(x[0],2) + pow(x[1],2) + pow(x[2],2), 2 ) - pow(x[0]-3*x[1],2) + pow(x[2]-2, 2);
+}
+
+void UtilitiesTest::subband2frequency()
+{
+  float clock = 2e8f;
+  float sb_bw = clock / 1024.0f;
+  int subband = 296;
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(Subband2Frequency(subband, clock), 57.8125e6f, 1e-6);
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(Channel2Frequency(subband, MAX_MERGE_CHANNELS/2, clock), 57.8125e6f, 1e-6);
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(Range2Frequency(subband, 0, MAX_MERGE_CHANNELS, clock), 57.8125e6f, 1e-6);
+  float bw = Channel2Frequency(subband, MAX_MERGE_CHANNELS, clock) - Channel2Frequency(subband, 0, clock);
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(bw, sb_bw, 1e-6);
 }
 
 void UtilitiesTest::simplex()

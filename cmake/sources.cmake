@@ -70,6 +70,7 @@ set (servertest_SOURCES
 
 set (utilitiestest_SOURCES
   src/utilities/test/main.cpp
+  src/utilities/Utils.cpp
   src/utilities/test/UtilitiesTest.cpp
 )
 

@@ -51,5 +51,5 @@ void UniboardEmulatorTest::emulate()
   QIODevice *connection = (QIODevice*) mServer->nextPendingConnection();
   CPPUNIT_ASSERT(mApp->exec() == 0);
   connection->waitForReadyRead(1e3);
-  CPPUNIT_ASSERT_EQUAL(2664448ll, connection->bytesAvailable());
+  CPPUNIT_ASSERT_EQUAL(2664448, connection->bytesAvailable());
 }
