@@ -80,73 +80,79 @@ void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
   mMaxVal.resize(N);
   mResult.resize(N);
 
-  // Compute power of visibilities
-  mAbs = input->mRawData[pol].array().abs();
-  mTmp = mAbs;
-
-  // computes the exact median
-  if (M & 1)
+  // Compute statistics only when we have enough channels
+  if (M >= 3)
   {
+    // Compute power of visibilities
+    mAbs = input->mRawData[pol].array().abs();
+    mTmp = mAbs;
+
+    // computes the exact median
+    if (M & 1)
+    {
+      for (int i = 0; i < N; i++)
+      {
+        vector<float> row(mTmp.data() + i * M, mTmp.data() + (i + 1) * M);
+        nth_element(row.begin(), row.begin() + HALF_M, row.end());
+        mCentroid(i) = row[HALF_M];
+      }
+    }
+    // nth_element guarantees x_0,...,x_{n-1} < x_n
+    else
+    {
+      for (int i = 0; i < N; i++)
+      {
+        vector<float> row(mTmp.data() + i * M, mTmp.data() + (i + 1) * M);
+        nth_element(row.begin(), row.begin() + HALF_M, row.end());
+        mCentroid(i) = row[HALF_M];
+        mCentroid(i) += *max_element(row.begin(), row.begin() + HALF_M);
+        mCentroid(i) *= 0.5f;
+      }
+    }
+
+    // compute the mean
+    mMean = mAbs.colwise().mean();
+
+    // compute std (x) = sqrt ( 1/M SUM_i (x(i) - mean(x))^2 )
+    mStd =
+        (((mAbs.rowwise() - mMean.transpose()).array().square()).colwise().sum() *
+         (1.0f / M))
+            .array()
+            .sqrt();
+
+
+    // compute n sigmas from centroid
+    mStd *= mVisSigma;
+    mMinVal = mCentroid - mStd;
+    mMaxVal = mCentroid + mStd;
+
+    // compute clip mask
     for (int i = 0; i < N; i++)
     {
-      vector<float> row(mTmp.data() + i * M, mTmp.data() + (i + 1) * M);
-      nth_element(row.begin(), row.begin() + HALF_M, row.end());
-      mCentroid(i) = row[HALF_M];
+      mMask.col(i) =
+          (mAbs.col(i).array() > mMinVal(i)).select(VectorXf::Ones(M), 0.0f);
+      mMask.col(i) =
+          (mAbs.col(i).array() < mMaxVal(i)).select(VectorXf::Ones(M), 0.0f);
     }
+
+    // apply clip mask to data
+    output->mRawData[pol].array() *= mMask.array();
+
+    // compute mean such that we ignore clipped data, this is our final result
+    mResult = output->mRawData[pol].colwise().sum().array() /
+              mMask.colwise().sum().array();
   }
-  // nth_element guarantees x_0,...,x_{n-1} < x_n
   else
   {
-    for (int i = 0; i < N; i++)
-    {
-      vector<float> row(mTmp.data() + i * M, mTmp.data() + (i + 1) * M);
-      nth_element(row.begin(), row.begin() + HALF_M, row.end());
-      mCentroid(i) = row[HALF_M];
-      mCentroid(i) += *max_element(row.begin(), row.begin() + HALF_M);
-      mCentroid(i) *= 0.5f;
-    }
+    mResult = output->mRawData[pol].colwise().mean();
   }
-
-  // compute the mean
-  mMean = mAbs.colwise().mean();
-
-  // compute std (x) = sqrt ( 1/M SUM_i (x(i) - mean(x))^2 )
-  mStd =
-      (((mAbs.rowwise() - mMean.transpose()).array().square()).colwise().sum() *
-       (1.0f / M))
-          .array()
-          .sqrt();
-
-
-  // compute n sigmas from centroid
-  mStd *= mVisSigma;
-  mMinVal = mCentroid - mStd;
-  mMaxVal = mCentroid + mStd;
-
-  // compute clip mask
-  mMask.setOnes();
-  /*
-  for (int i = 0; i < N; i++)
-  {
-    mMask.col(i) =
-        (mAbs.col(i).array() > mMinVal(i)).select(VectorXf::Ones(M), 0.0f);
-    mMask.col(i) =
-        (mAbs.col(i).array() < mMaxVal(i)).select(VectorXf::Ones(M), 0.0f);
-  }
-   */
-
-  // apply clip mask to data
-  output->mRawData[pol].array() *= mMask.array();
-
-  // compute mean such that we ignore clipped data, this is our final result
-  mResult = output->mRawData[pol].colwise().sum().array() /
-            mMask.colwise().sum().array();
 
   // construct acm from result
   for (int i = 0, s = 0; i < NUM_ANTENNAS; i++)
   {
-    output->mCleanData[pol].col(i).head(i + 1) += mResult.segment(s, i + 1).conjugate();
-    output->mCleanData[pol].row(i).head(i + 1) += mResult.segment(s, i + 1);
+    output->mCleanData[pol].col(i).head(i + 1) = mResult.segment(s, i + 1).conjugate();
+    output->mCleanData[pol].row(i).head(i + 1) = mResult.segment(s, i + 1);
+    output->mCleanData[pol](i,i).imag() = 0.0f;
     s += i + 1;
   }
 
@@ -191,6 +197,7 @@ void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
     }
   }
   qDebug("[%s] Flagged %li dipoles, %i visibilities", (pol ? "YY" : "XX"),
-         output->mFlagged[pol].size(), int(mMask.size() - mMask.sum()));
+         output->mFlagged[pol].size(), M > 1 ? (int(mMask.size() - mMask.sum())) : 0);
+  utils::vector2stderr(output->mFlagged[pol], "flagged");
 }
 
