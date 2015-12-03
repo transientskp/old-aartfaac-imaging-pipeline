@@ -22,7 +22,7 @@ public:
   void next(QIODevice *inDevice);
 
 private:
-  class Subband
+  class ChannelRange
   {
   public:
     quint16 c1;
@@ -30,7 +30,7 @@ private:
     quint16 channels;
     size_t size;
 
-    bool operator < (const Subband &s) const
+    bool operator < (const ChannelRange &s) const
     {
       return c2 < s.c1;
     }
@@ -40,7 +40,7 @@ private:
   QTcpServer *mServer; ///< TCP/IP server, created in newDevice()
 
   // Must be defined in serverConf.xml
-  std::vector<Subband> mSubbands;
+  std::vector<ChannelRange> mChannelRanges;
   int mNumChannels;
   int mMinInterval;
   int mSubband;
@@ -50,7 +50,7 @@ private:
   /** @brief Parses subbands of the form: "c_{1}-c_{2},...,c_{n-1}-c_{n}",
    *         where c_{i} in {0,...,n} and c_{i} < c_{i+1}
    */
-  std::vector<Subband> ParseSubbands(const QString &s);
+  std::vector<ChannelRange> ParseSubbands(const QString &s);
 };
 
 PELICAN_DECLARE_CHUNKER(StreamChunker)

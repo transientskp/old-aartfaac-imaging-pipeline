@@ -19,17 +19,17 @@ StreamChunker::StreamChunker(const ConfigNode &config):
   mNumChannels = config.getOption("stream", "numChannels", "63").toInt();
   mSubband = config.getOption("stream", "subband", "296").toInt();
 
-  mSubbands = ParseSubbands(s);
-  std::sort(mSubbands.begin(), mSubbands.end());
+  mChannelRanges = ParseSubbands(s);
+  std::sort(mChannelRanges.begin(), mChannelRanges.end());
 
   std::cout << std::endl;
   qDebug("----- Stream (%i) ------", port());
-  qDebug("Channel ranges (%ld):", mSubbands.size());
-  for (int i = 0, n = mSubbands.size(); i < n; i++)
-    qDebug("  (%02i-%02i) %0.5f [Hz] chunksize %lu bytes", mSubbands[i].c1,
-           mSubbands[i].c2,
-           utils::Range2Frequency(mSubband, mSubbands[i].c1, mSubbands[i].c2+1),
-            mSubbands[i].size);
+  qDebug("Channel ranges (%ld):", mChannelRanges.size());
+  for (int i = 0, n = mChannelRanges.size(); i < n; i++)
+    qDebug("  (%02i-%02i) %0.5f [Hz] chunksize %lu bytes", mChannelRanges[i].c1,
+           mChannelRanges[i].c2,
+           utils::Range2Frequency(mSubband, mChannelRanges[i].c1, mChannelRanges[i].c2 + 1),
+            mChannelRanges[i].size);
 
   qDebug("Channels in stream(%i):", mNumChannels);
   qDebug("  Lofar subband:     %i", mSubband);
@@ -91,18 +91,18 @@ void StreamChunker::next(QIODevice *inDevice)
     return;
 
   // Allocate chunk memory for each subband and write chunker header
-  std::vector<WritableData> chunks(mSubbands.size());
-  std::vector<size_t> bytes(mSubbands.size(), 0);
+  std::vector<WritableData> chunks(mChannelRanges.size());
+  std::vector<size_t> bytes(mChannelRanges.size(), 0);
   ChunkHeader chunk_header;
 
   chunk_header.time = utils::UnixTime2MJD(stream_header.end_time);
-  for (int i = 0, n = mSubbands.size(); i < n; i++)
+  for (int i = 0, n = mChannelRanges.size(); i < n; i++)
   {
     chunk_header.subband = mSubband;
-    chunk_header.start_chan = mSubbands[i].c1;
-    chunk_header.end_chan = mSubbands[i].c2;
+    chunk_header.start_chan = mChannelRanges[i].c1;
+    chunk_header.end_chan = mChannelRanges[i].c2;
 
-    chunks[i] = getDataStorage(mSubbands[i].size);
+    chunks[i] = getDataStorage(mChannelRanges[i].size);
     if (!chunks[i].isValid())
     {
       qCritical("[%s()] Not enough memory", __FUNCTION__);
@@ -114,9 +114,9 @@ void StreamChunker::next(QIODevice *inDevice)
   }
 
   // Start reading data from device and write to the appropriate chunk/subband
-  for (int i = 0, n = mSubbands.size(); i < n; i++)
+  for (int i = 0, n = mChannelRanges.size(); i < n; i++)
   {
-    Subband &s = mSubbands[i];
+    ChannelRange &s = mChannelRanges[i];
     for (int p = XX_POL; p < NUM_POLARIZATIONS; p+=YY_POL)
     {
       for (int b = 0; b < NUM_BASELINES; b++)
@@ -149,13 +149,13 @@ void StreamChunker::next(QIODevice *inDevice)
          bps*1e-9f);
 }
 
-std::vector<StreamChunker::Subband> StreamChunker::ParseSubbands(const QString &s)
+std::vector<StreamChunker::ChannelRange> StreamChunker::ParseSubbands(const QString &s)
 {
-  std::vector<StreamChunker::Subband> subbands;
+  std::vector<StreamChunker::ChannelRange> channel_ranges;
 
   int channel = -1;
   bool success;
-  subbands.push_back(Subband());
+  channel_ranges.push_back(ChannelRange());
 
   for (int i = 0; i < s.size(); )
   {
@@ -176,11 +176,11 @@ std::vector<StreamChunker::Subband> StreamChunker::ParseSubbands(const QString &
       switch (c.toAscii())
       {
       case ',':
-        subbands.back().c2 = channel;
-        subbands.push_back(Subband());
+        channel_ranges.back().c2 = channel;
+        channel_ranges.push_back(ChannelRange());
         break;
       case '-':
-        subbands.back().c1 = channel;
+        channel_ranges.back().c1 = channel;
         break;
       default: qFatal("Invalid character `%c' at line %d", s[i].toAscii(), i);
       }
@@ -188,10 +188,10 @@ std::vector<StreamChunker::Subband> StreamChunker::ParseSubbands(const QString &
     }
   }
 
-  subbands.back().c2 = channel;
-  for (int i = 0, n = subbands.size(); i < n; i++)
+  channel_ranges.back().c2 = channel;
+  for (int i = 0, n = channel_ranges.size(); i < n; i++)
   {
-    Subband &s = subbands[i];
+    ChannelRange &s = channel_ranges[i];
     s.channels = s.c2 - s.c1 + 1;
 
     if (s.c1 > s.c2)
@@ -204,5 +204,5 @@ std::vector<StreamChunker::Subband> StreamChunker::ParseSubbands(const QString &
     s.size = sizeof(ChunkHeader) + s.channels * NUM_BASELINES *
              NUM_USED_POLARIZATIONS * sizeof(std::complex<float>);
   }
-  return subbands;
+  return channel_ranges;
 }

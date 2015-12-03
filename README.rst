@@ -392,7 +392,7 @@ StreamAdapter
   process: these are stream data adapters and service data adapters, which
   operate on the relevant data types.
 
-Subband
+ChannelRange
   A sequence of channels between 0 and 63.
 
 .. [#] *Pipeline for Extensible, Lightweight Imaging and CAlibratioN*. See https://github.com/pelican/pelican for more information.
