@@ -53,12 +53,12 @@ void ImagerTest::gridding()
   Eigen::MatrixXcf acc = Eigen::MatrixXcf::Random(NUM_ANTENNAS, NUM_ANTENNAS);
   acc.array() += acc.transpose().array();
   Eigen::MatrixXcf grid(IMAGE_OUTPUT_SIZE, IMAGE_OUTPUT_SIZE);
-  Eigen::MatrixXf X = Eigen::MatrixXf::Random(NUM_ANTENNAS, NUM_ANTENNAS).array() * IMAGE_OUTPUT_SIZE/2-1;
+  Eigen::MatrixXf X = Eigen::MatrixXf::Random(NUM_ANTENNAS, NUM_ANTENNAS);
   Eigen::MatrixXf Y = X.transpose();
 
   mImager->gridding(acc, X, Y, mask, grid);
 
   std::complex<float> c_sum = acc.sum();
   std::complex<float> g_sum = grid.sum();
-  CPPUNIT_ASSERT_DOUBLES_EQUAL(c_sum.real(), g_sum.real(), 4.0f);
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(c_sum.real(), g_sum.real(), 4.0);
 }

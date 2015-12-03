@@ -205,7 +205,7 @@ void vector2stderr(const std::vector<Derived> &V, const char *name, const int pr
 
   std::cerr.unsetf(std::ios::floatfield);
   std::cerr.precision(precision);
-  for (int i = 0; i < V.size(); i++)
+  for (int i = 0, n = V.size(); i < n; i++)
     std::cerr << V[i] << "\t";
 
   std::cerr << std::endl << std::endl;

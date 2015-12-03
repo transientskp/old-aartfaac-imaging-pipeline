@@ -20,20 +20,21 @@ void FlaggerTest::setUp()
 {
   pelican::ConfigNode config(
     "<Flagger>"
-    "   <deviation multiplier=\"4.0\"/>"
+    "   <antenna sigma=\"3\" flagged=\"\"/>"
+    "   <visibility sigma=\"3\" />"
     "</Flagger>"
   );
   mFlagger = new Flagger(config);
   mStreamBlob = new StreamBlob();
-  Data(mStreamBlob) = MatrixXcf::Random(NUM_ANTENNAS, NUM_ANTENNAS);
-  Data(mStreamBlob).array() + Data(mStreamBlob).transpose().array();
+  mStreamBlob->mHeader.start_chan = 0;
+  mStreamBlob->mHeader.end_chan = 62;
+  mStreamBlob->reset();
 
-  // Artificial increase antenna 10
-  for (int i = 0; i < NUM_ANTENNAS; i++)
-  {
-    Data(mStreamBlob)(i,10) += 10.0f;
-    Data(mStreamBlob)(10,i) += 10.0f;
-  }
+  mStreamBlob->mRawData[0] = MatrixXcf::Random(mStreamBlob->mNumChannels, NUM_BASELINES);
+
+  // Artificial increase certain visibilities
+  mStreamBlob->mRawData[0](3, 2) = std::complex<float>(5.0f, 5.0f);
+  mStreamBlob->mRawData[0](8, 7) = std::complex<float>(5.0f, 5.0f);
 }
 
 void FlaggerTest::tearDown()
@@ -45,7 +46,6 @@ void FlaggerTest::tearDown()
 void FlaggerTest::flag()
 {
   mFlagger->run(0, mStreamBlob, mStreamBlob);
-  CPPUNIT_ASSERT_DOUBLES_EQUAL(Mask(mStreamBlob).col(10).sum(), NUM_ANTENNAS, 1e-5f);
-  CPPUNIT_ASSERT_DOUBLES_EQUAL(Mask(mStreamBlob).row(10).sum(), NUM_ANTENNAS, 1e-5f);
+  CPPUNIT_ASSERT_EQUAL(2, int(mFlagger->mMask.size() - mFlagger->mMask.sum()));
 }
 

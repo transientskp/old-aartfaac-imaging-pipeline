@@ -12,6 +12,8 @@ class StreamBlob;
 
 class Flagger : public AbstractModule
 {
+friend class FlaggerTest;
+
 public:
   Flagger(const ConfigNode &inConfig);
   ~Flagger();

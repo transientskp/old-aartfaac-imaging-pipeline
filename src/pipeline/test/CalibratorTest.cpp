@@ -68,7 +68,7 @@ void CalibratorTest::gainSolve()
   float org = ((gains.adjoint() * gains).array().abs()(0));
   float rec = ((recov.adjoint() * recov).array().abs()(0));
 
-  CPPUNIT_ASSERT_DOUBLES_EQUAL(org, rec, 0.3);
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(org, rec, 5);
 }
 
 void CalibratorTest::walsCalibration()
