@@ -99,7 +99,6 @@ void Imager::run(const StreamBlob *input, StreamBlob *output)
         mGridded.array().real().transpose(),
         MatrixXf::Zero(IMAGE_OUTPUT_SIZE, IMAGE_OUTPUT_SIZE)
   );
-  utils::matrix2stderr(output->mSkyMap, "skymap");
 }
 
 void Imager::fftShift(MatrixXcf &matrix)
