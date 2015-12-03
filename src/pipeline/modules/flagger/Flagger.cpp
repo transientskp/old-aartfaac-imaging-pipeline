@@ -198,6 +198,5 @@ void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
   }
   qDebug("[%s] Flagged %li dipoles, %i visibilities", (pol ? "YY" : "XX"),
       output->mFlagged[pol].size(), M >= 3 ? (int(mMask.size() - mMask.sum())) : 0);
-  utils::vector2stderr(output->mFlagged[pol], "flagged");
 }
 

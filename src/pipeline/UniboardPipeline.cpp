@@ -51,7 +51,7 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
   StreamBlob *data = static_cast<StreamBlob *>(inRemoteData["StreamBlob"]);
 
   #pragma omp parallel for
-  for (quint32 p = 0; p < 1; p++)
+  for (quint32 p = 0; p < NUM_USED_POLARIZATIONS; p++)
   {
     int tid = 0;
 
