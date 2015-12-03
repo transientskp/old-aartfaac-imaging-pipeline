@@ -78,7 +78,7 @@ def get_configuration():
     parser.add_argument("--input-host", help="Address for incoming data", default="0.0.0.0")
     parser.add_argument("--input-port-start", help="First port for incoming data (increases with chunkers)", default=4100, type=int)
     parser.add_argument("--save-xml", help="Don't delete XML file", action="store_true")
-    parser.add_argument("--stream", help="Add stream: <num_channels> <subband>", action="append", nargs=2)
+    parser.add_argument("--stream", help="Add stream: <num_channels> <subband>", action="append", nargs=2, metavar=('NCHANNELS', 'SUBBAND'))
     parser.add_argument("channelrange", help="Define a channel range: <first channel>-<last channel> (inclusive)", type=lambda x: x.split('-'), nargs="*")
     return parser.parse_args()
 
