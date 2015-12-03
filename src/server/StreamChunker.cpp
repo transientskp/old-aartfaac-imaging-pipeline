@@ -19,7 +19,7 @@ StreamChunker::StreamChunker(const ConfigNode &config):
   mNumChannels = config.getOption("stream", "numChannels", "63").toInt();
   mSubband = config.getOption("stream", "subband", "296").toInt();
 
-  mChannelRanges = ParseSubbands(s);
+  mChannelRanges = ParseChannels(s);
   std::sort(mChannelRanges.begin(), mChannelRanges.end());
 
   std::cout << std::endl;
@@ -149,7 +149,7 @@ void StreamChunker::next(QIODevice *inDevice)
          bps*1e-9f);
 }
 
-std::vector<StreamChunker::ChannelRange> StreamChunker::ParseSubbands(const QString &s)
+std::vector<StreamChunker::ChannelRange> StreamChunker::ParseChannels(const QString &s)
 {
   std::vector<StreamChunker::ChannelRange> channel_ranges;
 
