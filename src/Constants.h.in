@@ -8,14 +8,12 @@
 #define MAX_MERGE_CHANNELS 64
 
 /** Number of polarizations (X, Y) */
-#define NUM_POLARIZATIONS 4
+#define NUM_POLARIZATIONS 2
 #define NUM_USED_POLARIZATIONS 2
 
 /** Polarization indexing for CORR_TYPE 9,10,11,12 */
 #define XX_POL 0
-#define XY_POL 1
-#define YX_POL 2
-#define YY_POL 3
+#define YY_POL 1
 
 /** Max number of chars for the antenna names */
 #define MAX_CHARS_ANTENNA_NAME 10
