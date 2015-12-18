@@ -114,6 +114,7 @@ void StreamChunker::next(QIODevice *inDevice)
   }
 
   // Start reading data from device and write to the appropriate chunk/subband
+  int realtime = int(mNumChannels == MAX_MERGE_CHANNELS-1);
   for (int i = 0, n = mChannelRanges.size(); i < n; i++)
   {
     ChannelRange &s = mChannelRanges[i];
@@ -121,7 +122,7 @@ void StreamChunker::next(QIODevice *inDevice)
     {
       for (int b = 0; b < NUM_BASELINES; b++)
       {
-        for (int c = s.c1; c <= s.c2; c++)
+        for (int c = s.c1 - realtime; c <= s.c2 - realtime; c++)
         {
           chunks[i].write(reinterpret_cast<void*>(&mVisibilities[p+c*NUM_POLARIZATIONS+b*NUM_POLARIZATIONS*mNumChannels]),
                           sizeof(std::complex<float>),
