@@ -95,7 +95,7 @@ void StreamChunker::next(QIODevice *inDevice)
   std::vector<size_t> bytes(mChannelRanges.size(), 0);
   ChunkHeader chunk_header;
 
-  chunk_header.time = utils::UnixTime2MJD(stream_header.end_time);
+  chunk_header.time = utils::UnixTime2MJD(0.5*(stream_header.start_time+stream_header.end_time));
   for (int i = 0, n = mChannelRanges.size(); i < n; i++)
   {
     chunk_header.subband = mSubband;
