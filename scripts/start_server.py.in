@@ -75,7 +75,7 @@ def generate_chunkers(config):
 
 def sighandler(signum, frame):
   for p in PROCESSES:
-    print "Killing {}".format(p)
+    print "Killing {}".format(p.pid)
     p.terminate()
 
 def get_configuration():

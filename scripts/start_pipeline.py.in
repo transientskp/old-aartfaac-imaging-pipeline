@@ -92,8 +92,8 @@ def get_configuration():
 
 def sighandler(signum, frame):
     for p in PROCESSES:
-      p.terminate()
-    sys.exit(0)
+        print "Killing {}".format(p.pid)
+        p.terminate()
 
 if __name__ == "__main__":
     signal.signal(signal.SIGTERM, sighandler)
