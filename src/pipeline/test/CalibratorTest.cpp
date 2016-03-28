@@ -21,7 +21,7 @@ void CalibratorTest::setUp()
 {
   pelican::ConfigNode config(
     "<Calibrator>"
-      "<positrf path=\"/usr/local/share/aartfaac/antennasets/lba_outer.dat\" />"
+      "<positrf path=\"../data/antennasets/lba_outer.dat.in\" />"
     "</Calibrator>"
   );
   mCalibrator = new Calibrator(config);
