@@ -109,8 +109,10 @@ if __name__ == "__main__":
     assert(os.path.exists(config.antenna_positions))
 
     # Ensure the output directory exists
-    if not os.path.exists(config.output_path):
+    try:
         os.makedirs(config.output_path)
+    except OSError as e:
+        sys.stderr.write("Dir '%s' exists" % config.output_path)
 
     xmlfile = generate_xml(
         config.save_xml,
