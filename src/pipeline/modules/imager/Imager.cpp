@@ -92,7 +92,7 @@ void Imager::run(const StreamBlob *input, StreamBlob *output)
     fftShift(mGridded);
 
     // Compute (XX+YY)/2 = I
-    output->mSkyMap.array() += mGridded.real().array() * 0.5f;
+    output->mSkyMap.array() += mGridded.real().array() * (1.0f/NUM_USED_POLARIZATIONS);
   }
 
   // Mask out edges
