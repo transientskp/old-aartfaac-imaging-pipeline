@@ -203,7 +203,7 @@ std::vector<StreamChunker::ChannelRange> StreamChunker::ParseChannels(const QStr
              s.channels, MAX_MERGE_CHANNELS);
 
     s.size = sizeof(ChunkHeader) + s.channels * NUM_BASELINES *
-             NUM_USED_POLARIZATIONS * sizeof(std::complex<float>);
+             NUM_POLARIZATIONS * sizeof(std::complex<float>);
   }
   return channel_ranges;
 }
