@@ -9,7 +9,7 @@
 
 /** Number of polarizations (X, Y) */
 #define NUM_POLARIZATIONS 2
-#define NUM_USED_POLARIZATIONS 1
+#define NUM_USED_POLARIZATIONS 2
 
 /** Polarization indices */
 #define XX_POL 0
