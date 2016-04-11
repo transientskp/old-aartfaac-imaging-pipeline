@@ -122,7 +122,7 @@ void Calibrator::run(const int pol, const StreamBlob *input, StreamBlob *output)
   mSelection.resize((up.array() > 0.0).count(), 3);
 
   for (int i = 0, j = 0, n = src_pos.rows(); i < n; i++)
-    if (up(i) > 0.0)
+    if (up(i) > 0.1)
     {
       for (int k = 0; k < src_pos.cols(); k++)
         mSelection(j,k) = src_pos(i,k);
