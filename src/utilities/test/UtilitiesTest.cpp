@@ -151,13 +151,12 @@ void UtilitiesTest::timeconversions()
 {
   const double mjd = 4967701809.291000;
   const double unix_time = 1460985009.291000;
+  const std::string utc_time("20160418-131009");
+  const std::string t = qPrintable(utils::MJD2QDateTime(mjd).toString("yyyyMMdd-hhmmss"));
 
   CPPUNIT_ASSERT_DOUBLES_EQUAL(utils::MJD2UnixTime(mjd), unix_time, 1e-5);
   CPPUNIT_ASSERT_DOUBLES_EQUAL(utils::UnixTime2MJD(unix_time), mjd, 1e-5);
-  QDateTime d1 = utils::MJD2QDateTime(mjd);
-  std::string a = "20160418-131009";
-  std::string b = qPrintable(d1.toString("yyyyMMdd-hhmmss"));
-  CPPUNIT_ASSERT_EQUAL(a, b);
+  CPPUNIT_ASSERT_EQUAL(t, utc_time);
 }
 
 void UtilitiesTest::kronecker()
