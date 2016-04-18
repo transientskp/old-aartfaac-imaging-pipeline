@@ -18,6 +18,7 @@ public:
   CPPUNIT_TEST(radec2itrf);
   CPPUNIT_TEST(pseudoinv);
   CPPUNIT_TEST(simplex);
+  CPPUNIT_TEST(timeconversions);
   CPPUNIT_TEST(subband2frequency);
   CPPUNIT_TEST_SUITE_END();
 
@@ -34,6 +35,7 @@ public:
   void pseudoinv();
   void simplex();
   void subband2frequency();
+  void timeconversions();
 
   UtilitiesTest();
   ~UtilitiesTest() {}

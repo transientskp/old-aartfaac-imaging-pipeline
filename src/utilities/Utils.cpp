@@ -37,8 +37,9 @@ QDateTime MJD2QDateTime(const double inMJDsec)
 {
   // Convert modified julian date to unix time
   quint32 unix_time = static_cast<quint32>(MJD2UnixTime(inMJDsec));
-  QDateTime date = QDateTime::fromTime_t(unix_time);
+  QDateTime date;
   date.setTimeSpec(Qt::UTC);
+  date.setTime_t(unix_time);
   return date;
 }
 

@@ -147,6 +147,19 @@ void UtilitiesTest::radec2itrf()
       CPPUNIT_ASSERT_DOUBLES_EQUAL(A(i,j), itrf(i,j), 1e-11);
 }
 
+void UtilitiesTest::timeconversions()
+{
+  const double mjd = 4967701809.291000;
+  const double unix_time = 1460985009.291000;
+
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(utils::MJD2UnixTime(mjd), unix_time, 1e-5);
+  CPPUNIT_ASSERT_DOUBLES_EQUAL(utils::UnixTime2MJD(unix_time), mjd, 1e-5);
+  QDateTime d1 = utils::MJD2QDateTime(mjd);
+  std::string a = "20160418-131009";
+  std::string b = qPrintable(d1.toString("yyyyMMdd-hhmmss"));
+  CPPUNIT_ASSERT_EQUAL(a, b);
+}
+
 void UtilitiesTest::kronecker()
 {
   MatrixXi A(2,2), B(2,2), C(4,4), D(4,4);
