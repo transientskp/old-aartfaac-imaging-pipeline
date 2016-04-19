@@ -59,6 +59,7 @@ std::vector<int> Flagger::ParseFlagged(const QString &s)
       i++;
     }
   }
+  flagged.push_back(antenna);
 
   return flagged;
 }
