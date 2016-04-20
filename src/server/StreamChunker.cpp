@@ -136,18 +136,12 @@ void StreamChunker::next(QIODevice *inDevice)
 
   // Check buffer size
   float usage = (usedSize() / float(maxBufferSize())) * 100.0f;
-  if (usage > 90.0f)
-    qCritical("Chunker `%s' is at %0.1f%% of its buffer", qPrintable(name()), usage);
-  else
-  if (usage > 75.0f)
-    qWarning("Chunker `%s' is at %0.1f%% of its buffer", qPrintable(name()), usage);
-
   mStartInterval = stream_header.start_time;
   float bps = (mVisibilities.size()*sizeof(std::complex<float>)+sizeof(ChunkHeader)) * 8 / (mTimer.elapsed() / 1000.0f);
-  qDebug("Stream '%s' %s-%s %0.2f Gb/s", qPrintable(name()),
+  qDebug("Stream '%s' %s-%s %0.2f Gb/s (%0.1f%%)", qPrintable(name()),
          qPrintable(QDateTime::fromTime_t(stream_header.start_time).toString("hh:mm:ss")),
          qPrintable(QDateTime::fromTime_t(stream_header.end_time).toString("hh:mm:ss")),
-         bps*1e-9f);
+         bps*1e-9f, usage);
 }
 
 std::vector<StreamChunker::ChannelRange> StreamChunker::ParseChannels(const QString &s)
