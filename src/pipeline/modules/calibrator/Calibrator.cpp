@@ -4,6 +4,7 @@
 #include "../../../utilities/AntennaPositions.h"
 #include "../../../utilities/Utils.h"
 #include "../../../utilities/NMSMax.h"
+#include <Eigen/LU>
 
 #include <pelican/utility/Config.h>
 #include <QtCore>
@@ -61,7 +62,7 @@ Calibrator::~Calibrator()
 void Calibrator::run(const int pol, const StreamBlob *input, StreamBlob *output)
 {
   static const double min_restriction = 10.0;                 ///< avoid vis. below this wavelength
-  static const double max_restriction = 60.0;                 ///< avoid vis. above this much meters
+  static const double max_restriction = 350.0;                 ///< avoid vis. above this much meters
   static const Vector3d normal(0.598753, 0.072099, 0.797682); ///< Normal to CS002 (central antenna)
 
   mHasConverged = true;
@@ -111,7 +112,7 @@ void Calibrator::run(const int pol, const StreamBlob *input, StreamBlob *output)
   // ========================================================================
   // ==== 1. Whitening of the array covariance matrix for DOA estimation ====
   // ========================================================================
-  mNormalizedData.array() /= mNormalizedData.diagonal().norm();
+  mNormalizedData.array() /= (mNormalizedData.diagonal() * mNormalizedData.diagonal().transpose()).array().sqrt();
 
   // ================================
   // ==== 2. Initial calibration ====
@@ -119,15 +120,17 @@ void Calibrator::run(const int pol, const StreamBlob *input, StreamBlob *output)
   MatrixXd src_pos(mRaSources.rows(), 3);
   utils::radec2itrf<double>(mRaSources, mDecSources, mEpoch, time, src_pos);
   VectorXd up = src_pos * normal;
-  mSelection.resize((up.array() > 0.0).count(), 3);
+  mSelection.resize((up.array() > 0.1).count(), 3);
 
   for (int i = 0, j = 0, n = src_pos.rows(); i < n; i++)
+  {
     if (up(i) > 0.1)
     {
       for (int k = 0; k < src_pos.cols(); k++)
-        mSelection(j,k) = src_pos(i,k);
+        mSelection(j, k) = src_pos(i, k);
       j++;
     }
+  }
   statCal(mNormalizedData, mFrequency, mMask, mGains, mFluxes, mNoiseCovMatrix);
 
   if (!mHasConverged)
@@ -139,7 +142,7 @@ void Calibrator::run(const int pol, const StreamBlob *input, StreamBlob *output)
   Q_ASSERT(mSelection.rows() == mFluxes.rows());
   MatrixXd selection((mFluxes.array() > mFluxes(0)*0.01).count(), 3);
   VectorXf fluxes(selection.rows());
-  for (int i = 0, j = 0, n = selection.rows(); i < n; i++)
+  for (int i = 0, j = 0, n = mFluxes.rows(); i < n; i++)
   {
     if (mFluxes(i) > mFluxes(0)*0.01)
     {
@@ -199,18 +202,18 @@ void Calibrator::statCal(const MatrixXcf &inData,
 {
   std::complex<double> i1(0.0, 1.0);
   i1 *= 2.0 * M_PI * inFrequency / C_MS;
-  MatrixXcf A = (-i1 * (mAntennaLocalPosReshaped * mSelection.transpose())).array().exp().cast<std::complex<float> >();
+  MatrixXcd A = (-i1 * (mAntennaLocalPosReshaped * mSelection.transpose())).array().exp();
 
-  MatrixXcf KA(A.rows()*A.rows(), A.cols());
-  utils::khatrirao<std::complex<float> >(A.conjugate(), A, KA);
+  MatrixXcd KA(A.rows()*A.rows(), A.cols());
+  utils::khatrirao<std::complex<double> >(A.conjugate(), A, KA);
 
-  MatrixXf AA = (A.adjoint() * A).array().abs().square();
+  MatrixXcd AA = (A.adjoint() * A).array().abs().square();
 
   MatrixXf mask = 1.0f - (ioMask.array() > mSpatialFilterMask.array()).select(ioMask, mSpatialFilterMask).array();
-  MatrixXcf data = inData.array() * mask.array();
+  MatrixXcd data = inData.array() * mask.array();
   data.resize(inData.rows()*inData.cols(), 1);
-  VectorXf flux = (AA.inverse() * KA.adjoint() * data).array().real();
-  mMajorCycles = walsCalibration(A, inData, flux, mask, outCalibrations, outSigmas, outVisibilities);
+  MatrixXd flux = (AA.lu().solve(KA.adjoint()) * data).array().real();
+  mMajorCycles = walsCalibration(A.cast<std::complex<float> >(), inData, flux.cast<float>(), mask, outCalibrations, outSigmas, outVisibilities);
   outCalibrations = (1.0f/outCalibrations.array()).conjugate();
 }
 
@@ -409,8 +412,8 @@ void Calibrator::wsfSrcPos(const MatrixXcf &inData,
   VectorXd init(nsrc*2);
   for (int i = 0; i < nsrc; i++)
   {
-    init(i) = atan(ioPositions(i,1) / ioPositions(i,0));
-    init(i + nsrc) = asin(ioPositions(i,2));
+    init(i) = atan2(ioPositions(i, 1), ioPositions(i, 0));
+    init(i + nsrc) = asin(ioPositions(i, 2));
   }
 
   SelfAdjointEigenSolver<MatrixXcf> solver(inData);
@@ -438,7 +441,7 @@ void Calibrator::wsfSrcPos(const MatrixXcf &inData,
 
   WSFCost wsf_cost(EsWEs, G, inFreq, mAntennaLocalPosReshaped, nsrc);
 
-  init = NM::Simplex(wsf_cost, init, mSimplexCycles, 1e-7, 1e3);
+  init = NM::Simplex(wsf_cost, init, mSimplexCycles, 1e-5, 1e3);
 
   ioPositions.col(0) = init.head(nsrc).array().cos() * init.tail(nsrc).array().cos();
   ioPositions.col(1) = init.head(nsrc).array().sin() * init.tail(nsrc).array().cos();
@@ -469,7 +472,7 @@ float Calibrator::WSFCost::operator()(const VectorXd &theta)
 
   T = (-i1 * (P * src_pos.transpose())).array().exp().cast<std::complex<float> >();
   A = G * T;
-  PAperp = Eye.array() - (A * (A.adjoint() * A).inverse() * A.adjoint()).array();
+  PAperp = Eye.array() - (A * (A.adjoint() * A).lu().solve(A.adjoint())).array();
 
   return (PAperp * W).trace().real();
 }
