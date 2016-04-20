@@ -202,18 +202,18 @@ void Calibrator::statCal(const MatrixXcf &inData,
 {
   std::complex<double> i1(0.0, 1.0);
   i1 *= 2.0 * M_PI * inFrequency / C_MS;
-  MatrixXcd A = (-i1 * (mAntennaLocalPosReshaped * mSelection.transpose())).array().exp();
+  MatrixXcf A = (-i1 * (mAntennaLocalPosReshaped * mSelection.transpose())).array().exp().cast<std::complex<float> >();
 
-  MatrixXcd KA(A.rows()*A.rows(), A.cols());
-  utils::khatrirao<std::complex<double> >(A.conjugate(), A, KA);
+  MatrixXcf KA(A.rows()*A.rows(), A.cols());
+  utils::khatrirao<std::complex<float> >(A.conjugate(), A, KA);
 
-  MatrixXcd AA = (A.adjoint() * A).array().abs().square();
+  MatrixXf AA = (A.adjoint() * A).array().abs().square();
 
   MatrixXf mask = 1.0f - (ioMask.array() > mSpatialFilterMask.array()).select(ioMask, mSpatialFilterMask).array();
-  MatrixXcd data = inData.array() * mask.array();
+  MatrixXcf data = inData.array() * mask.array();
   data.resize(inData.rows()*inData.cols(), 1);
-  MatrixXd flux = (AA.lu().solve(KA.adjoint()) * data).array().real();
-  mMajorCycles = walsCalibration(A.cast<std::complex<float> >(), inData, flux.cast<float>(), mask, outCalibrations, outSigmas, outVisibilities);
+  VectorXf flux = (AA.inverse() * KA.adjoint() * data).array().real();
+  mMajorCycles = walsCalibration(A, inData, flux, mask, outCalibrations, outSigmas, outVisibilities);
   outCalibrations = (1.0f/outCalibrations.array()).conjugate();
 }
 
