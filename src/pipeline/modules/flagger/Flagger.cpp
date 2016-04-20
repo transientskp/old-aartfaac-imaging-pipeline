@@ -30,6 +30,9 @@ Flagger::~Flagger()
 std::vector<int> Flagger::ParseFlagged(const QString &s)
 {
   std::vector<int> flagged;
+  if (s.isEmpty())
+    return flagged;
+
   int antenna = -1;
   bool success;
 
