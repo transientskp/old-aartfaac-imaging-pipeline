@@ -45,7 +45,9 @@ void UniboardPipeline::init()
 // Defines a single iteration of the pipeline.
 void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
 {
-  mTimer.start();
+  QTime timer1, timer2;
+  float timings[3];
+  timer1.start();
 
   // Get pointers to the remote data blob(s) from the supplied hash.
   StreamBlob *data = static_cast<StreamBlob *>(inRemoteData["StreamBlob"]);
@@ -54,6 +56,7 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
   for (quint32 p = 0; p < NUM_USED_POLARIZATIONS; p++)
   {
     int tid = 0;
+    timer2.start();
 
     #ifdef ENABLE_OPENMP
     tid = omp_get_thread_num();
@@ -61,19 +64,20 @@ void UniboardPipeline::run(QHash<QString, DataBlob *>& inRemoteData)
 
     mFlaggers[tid]->run(p, data, data);
     mCalibrators[tid]->run(p, data, data);
+
+    timings[p] = timer2.elapsed() / 1000.0f;
   }
 
   // Create image
   mImager->run(data, data);
 
   // Don't add dataOutput to duration as we currently write to disk
-  float duration = (mTimer.elapsed() / 1000.0f);
+  timings[2] = timer1.elapsed() / 1000.0f;
 
   // Output to stream(s), see modules/output
   dataOutput(data, "post");
 
-  float bps = data->mNumChannels*NUM_BASELINES*NUM_USED_POLARIZATIONS*64 / duration;
-  qDebug("[%s] processed sb(%i) range(%i-%i) in %0.3f sec - %0.2f Mb/s",
+  qDebug("[%s] processed sb(%i) range(%i-%i) in %0.3f [%0.3f, %0.3f]",
          qPrintable(utils::MJD2QDateTime(data->mHeader.time).toString("hh:mm:ss")), data->mHeader.subband,
-         data->mHeader.start_chan, data->mHeader.end_chan, duration, bps*1e-6f);
+         data->mHeader.start_chan, data->mHeader.end_chan, timings[2], timings[XX_POL], timings[YY_POL]);
 }

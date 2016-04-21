@@ -32,8 +32,6 @@ private:
 
   Imager *mImager;
   int mThreads;
-
-  QTime mTimer;
 };
 
 #endif // UNIBOARD_PIPELINE_H

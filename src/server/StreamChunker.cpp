@@ -138,9 +138,8 @@ void StreamChunker::next(QIODevice *inDevice)
   float usage = (usedSize() / float(maxBufferSize())) * 100.0f;
   mStartInterval = stream_header.start_time;
   float bps = (mVisibilities.size()*sizeof(std::complex<float>)+sizeof(ChunkHeader)) * 8 / (mTimer.elapsed() / 1000.0f);
-  qDebug("Stream '%s' %s-%s %0.2f Gb/s (%0.1f%%)", qPrintable(name()),
-         qPrintable(QDateTime::fromTime_t(stream_header.start_time).toString("hh:mm:ss")),
-         qPrintable(QDateTime::fromTime_t(stream_header.end_time).toString("hh:mm:ss")),
+  qDebug("Stream '%s' %s %0.2f Gb/s (%0.1f%%)", qPrintable(name()),
+         qPrintable(utils::MJD2QDateTime(chunk_header.time).toString("hh:mm:ss")),
          bps*1e-9f, usage);
 }
 
