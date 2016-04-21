@@ -70,17 +70,6 @@ void Imager::run(const StreamBlob *input, StreamBlob *output)
     // Zero the grid and regrid
     mGridded.setZero();
 
-    // Set main diagonal to 1 to ensure power > 0
-    /*
-    const_cast<StreamBlob*>(input)->mCleanData[p].diagonal().setOnes();
-    const_cast<StreamBlob*>(input)->mMasks[p].diagonal().setZero();
-    for (int i = 0, n = input->mFlagged[p].size(); i < n; i++)
-    {
-      int dipole = input->mFlagged[p][i];
-      const_cast<StreamBlob*>(input)->mMasks[p](dipole, dipole) = 1.0f;
-    }
-    */
-
     // Splat the image on a grid
     gridding(input->mCleanData[p], mUCoords, mVCoords, input->mMasks[p], mGridded);
 

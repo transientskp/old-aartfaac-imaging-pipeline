@@ -441,7 +441,7 @@ void Calibrator::wsfSrcPos(const MatrixXcf &inData,
 
   WSFCost wsf_cost(EsWEs, G, inFreq, mAntennaLocalPosReshaped, nsrc);
 
-  init = NM::Simplex(wsf_cost, init, mSimplexCycles, 1e-5, 1e3);
+  init = NM::Simplex(wsf_cost, init, mSimplexCycles, 1e-3, 1000);
 
   ioPositions.col(0) = init.head(nsrc).array().cos() * init.tail(nsrc).array().cos();
   ioPositions.col(1) = init.head(nsrc).array().sin() * init.tail(nsrc).array().cos();
