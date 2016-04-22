@@ -42,7 +42,7 @@ VectorXi sort(Matrix<D, Dynamic, 1> &V)
   std::vector<std::pair<D, int> > P(V.size());
 
   for (int i = 0; i < V.size(); i++)
-    P[i] = std::make_pair<D, int>(V(i), i);
+    P[i] = std::make_pair(V(i), i);
 
   std::sort(P.begin(), P.end(), Sorter<D>);
 

@@ -156,7 +156,7 @@ void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
   {
     output->mCleanData[pol].col(i).head(i + 1) = mResult.segment(s, i + 1).conjugate();
     output->mCleanData[pol].row(i).head(i + 1) = mResult.segment(s, i + 1);
-    output->mCleanData[pol](i,i).imag() = 0.0f;
+    output->mCleanData[pol](i,i) = complex<float>(output->mCleanData[pol](i,i).real(), 0.0f);
     s += i + 1;
   }
 

@@ -52,7 +52,7 @@ void CalibratorTest::gainSolve()
   {
     model(i,i) = std::complex<float>(0.0f, 0.0f);
     for (int j = 0; j < n; j++)
-      model(i,j).imag() = -model(i,j).imag();
+      model(i,j) = std::complex<float>(model(i,j).real(), -model(i,j).imag());
   }
 
   VectorXcf gains(antennas);
