@@ -10,8 +10,8 @@
 #include <QtCore>
 #include <QDebug>
 
-#define MAX_MAJOR_CYCLES 50
-#define MAX_MINOR_CYCLES 50
+#define MAX_MAJOR_CYCLES 10
+#define MAX_MINOR_CYCLES 30
 
 Calibrator::Calibrator(const ConfigNode &inConfig):
   AbstractModule(inConfig)
