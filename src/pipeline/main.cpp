@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     pelican::ConfigNode node = p_app.config()->get(address);
     int threads = node.getOption("pipeline", "threads", "1").toInt();
     p_app.registerPipeline(new UniboardPipeline(threads));
-    p_app.setDataClient("PelicanServerClient");
+    p_app.setDataClient("DirectDataClient");
     p_app.start();
   }
   catch (const QString &error)

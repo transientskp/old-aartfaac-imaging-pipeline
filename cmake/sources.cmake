@@ -18,6 +18,8 @@ set (PIPELINE_SOURCES
   src/pipeline/StreamBlob.cpp
   src/pipeline/StreamAdapter.cpp
   src/pipeline/UniboardPipeline.cpp
+  src/pipeline/DirectDataClient.cpp
+  src/pipeline/StreamChunker.cpp
   src/pipeline/modules/flagger/Flagger.cpp
   src/pipeline/modules/calibrator/Calibrator.cpp
   src/pipeline/modules/imager/Imager.cpp
