@@ -26,6 +26,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <pelican/comms/PelicanProtocol.h>
+#include <pelican/utility/Config.h>
 #include "DirectDataClient.h"
 
 #include "StreamChunker.h"
@@ -33,18 +35,27 @@
 
 #include <iostream>
 
-DirectDataClient::DirectDataClient(const pelican::ConfigNode& node,
-        const pelican::DataTypes& types, const pelican::Config* config)
-: DirectStreamDataClient(node, types, config)
+DirectDataClient::DirectDataClient(const pelican::ConfigNode &node,
+                                   const pelican::DataTypes &types, const pelican::Config *config)
+  : DirectStreamDataClient(node, types, config)
 {
-    try
-    {
-        addStreamChunker("StreamChunker", "Stream0");
-    }
-    catch (const QString& err)
-    {
-        std::cerr << "ERROR: " << err.toStdString() << std::endl;
-    }
+  pelican::Config::TreeAddress address;
+  address << pelican::Config::NodeId("configuration", "")
+          << pelican::Config::NodeId("pipeline", "")
+          << pelican::Config::NodeId("chunkers", "");
+
+  pelican::ConfigNode chunker = config->get(address);
+  QList<pelican::ConfigNode> streams = chunker.getNodes("StreamChunker");
+
+  try
+  {
+    for (int i = 0; i < streams.count(); i++)
+      addStreamChunker("StreamChunker", streams.at(i).name());
+  }
+  catch (const QString &err)
+  {
+    std::cerr << "ERROR: " << err.toStdString() << std::endl;
+  }
 }
 
 DirectDataClient::~DirectDataClient()

@@ -1,11 +1,6 @@
 #include "StreamAdapter.h"
 #include "StreamBlob.h"
-#include "Constants.h"
-#include "../emulator/stream/StreamPacket.h"
 #include "../utilities/Utils.h"
-
-#include <complex>
-#include <Eigen/Dense>
 
 // Construct the example adapter.
 StreamAdapter::StreamAdapter(const ConfigNode &config):
@@ -34,10 +29,4 @@ void StreamAdapter::deserialise(QIODevice *inDevice)
                                blob->mRawData[1].size()*sizeof(std::complex<float>));
 
   Q_ASSERT(bytes_read == chunkSize());
-
-  /*
-  utils::matrix2stderr(blob->mRawData[0], "xx");
-  utils::matrix2stderr(blob->mRawData[1], "yy");
-  exit(1);
-  */
 }

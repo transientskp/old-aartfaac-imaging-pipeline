@@ -38,11 +38,7 @@ int main(int argc, char *argv[])
   try
   {
     pelican::PipelineApplication p_app(argc, argv);
-    pelican::Config::TreeAddress address;
-    address << pelican::Config::NodeId("configuration", "");
-    pelican::ConfigNode node = p_app.config()->get(address);
-    int threads = node.getOption("pipeline", "threads", "1").toInt();
-    p_app.registerPipeline(new UniboardPipeline(threads));
+    p_app.registerPipeline(new UniboardPipeline());
     p_app.setDataClient("DirectDataClient");
     p_app.start();
   }

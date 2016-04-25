@@ -1,7 +1,7 @@
 #ifndef STREAM_CHUNKER_H
 #define STREAM_CHUNKER_H
 
-#include "../emulator/stream/StreamPacket.h"
+#include "StreamPacket.h"
 
 #include <complex>
 #include <pelican/server/AbstractChunker.h>

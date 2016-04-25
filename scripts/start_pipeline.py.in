@@ -17,18 +17,22 @@ TEMPLATE_XML = Template("""
 
 <configuration version="1.0">
   <pipeline>
-    <clients>
-      <PelicanServerClient>
-        <server host="${server_host}" port="${server_port}"/>
-        <data type="StreamBlob" adapter="StreamAdapter"/>
-      </PelicanServerClient>
-    </clients>
+    <buffers>
+      <StreamBlob>
+        <buffer maxSize="${buffer_max_size}" maxChunkSize="${buffer_max_chunk_size}"/>
+      </StreamBlob>
+    </buffers>
 
-    <adapters>
-      <StreamAdapter>
-        <!-- No specific settings -->
-      </StreamAdapter>
-    </adapters>
+    <chunkers>
+      <StreamChunker name="S${subband}">
+        <data type="StreamBlob"/>
+        <stream channelranges="${channelranges}"
+                interval="0"
+                numChannels="${num_channels}"
+                subband="${subband}" />
+        <connection host="${input_host}" port="${input_port}" />
+      </StreamChunker>
+    </chunkers>
 
     <modules>
       <Flagger>
@@ -59,6 +63,18 @@ TEMPLATE_XML = Template("""
         <stream name="post" listeners="CasaImageStorage"/>
       </dataStreams>
     </output>
+
+    <clients>
+      <DirectDataClient>
+        <data type="StreamBlob" adapter="StreamAdapter"/>
+      </DirectDataClient>
+    </clients>
+
+    <adapters>
+      <StreamAdapter>
+      </StreamAdapter>
+    </adapters>
+
   </pipeline>
 </configuration>
 """.strip())
@@ -75,8 +91,11 @@ def generate_xml(save_xml, **kwargs):
 def get_configuration():
     """Rerturns a populated configuration"""
     parser = argparse.ArgumentParser()
-    parser.add_argument("--server-host", help="Address of Pelican server", default="127.0.0.1")
-    parser.add_argument("--server-port", help="Port of Pelican server", default="2000")
+    parser.add_argument("--input-host", help="Address of incomming stream", default="127.0.0.1")
+    parser.add_argument("--input-port", help="Port of incomming stream", default="4100")
+    parser.add_argument("--subband", help="Lofar subband", type=int)
+    parser.add_argument("--channels", help="Number of channels in stream", type=int, default=63)
+    parser.add_argument("--channelrange", help="Define a channel range: <first channel>-<last channel> (inclusive)", type=lambda x: x.split('-'), nargs="*")
     parser.add_argument("--ant-sigma", help="Sigma used for clipping of antennas", type=float, default=3)
     parser.add_argument("--vis-sigma", help="Sigma used for clipping of individual visibilities", type=float, default=2)
     parser.add_argument("--flagged", help="List of commaseparated flagged antennas", type=str, default="")
@@ -86,13 +105,15 @@ def get_configuration():
     )
     parser.add_argument("--casa", help="Store CASA images", action="store_true")
     parser.add_argument("--tiff", help="Store TIFF images", action="store_true")
+    parser.add_argument("--buffer-max-size", help="Buffer size in bytes", default=4*1024**3)
+    parser.add_argument("--buffer-max-chunk-size", help="Chunk size in bytes", default=4*1024**3)
     parser.add_argument("--save-xml", help="Don't delete XML file", action="store_true")
-    parser.add_argument("output_path", help="Root directory for image output")
+    parser.add_argument("--output-path", help="Root directory for image output")
     return parser.parse_args()
 
 def sighandler(signum, frame):
     for p in PROCESSES:
-        print "Killing {}".format(p.pid)
+        print "Terminating process {}".format(p.pid)
         p.terminate()
 
 if __name__ == "__main__":
@@ -102,29 +123,34 @@ if __name__ == "__main__":
 
     # Sanity check: we need at least one of CASA and TIFF output
     if not config.casa and not config.tiff:
-      sys.stderr.write("Warning: Not storing any data!")
+      sys.stderr.write("Warning: Not storing any data!\n")
 
     # Sanity check: are the antenna positions available?
-    print config.antenna_positions
     assert(os.path.exists(config.antenna_positions))
 
     # Ensure the output directory exists
     try:
         os.makedirs(config.output_path)
     except OSError as e:
-        sys.stderr.write("Dir '%s' exists" % config.output_path)
+        sys.stderr.write("Dir '%s' exists\n" % config.output_path)
 
     xmlfile = generate_xml(
         config.save_xml,
-        server_host=config.server_host,
-        server_port=config.server_port,
+        input_host=config.input_host,
+        input_port=config.input_port,
         ant_sigma=config.ant_sigma,
         vis_sigma=config.vis_sigma,
         antenna_positions=os.path.abspath(config.antenna_positions),
         store_tiff=config.tiff,
         store_casa=config.casa,
         flagged=config.flagged,
-        output_path=config.output_path
+        output_path=config.output_path,
+        stream_chunker_name=("S%d" % config.subband),
+        channelranges=",".join("-".join(x) for x in config.channelrange),
+        num_channels = config.channels,
+        subband = config.subband,
+        buffer_max_size = config.buffer_max_size,
+        buffer_max_chunk_size = config.buffer_max_chunk_size
     )
     PROCESSES.append(subprocess.Popen([PIPELINE_CMD, xmlfile.name], stdout=sys.stdout))
 

@@ -15,9 +15,9 @@ class UniboardPipeline : public AbstractPipeline
 {
 public:
   /// Constructor.
-  UniboardPipeline(int threads=1) : AbstractPipeline(),
+  UniboardPipeline() : AbstractPipeline(),
     mImager(NULL),
-    mThreads(threads)
+    mThreads(1)
   {}
 
   /// Initialises the pipeline.

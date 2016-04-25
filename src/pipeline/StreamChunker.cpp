@@ -1,9 +1,6 @@
 #include "StreamChunker.h"
 
-#include "Constants.h"
 #include "../utilities/Utils.h"
-
-#include <pelican/utility/Config.h>
 #include <QtNetwork/QTcpSocket>
 
 StreamChunker::StreamChunker(const ConfigNode &config):

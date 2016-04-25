@@ -1,15 +1,5 @@
 # === All *.{cpp,h} files
 
-# === Emulator sources
-set (EMULATOR_SOURCES
-  src/Constants.h
-  src/emulator/main.cpp
-  src/emulator/stream/StreamPacket.h
-  src/emulator/stream/StreamEmulator.cpp
-  src/utilities/Logger.cpp
-  src/utilities/Utils.cpp
-)
-
 # === Pipeline sources
 set (PIPELINE_SOURCES
   src/Constants.h
@@ -31,26 +21,8 @@ set (PIPELINE_SOURCES
   src/utilities/Logger.cpp
 )
 
-# === Server sources
-set (SERVER_SOURCES
-  src/Constants.h
-  src/server/main.cpp
-  src/server/StreamChunker.cpp
-  src/emulator/stream/StreamPacket.h
-  src/utilities/Utils.cpp
-  src/utilities/Logger.cpp
-)
-
 # === Test sources
-set (TESTS emulatortest pipelinetest servertest utilitiestest)
-
-set (emulatortest_SOURCES
-  src/Constants.h
-  src/emulator/test/main.cpp
-  src/emulator/test/UniboardEmulatorTest.cpp
-  src/emulator/stream/StreamEmulator.cpp
-  src/utilities/Utils.cpp
-)
+set (TESTS pipelinetest utilitiestest)
 
 set (pipelinetest_SOURCES
   src/pipeline/test/main.cpp
@@ -66,10 +38,6 @@ set (pipelinetest_SOURCES
   src/utilities/NMSMax.h
 )
 
-set (servertest_SOURCES
-  src/server/test/main.cpp
-)
-
 set (utilitiestest_SOURCES
   src/utilities/test/main.cpp
   src/utilities/Utils.cpp
@@ -78,8 +46,6 @@ set (utilitiestest_SOURCES
 
 set (SCRIPTS
   scripts/start_aartfaac.py
-  scripts/start_emulator.py
-  scripts/start_server.py
   scripts/start_pipeline.py
 )
 

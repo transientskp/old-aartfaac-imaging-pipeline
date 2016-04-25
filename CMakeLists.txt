@@ -86,17 +86,6 @@ qt4_wrap_cpp(MOC_SOURCES ${MOC_HEADERS})
 include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 
-# === Create the emulator binary.
-set (EMULATOR ${PROJECT_NAME}-emulator)
-add_executable (${EMULATOR} ${EMULATOR_SOURCES})
-
-target_link_libraries (${EMULATOR}
-  ${QT_LIBRARIES}
-  ${LOFAR_LIBRARIES}
-  ${PELICAN_LIBRARIES}
-  ${CASACORE_LIBRARIES}
-  -lpthread
-)
 
 # === Create the pipeline binary.
 set (PIPELINE ${PROJECT_NAME}-pipeline)
@@ -110,15 +99,6 @@ target_link_libraries (${PIPELINE}
   ${PELICAN_LIBRARIES}
 )
 
-# === Create the server binary.
-set (SERVER ${PROJECT_NAME}-server)
-add_executable (${SERVER} ${SERVER_SOURCES} ${MOC_SOURCES})
-
-target_link_libraries (${SERVER}
-  ${QT_LIBRARIES}
-  ${PELICAN_LIBRARIES}
-  -lpthread
-)
 
 # === Testing framework
 if (ENABLE_TESTS)
