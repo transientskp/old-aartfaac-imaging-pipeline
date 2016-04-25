@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
   app.setApplicationVersion(VERSION);
   app.setOrganizationName("Anton Pannekoek Institute");
   app.setOrganizationDomain("http://www.aartfaac.org");
-  std::cout << HUMAN_NAME << std::endl;
+  qDebug(HUMAN_NAME);
 
   try
   {

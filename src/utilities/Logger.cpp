@@ -1,13 +1,5 @@
 #include "Logger.h"
 
-#ifdef ENABLE_SYSLOG
-#include <syslog.h>
-#else
-#define syslog(a,b,c)
-#define openlog(a,b,c)
-#define closelog()
-#endif
-
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -20,67 +12,54 @@ QString Logger::sName;
 void Logger::open(const QString &inName)
 {
   sName = inName;
-  openlog(qPrintable(inName), LOG_PID | LOG_NDELAY, LOG_LOCAL0);
-  syslog(LOG_INFO, "Program started by User %d", getuid ());
 }
 
 void Logger::close()
 {
-  closelog();
 }
 
 void Logger::messageHandler(QtMsgType inType, const char *inMsg)
 {
   QString msg(inMsg);
   __pid_t pid = getpid();
-  msg = "[" + sName + "-" + QString::number(pid) + "] " + msg;
+  msg = QDateTime::currentDateTimeUtc().toString("yyyy-MM-dd hh:mm:ss") + " " + QString::number(pid) + "] " + inMsg;
 
   switch (inType)
   {
   case QtDebugMsg:
     {
-      syslog(LOG_INFO, "[INFO] %s", inMsg);
-
       if (shouldUseColor())
         std::cout << qPrintable(colorize(msg, GREEN)) << std::endl;
       else
-        std::cout << "[INFO] " << qPrintable(msg) << std::endl;
+        std::cout << "II " << qPrintable(msg) << std::endl;
 
       break;
     }
   case QtWarningMsg:
     {
-      syslog(LOG_WARNING, "[WARNING] %s", inMsg);
-
       if (shouldUseColor())
         std::cout << qPrintable(colorize(msg, YELLOW)) << std::endl;
       else
-        std::cout << "[WARNING] " << qPrintable(msg) << std::endl;
+        std::cout << "WW " << qPrintable(msg) << std::endl;
 
       break;
     }
   case QtCriticalMsg:
     {
-      syslog(LOG_CRIT, "[CRITICAL] %s", inMsg);
-
       if (shouldUseColor())
         std::cerr << qPrintable(colorize(msg, RED)) << std::endl;
       else
-        std::cerr << "[CRITICAL] " << qPrintable(msg) << std::endl;
+        std::cerr << "EE " << qPrintable(msg) << std::endl;
 
       break;
     }
   case QtFatalMsg:
     {
-      syslog(LOG_EMERG, "[FATAL] %s", inMsg);
-
       if (shouldUseColor())
         std::cerr << qPrintable(colorize(msg, RED)) << std::endl;
       else
-        std::cerr << "[FATAL] " << qPrintable(msg) << std::endl;
-
+        std::cerr << "FF " << qPrintable(msg) << std::endl;
       exit(EXIT_FAILURE);
-      break;
     }
   }
 }
