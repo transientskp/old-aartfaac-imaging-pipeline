@@ -45,11 +45,8 @@ StreamChunker::~StreamChunker()
 
 QIODevice *StreamChunker::newDevice()
 {
-  if (mServer != 0)
-  {
-    mServer->close();
-    delete mServer;
-  }
+  if (mServer)
+    return mServer->nextPendingConnection();
 
   mServer = new QTcpServer();
   mServer->listen(QHostAddress::Any, port());
