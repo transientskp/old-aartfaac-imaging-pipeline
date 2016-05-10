@@ -160,6 +160,10 @@ void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
     s += i + 1;
   }
 
+  // clear NaN values
+  output->mCleanData[pol] =
+      (output->mCleanData[pol].array().isFinite()).select(output->mCleanData[pol], complex<float>(0.0f, 0.0f));
+
   // Flag on antenna/dipole level, from xml file
   if (!mFlaggedAnts.empty())
   {
@@ -172,12 +176,21 @@ void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
     }
   }
 
-  // clear NaN values
-  output->mCleanData[pol] =
-      (output->mCleanData[pol].array().isFinite()).select(output->mCleanData[pol], complex<float>(0.0f, 0.0f));
-
-  // Flag antennas using sigma clipping
+  // Create "dipoles" by computing the absolute mean of the visibilities
   mAntennas = output->mCleanData[pol].array().abs().colwise().mean();
+  for (int a = 0; a < mAntennas.size(); a++)
+  {
+    if (mAntennas(a) <= 1e-5f && 
+        std::find(output->mFlagged[pol].begin(), output->mFlagged[pol].end(), a)
+        == output->mFlagged[pol].end())
+    {
+      output->mMasks[pol].col(a).setOnes();
+      output->mMasks[pol].row(a).setOnes();
+      output->mFlagged[pol].push_back(a);
+    }
+  }
+
+  // Sigma clip the remaining dipoles
   mAntTmp = mAntennas;
   float mean = mAntennas.mean();
   float std = sqrtf((1.0f / mAntennas.size()) *
