@@ -162,7 +162,7 @@ void Flagger::run(const int pol, const StreamBlob *input, StreamBlob *output)
 
   // clear NaN values
   output->mCleanData[pol] =
-      (output->mCleanData[pol].array().isFinite()).select(output->mCleanData[pol], complex<float>(0.0f, 0.0f));
+      (output->mCleanData[pol].array() != output->mCleanData[pol].array()).select(output->mCleanData[pol], complex<float>(0.0f, 0.0f));
 
   // Flag on antenna/dipole level, from xml file
   if (!mFlaggedAnts.empty())
